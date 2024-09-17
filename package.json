@@ -1,0 +1,41 @@
+{
+  "name": "aepsdk-kepler",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "integration"
+  ],
+  "scripts": {
+    "build_all": "npx lerna run build",
+    "unit_test": "npx lerna run test",
+    "integration_test": "cd integration && npx jest",
+    "archive_all": "rm -rf ./out; mkdir out; npx lerna run archive"
+  },
+  "devDependencies": {
+    "@amzn/react-native-kepler": "~2.0.0",
+    "@babel/core": "^7.20.0",
+    "@babel/runtime": "^7.20.0",
+    "@babel/traverse": "7.22.8",
+    "@react-native-community/cli": "11.3.2",
+    "@react-native/eslint-config": "0.72.2",
+    "@react-native/metro-config": "^0.72.6",
+    "@testing-library/react-native": "^7.2.0",
+    "@types/jest": "^28.0.0",
+    "@types/react": "^18.0.24",
+    "@types/react-test-renderer": "^18.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.30.0",
+    "babel-jest": "^28.0.0",
+    "eslint": "^8.12.0",
+    "jest": "^28.0.0",
+    "lerna": "^8.0.0",
+    "metro-react-native-babel-preset": "^0.76.5",
+    "mustache": "^4.2.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.6.2",
+    "react-test-renderer": "18.2.0",
+    "ts-jest": "^28.0.0",
+    "typescript": "4.8.4"
+  }
+}

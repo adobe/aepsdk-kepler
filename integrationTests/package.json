@@ -1,0 +1,32 @@
+{
+  "name": "integration-tests",
+  "version": "1.0.0",
+  "description": "Adobe Experience Platform support for kepler apps.",
+  "homepage": "https://developer.adobe.com/client-sdks/documentation/",
+  "license": "Apache-2.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "scripts": {
+    "test": "npx jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aepsdk-kepler",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "kepler",
+    "adobe",
+    "adobe experience platform",
+    "core"
+  ],
+  "devDependencies": {
+    "@adobe/kepler-apecore": "^1.0.0"
+  },
+  "author": {
+    "name": "Adobe Experience Platform SDK Team"
+  },
+  "installConfig": {
+    "hoistingLimits": "dependencies"
+  }
+}

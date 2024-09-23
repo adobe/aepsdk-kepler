@@ -1,27 +1,26 @@
-
 /**
  * A simple queue implementation.
  */
 export class Queue<T> {
-    private items: T[] = [];
+  private items: T[] = [];
 
-    enqueue(item: T): void {
-        this.items.push(item);
-    }
+  enqueue(item: T): void {
+    this.items.push(item);
+  }
 
-    dequeue(): T | undefined {
-        return this.items.shift();
-    }
+  dequeue(): T | undefined {
+    return this.items.shift();
+  }
 
-    peek(): T | undefined {
-        return this.items[0];
-    }
+  peek(): T | undefined {
+    return this.items[0];
+  }
 
-    isEmpty(): boolean {
-        return this.items.length === 0;
-    }
+  isEmpty(): boolean {
+    return this.items.length === 0;
+  }
 
-    size(): number {
-        return this.items.length;
-    }
+  size(): number {
+    return this.items.length;
+  }
 }

@@ -1,3 +1,3 @@
 export function runAsync(f: Function): void {
-    Promise.resolve().then(() => f());
+  Promise.resolve().then(() => f());
 }

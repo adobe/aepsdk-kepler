@@ -7,7 +7,7 @@ export class EventhubImpl implements EventHub {
   private isStarted: boolean = false;
   private listeners: Map<string, EventListener[]> = new Map();
   private eventQueue: Event[] = [];
-  private processoers: EventProcessor[] = [];
+  private processors: EventProcessor[] = [];
   private currentEventId: number = 1;
 
   start(): void {
@@ -17,7 +17,7 @@ export class EventhubImpl implements EventHub {
   }
 
   registerEventProcessor(processor: EventProcessor): void {
-    this.processoers.push(processor);
+    this.processors.push(processor);
   }
 
   on(eventType: string, EventSource: string, listener: EventListener): string {
@@ -55,7 +55,7 @@ export class EventhubImpl implements EventHub {
   }
 
   private processEvent(event: Event): Event {
-    this.processoers.forEach((processor) => (event = processor(event)));
+    this.processors.forEach((processor) => (event = processor(event)));
     return event;
   }
 

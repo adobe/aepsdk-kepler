@@ -1,14 +1,14 @@
 import { uuid } from "../utils/UUID";
 
 export class Event {
-  private uuid: string = uuid();
+  private uui: string = uuid();
   // incrementally increasing id number, "-1" stands for the unprocessed event
   private internalId: number = -1;
 
   constructor(public type: string, public source: string, public data: Map<string, any> | null) {}
 
   getUUID(): string {
-    return this.uuid;
+    return this.uui;
   }
 
   get id(): number {

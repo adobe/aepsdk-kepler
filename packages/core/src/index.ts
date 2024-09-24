@@ -5,7 +5,7 @@ import { EventProcessor, Event } from "./core/eventhub";
 import { serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
 import { configuration } from "./configuration";
-import { edge } from "./edge";
+import { edge } from "./edge/Edge";
 import { registerPlatformService } from "./platform-kepler";
 
 export interface SDKParams {
@@ -19,7 +19,7 @@ export interface SDKParams {
 export const AEPSDK = {
   version: "1.0.0",
 
-  start(params?: SDKParams): void {
+  start(prams?: SDKParams): void {
     registerPlatformService();
 
     var eventHub = new EventhubImpl();
@@ -46,7 +46,7 @@ export const AEPSDK = {
     // });
 
     eventHub.start();
-    let config = params?.config;
+    let config = prams?.config;
     if (config) {
       // NOTE: this is an example of how to call extension APIs
       // getConfiguration("non_default_tennant").updateConfiguration(config);

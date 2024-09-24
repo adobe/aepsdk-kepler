@@ -1,5 +1,6 @@
 import { Event, EventType, EventSource } from "../../core/eventhub";
-import { DispatchFn } from "../../core/extension";
+
+type DispatchFn = (event: Event) => void;
 
 export enum ConsentValue {
     YES = 'y',

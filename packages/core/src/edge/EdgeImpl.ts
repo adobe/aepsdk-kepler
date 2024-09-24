@@ -1,9 +1,11 @@
 import { Edge } from ".";
 import { Event, EventType, EventSource } from "../core/eventhub";
-import { Extension, ExtensionContainer, DispatchFn } from "../core/extension";
+import { Extension, ExtensionContainer } from "../core/extension";
 import { DataStore, ServiceLookup } from "../core/services";
 import { ConsentManager } from "./consent/ConsentManager";
 import { IdentityManager } from "./identity/IdentityManager";
+
+type DispatchFn = (event: Event) => void;
 
 // Implementation
 export class EdgeImpl implements Edge {

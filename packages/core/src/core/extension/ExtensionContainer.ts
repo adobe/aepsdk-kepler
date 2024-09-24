@@ -1,6 +1,8 @@
 import { EventListener, Event } from "../eventhub";
 import { SharedStateResult } from "../sharedstate";
 
+export type DispatchFn = (event: Event) => void;
+
 export interface ExtensionContainer {
   registerEventListener(eventType: string, eventSource: string, listener: EventListener): string;
 

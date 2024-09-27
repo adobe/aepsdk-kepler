@@ -9,7 +9,8 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Event, _cloneEventData } from "../../../src/core/eventhub";
+import { Event } from "../../../src/core/eventhub";
+import { _cloneEventData } from "../../../src/core/eventhub/Event";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 describe('test Event class', () => {
 

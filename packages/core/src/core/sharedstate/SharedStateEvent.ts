@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Event, EventType, EventSource } from "./";
+import { Event, EventType, EventSource } from "../eventhub";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 export function buildSharedStateEvent(extensionName: string, state: Map<string, any>): Event {

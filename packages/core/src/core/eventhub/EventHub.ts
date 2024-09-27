@@ -11,41 +11,38 @@ governing permissions and limitations under the License.
 */
 import { Event } from ".";
 
+/**
+ * Invoked when the specified event is dispatched.
+ *
+ * @param event  The event that is dispatched
+ */
 export type EventListener = (event: Event) => void;
 
+/**
+ * Processes the event before dispatching to the listeners
+ *
+ * @param event  The event to be processed
+ * @returns The processed event
+ */
 export type EventProcessor = (event: Event) => Event;
 
 export interface EventHub {
   /**
-   * The version of the event hub
-   */
-  version: string;
-
-  /**
-   * Listen an event
+   * Observes events of particular type and source and notifies observers
    *
    * @param eventType    The type of event
-   * @param EventSource  The source of the event
-   * @param listener     The listener to be called when the event is emitted
-   * @returns            The id of the listener
+   * @param eventSource  The source of the event
+   * @param listener     The listener to be called when the event is dispatched
    */
-  on(eventType: string, EventSource: string, listener: EventListener): string;
+  on(eventType: string, eventSource: string, listener: EventListener): void;
 
   /**
-   * Emit an event
+   * Dispatch an event
    *
-   * @param event  The event to be emitted
+   * @param event  The event to be dispatched
    *
    */
   dispatchEvent(event: Event): void;
-
-  /**
-   * Emit an event and await the related response event.
-   *
-   * @param event  The event to be emitted
-   * @returns      The response event
-   */
-  dispatchEventWithResponseHandling(event: Event): Promise<Event>;
 
   /**
    * Start the event hub.
@@ -56,6 +53,4 @@ export interface EventHub {
    * Register an event processor. All events will be processed by the processor before sending to the listeners.
    */
   registerEventProcessor(processor: EventProcessor): void;
-
-  // TODO: Think about adding more methods to the interface, such as unregisterListener(), Stop(), Shutdown(), etc.
 }

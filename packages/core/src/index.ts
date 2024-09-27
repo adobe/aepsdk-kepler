@@ -1,7 +1,6 @@
 import { SharedStateManager } from "./core/sharedstate/SharedStateManager";
 import { Extension, ExtensionContainerImpl } from "./core/extension";
-import { EventhubImpl } from "./core/eventhub/EventhubImpl";
-import { EventProcessor, Event } from "./core/eventhub";
+import { EventProcessor, Event, createEventHub } from "./core/eventhub";
 import { serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
 import { configuration } from "./configuration";
@@ -22,7 +21,7 @@ export const AEPSDK = {
   start(prams?: SDKParams): void {
     registerPlatformService();
 
-    var eventHub = new EventhubImpl();
+    var eventHub = createEventHub();
     var sharedStateManager = new SharedStateManager();
     var processor: EventProcessor = (event: Event) => {
       // add rules evaluation here

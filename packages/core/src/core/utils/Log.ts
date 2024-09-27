@@ -1,6 +1,8 @@
 export const Log = {
   // TODO: This utility should be used by the SDK to log messages.
   // We will implement a platform specific log service later, then we need to update the implementation of this utility.
+
+  // TODO: add a tag parameter to the log methods to identify the source of the log message. E.g. debug:(tag: string, message: string)
   debug: (message: string) => {
     var date = new Date();
     console.debug(`${date.toUTCString()} ${date.getMilliseconds()}[AEPSDK][D] ${message}`);

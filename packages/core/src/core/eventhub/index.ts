@@ -9,12 +9,13 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-export { Event, _cloneEventData } from "./Event";
+import { EventHub } from "./EventHub";
+import { EventHubImpl } from "./EventHubImpl";
+
+export { Event } from "./Event";
 export type { EventHub, EventListener, EventProcessor } from "./EventHub";
 export { EventType } from "./EventType";
 export { EventSource } from "./EventSource";
-export {
-  buildSharedStateEvent,
-  buildPendingSharedStateEvent,
-  extractSharedState,
-} from "./SharedStateEvent";
+export function createEventHub(): EventHub {
+  return new EventHubImpl();
+}

@@ -9,3 +9,8 @@ export type SharedStateResult = {
 };
 
 export type { SharedStateManager } from "./SharedStateManager";
+export {
+  buildSharedStateEvent,
+  buildPendingSharedStateEvent,
+  extractSharedState,
+} from "./SharedStateEvent";

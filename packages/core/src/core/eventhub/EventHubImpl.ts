@@ -12,6 +12,9 @@ governing permissions and limitations under the License.
 import { Log } from "../utils/Log";
 import { EventHub, EventListener, EventProcessor, Event } from ".";
 
+const LOG_TAG = "EventHubImpl";
+const LOG_EXTENSION = "Core";
+
 export class EventHubImpl implements EventHub {
   private isStarted: boolean = false;
   private listeners: Map<string, EventListener[]> = new Map();
@@ -43,12 +46,12 @@ export class EventHubImpl implements EventHub {
     event.id = this.currentEventId++;
 
     if (!this.isStarted) {
-      Log.debug(`EventHub is not yet started, event is queued: ${event}`);
+      Log.debug(LOG_EXTENSION, LOG_TAG, `EventHub is not yet started, event is queued: ${event}`);
       this.eventQueue.push(event);
       return;
     }
 
-    Log.debug(`Event is dispatched: ${event}`);
+    Log.debug(LOG_EXTENSION, LOG_TAG, `Event is dispatched: ${event}`);
     const processedEvent = this.processEvent(event);
 
     const key = this.generateListenerKey(processedEvent.type, processedEvent.source);
@@ -68,7 +71,7 @@ export class EventHubImpl implements EventHub {
       try {
         event = process(event);
       } catch (e) {
-        Log.error(`Error processing event: ${event}, error: ${e}`);
+        Log.error(LOG_EXTENSION, LOG_TAG, `Error processing event: ${event}, error: ${e}`);
       }
     });
     return event;

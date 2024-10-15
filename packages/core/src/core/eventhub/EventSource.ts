@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-export const EventSource = Object.freeze({
+export const EventSource = {
   NONE: "com.adobe.eventSource.none",
   OS: "com.adobe.eventSource.os",
   REQUEST_CONTENT: "com.adobe.eventSource.requestContent",
@@ -30,4 +30,4 @@ export const EventSource = Object.freeze({
   CREATE_TRACKER: "com.adobe.eventSource.createTracker",
   TRACK_MEDIA: "com.adobe.eventSource.trackMedia",
   CONTENT_COMPLETE: "com.adobe.eventSource.contentComplete",
-});
+} as const;

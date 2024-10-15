@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-export const EventType = Object.freeze({
+export const EventType = {
   CONFIGURATION: "com.adobe.eventType.configuration",
   CONSENT: "com.adobe.eventType.edgeConsent",
   EDGE: "com.adobe.eventType.edge",
@@ -18,4 +18,4 @@ export const EventType = Object.freeze({
   HUB: "com.adobe.eventType.hub",
   RULES_ENGINE: "com.adobe.eventType.rulesEngine",
   WILDCARD: "com.adobe.eventType._wildcard_",
-});
+} as const;

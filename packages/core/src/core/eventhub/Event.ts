@@ -12,6 +12,8 @@ governing permissions and limitations under the License.
 import { uuid } from "../utils/uuid";
 import { Log } from "../utils/Log";
 
+const LOG_TAG = "Event";
+const LOG_EXTENSION = "Core";
 /**
  * Event class is the basic building block of the EventHub. It is used to represent an event that is being sent or received.
  */
@@ -128,12 +130,12 @@ export class Event {
 
   toString(): string {
     const data: Map<any, any> = this._data || new Map();
-    const tsString = this._timestamp.toTimeString()
+    const tsString = this._timestamp.toTimeString();
     let dataString = "unknown format";
     try {
       dataString = JSON.stringify(Array.from(data.entries()));
     } catch (e) {
-      Log.error(`Event.toString() failed to stringify data. Error: ${e}`);
+      Log.error(LOG_EXTENSION, LOG_TAG, `Event.toString() failed to stringify data. Error: ${e}`);
     }
 
     return `

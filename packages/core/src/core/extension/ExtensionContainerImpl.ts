@@ -1,13 +1,20 @@
+/*
+Copyright 2024 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
 import { ExtensionContainer, SharedStateResolver } from ".";
-import {
-  EventHub,
-  EventListener,
-  Event,
-  buildSharedStateEvent,
-  buildPendingSharedStateEvent,
-} from "../eventhub";
+import { EventHub, EventListener, Event } from "../eventhub";
+import { buildSharedStateEvent } from "../sharedstate";
 import { SharedStateStatus, SharedStateResult, SharedStateManager } from "../sharedstate";
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export class ExtensionContainerImpl implements ExtensionContainer {
   constructor(
     private eventHub: EventHub,
@@ -15,33 +22,32 @@ export class ExtensionContainerImpl implements ExtensionContainer {
     private sharedStateManager: SharedStateManager
   ) {}
 
-  registerEventListener(eventType: string, EventSource: string, listener: EventListener): string {
-    return this.eventHub.on(eventType, EventSource, listener);
+  registerEventListener(eventType: string, EventSource: string, listener: EventListener): void {
+    this.eventHub.on(eventType, EventSource, listener);
   }
 
   createXDMSharedState(state: Map<string, any>, event: Event | null): void {
-    let version = event ? event.id : 0;
+    const version = event ? event.id : 0;
     this.sharedStateManager.updateSharedState(
       this.extensionName,
       version,
       state,
       SharedStateStatus.SET
     );
-    let sharedStateEvent = buildSharedStateEvent(this.extensionName, state);
+    const sharedStateEvent = buildSharedStateEvent(this.extensionName);
     this.eventHub.dispatchEvent(sharedStateEvent);
   }
 
   createPendingXDMSharedState(event: Event | null): Promise<SharedStateResolver> {
-    let version = event ? event.id : 0;
+    const version = event ? event.id : 0;
     this.sharedStateManager.updateSharedState(
       this.extensionName,
       version,
       new Map(),
       SharedStateStatus.PENDING
     );
-    let sharedStateEvent = buildPendingSharedStateEvent(this.extensionName, new Map());
-    this.eventHub.dispatchEvent(sharedStateEvent);
-    return new Promise((resolve, reject) => {
+
+    return new Promise((resolve) => {
       resolve((state: Map<string, any> | null) => {
         if (state) {
           this.sharedStateManager.updateSharedState(
@@ -50,11 +56,11 @@ export class ExtensionContainerImpl implements ExtensionContainer {
             state,
             SharedStateStatus.SET
           );
-          let sharedStateEvent = buildSharedStateEvent(this.extensionName, state);
+          const sharedStateEvent = buildSharedStateEvent(this.extensionName);
           this.eventHub.dispatchEvent(sharedStateEvent);
         } else {
           this.sharedStateManager.removeSharedState(this.extensionName, version);
-          let sharedStateEvent = buildSharedStateEvent(this.extensionName, new Map());
+          const sharedStateEvent = buildSharedStateEvent(this.extensionName);
           this.eventHub.dispatchEvent(sharedStateEvent);
         }
       });

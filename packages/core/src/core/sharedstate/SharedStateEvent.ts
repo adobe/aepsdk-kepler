@@ -10,37 +10,19 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event, EventType, EventSource } from "../eventhub";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { SharedStateEventConstants as CONST } from "./Constants";
 
-export function buildSharedStateEvent(extensionName: string, state: Map<string, any>): Event {
-  //TODO: update the event name
+/**
+ * Builds a shared state event with the given extension name.
+ *
+ * @param extensionName The name of the extension
+ * @returns The shared state event
+ */
+export function buildSharedStateEvent(extensionName: string): Event {
   return new Event(
-    "sharedstate",
+    CONST.NAME_SHARED_STATE,
     EventType.HUB,
     EventSource.SHARED_STATE,
-    new Map([["stateowner", extensionName]])
+    new Map([[CONST.KEY_SHARED_STATE_OWNER, extensionName]])
   );
-}
-
-export function buildPendingSharedStateEvent(
-  extensionName: string,
-  state: Map<string, any>
-): Event {
-  //TODO: update the event name
-  return new Event(
-    "penddingstate",
-    EventType.HUB,
-    EventSource.SHARED_STATE,
-    new Map([
-      ["stateowner", extensionName],
-      ["status", "PENDING"],
-    ])
-  );
-}
-
-export function extractSharedState(event: Event): Map<string, any> | null {
-  if (event.source === EventSource.SHARED_STATE && event.type === EventType.HUB) {
-    return event.data;
-  }
-  return null;
 }

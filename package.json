@@ -8,9 +8,9 @@
     "integration"
   ],
   "scripts": {
-    "fix-format":"npx prettier ./packages/**/src/**/**.ts --write --config ./.prettierrc.json",
-    "format":"npx prettier ./packages/**/src/**/**.ts --check --config ./.prettierrc.json",
-    "lint":"npx eslint ./packages/**/src/**/**.ts",
+    "fix-format": "npx prettier ./packages/**/src/**/**.ts --write --config ./.prettierrc.json",
+    "format": "npx prettier ./packages/**/src/**/**.ts --check --config ./.prettierrc.json",
+    "lint": "npx eslint ./packages/**/src/**/**.ts",
     "build_all": "npx lerna run build",
     "unit_test": "npx lerna run test",
     "integration_test": "cd integration && npx jest",
@@ -41,7 +41,7 @@
     "prettier": "^2.6.2",
     "react-test-renderer": "18.2.0",
     "ts-jest": "^28.0.0",
-    "typescript-eslint": "^8.6.0",
-    "typescript": "4.8.4"
+    "typescript": "4.8.4",
+    "typescript-eslint": "^8.6.0"
   }
 }

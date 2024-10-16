@@ -10,8 +10,7 @@ module.exports = {
     "modulePaths": ["<rootDir>/src"],
     "roots": [
         "<rootDir>/src/",
-        "<rootDir>/tests/",
-        "<rootDir>/node_modules/"
+        "<rootDir>/tests/"
     ],
     "collectCoverage": false,
     "coverageReporters": ["json", "json-summary", "lcov", "text"],

@@ -9,16 +9,34 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Extension } from "../core/extension";
-import { EdgeImpl } from "./EdgeImpl";
+export const EdgeConstants = {
+    EXTENSION_NAME: 'com.adobe.mobile.marketing.edge',
+    FRIENDLY_NAME: 'Edge',
+    EXTENSION_VERSION: '1.0.0',
 
-// Interface
-export interface Edge extends Extension {
-  // public APIs
-  // sendEvent(xdm: Map<string, object>, data: Map<string, object>): void;
-  // sendEventWithPromise(xdm: Map<string, object>, data: Map<string, object>): Promise<any>;
-  // getECID(): string | null;
-  //setConsent(consent: Map<string, object>): void;
-}
+    LOG_SOURCE: 'Edge',
 
-export const edge: Edge = new EdgeImpl();
+    DataStoreKey: {
+        ECID: 'ecid'
+    },
+
+    IdentityMap: {
+        NameSpace :{
+            ECID: 'ECID'
+        }
+    },
+
+    SharedState: {
+        STATE_OWNER: 'stateowner',
+
+        Edge: {
+            STATE_OWNER_NAME: 'com.adobe.edge',
+        }
+    },
+
+    XDMKeys: {
+        IDENTITY_MAP: 'identityMap',
+    }
+
+
+} as const;

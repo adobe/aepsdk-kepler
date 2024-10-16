@@ -108,6 +108,6 @@ export class IdentityManager {
      */
     _getECIDFromPersistence(): Promise<string | null> {
         Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_getECIDFromPersistence() -  Loading ECID from persistence.`);
-        return this.dataStore.loadDate(this.ECID_KEY);
+        return this.dataStore.loadData(this.ECID_KEY);
     }
 }

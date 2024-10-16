@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface DataStore {
-  loadDate(key: string): Promise<any>;
+  loadData(key: string): Promise<any>;
   saveData(key: string, data: any): void;
 }
 
@@ -20,7 +20,7 @@ export interface DataStore {
 class DefaultDataStore implements DataStore {
   private data: Map<string, any> = new Map();
 
-  loadDate(key: string): Promise<any> {
+  loadData(key: string): Promise<any> {
     return new Promise((resolve) => {
       resolve(this.data.get(key));
     });

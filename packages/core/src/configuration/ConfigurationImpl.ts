@@ -14,13 +14,15 @@ import { Event, EventType, EventSource } from "../core/eventhub";
 import { Extension, ExtensionContainer } from "../core/extension";
 import { Log } from "../core/utils/Log";
 import { ServiceLookup } from "../core/services";
-import { UPDATE_CONFIRGURATION } from "./Constants";
+import { ConfigurationConstants } from "./ConfigurationConstants";
 
-const LOG_EXTENSION = "Configuration";
+
+const EXTENSION_NAME = ConfigurationConstants.EXTENSION_NAME;
+const EXTENSION_VERSION = ConfigurationConstants.EXTENSION_VERSION;
+const EVENT = ConfigurationConstants.Event;
+
+const LOG_EXTENSION = EXTENSION_NAME;
 const LOG_TAG = "ConfigurationImpl";
-
-const EXTENSION_NAME = "com.adobe.marketing.configuration";
-const EXTENSION_VERSION = "1.0.0";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Implementation
@@ -45,10 +47,10 @@ export class ConfigurationImpl implements Configuration, Extension {
       return;
     }
     const data = new Map<string, any>();
-    data.set(UPDATE_CONFIRGURATION.DATA_KEY, configuration);
+    data.set(EVENT.Data.Key.CONFIGURATION_UPDATE, configuration);
     this.container?.dispatch(
       new Event(
-        UPDATE_CONFIRGURATION.EVENT_NAME,
+        EVENT.Name.CONFIGURATION_UPDATE,
         EventType.CONFIGURATION,
         EventSource.REQUEST_CONTENT,
         data
@@ -66,7 +68,7 @@ export class ConfigurationImpl implements Configuration, Extension {
       EventType.CONFIGURATION,
       EventSource.REQUEST_CONTENT,
       (event) => {
-        const configMap = event.data?.get(UPDATE_CONFIRGURATION.DATA_KEY);
+        const configMap = event.data?.get(EVENT.Data.Key.CONFIGURATION_UPDATE);
         if (!configMap) {
           Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is missing.");
           return;

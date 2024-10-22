@@ -10,8 +10,19 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-// Constants
-export const UPDATE_CONFIRGURATION = {
-  DATA_KEY: "config.update",
-  EVENT_NAME: "Configuration Update",
-};
+export const ConfigurationConstants = {
+  EXTENSION_NAME: 'com.adobe.marketing.configuration',
+  FRIENDLY_NAME: 'Configuration',
+  EXTENSION_VERSION: '1.0.0',
+
+  Event: {
+    Data: {
+      Key: {
+        CONFIGURATION_UPDATE: "config.update"
+      },
+    },
+    Name: {
+      CONFIGURATION_UPDATE: "Configuration Update"
+    }
+  }
+} as const;

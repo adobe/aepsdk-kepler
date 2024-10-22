@@ -1,3 +1,14 @@
+/*
+Copyright 2024 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
+
 import { IdentityManager } from '../../../src/edge/identity/IdentityManager';
 import { DataStore } from '../../../src/core/services/DataStore';
 import { EdgeConstants } from '../../../src/edge/EdgeConstants';
@@ -12,7 +23,7 @@ describe('IdentityManager tests', () => {
         // Create a mocked instance of DataStore
         mockDataStore = {
             saveData: jest.fn(),
-            loadDate: jest.fn(),
+            loadData: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 
@@ -34,16 +45,16 @@ describe('IdentityManager tests', () => {
     });
 
     test('getECID returns persisted ECID when not set in memory', async () => {
-        mockDataStore.loadDate.mockResolvedValue('persistedECID');
+        mockDataStore.loadData.mockResolvedValue('persistedECID');
         const identityManager = new IdentityManager(mockDataStore);
 
         const ecid = await identityManager.getECID();
         expect(ecid).toBe('persistedECID');
-        expect(mockDataStore.loadDate).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
+        expect(mockDataStore.loadData).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
     });
 
     test('getECID returns null when ECID is not set or persisted', async () => {
-        mockDataStore.loadDate.mockResolvedValue(null);
+        mockDataStore.loadData.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore);
 
         const ecid = await identityManager.getECID();
@@ -59,7 +70,7 @@ describe('IdentityManager tests', () => {
     });
 
     test('getIdentityMap returns null when ECID is not set', async () => {
-        mockDataStore.loadDate.mockResolvedValue(null);
+        mockDataStore.loadData.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore);
 
         const identityMap = await identityManager.getIdentityMap();

@@ -8,7 +8,7 @@
     "integration"
   ],
   "scripts": {
-    "fix-format": "npx prettier ./packages/**/src/**/**.ts --write --config ./.prettierrc.json",
+    "fix_format": "npx prettier ./packages/**/src/**/**.ts --write --config ./.prettierrc.json",
     "format": "npx prettier ./packages/**/src/**/**.ts --check --config ./.prettierrc.json",
     "lint": "npx eslint ./packages/**/src/**/**.ts",
     "build_all": "npx lerna run build",

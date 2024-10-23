@@ -97,3 +97,11 @@ function _start(params?: SDKParams): void {
 }
 
 export { edge };
+
+export {
+  HttpMethod,
+  asyncRequest,
+  type NetworkRequest,
+  type BodyType,
+  type HttpConnection,
+} from "./core/utils/networking";

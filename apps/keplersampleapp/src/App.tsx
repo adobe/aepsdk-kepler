@@ -7,7 +7,8 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
 import {Link} from './components/Link';
-import {test} from '@adobe/kepler-apemedia'
+import {test} from '@adobe/kepler-aepmedia';
+import {HttpMethod, asyncRequest, NetworkRequest, BodyType, HttpConnection} from '@adobe/kepler-aepcore';
 
 const images = {
   kepler: require('./assets/kepler.png'),
@@ -39,6 +40,15 @@ export const App = () => {
               setImage(images.learn);
               console.log('[DDDDDDDD]Learn link pressed');
               test();
+              asyncRequest({
+                url: 'https://www.adobe.com',
+                method: HttpMethod.GET,
+                timeout:5000,
+              }).then((response) => {
+                console.log('[DDDDDDDD]x:', response);
+              }).catch((e) => {
+              });
+              
               // AsyncStorage.setItem('learn', 'Learn link pressed');
             }}
             testID="sampleLink"

@@ -5,15 +5,15 @@ __metadata:
   version: 7
   cacheKey: 9
 
-"@adobe/kepler-apecore@workspace:packages/core":
+"@adobe/kepler-aepcore@npm:^1.0.0, @adobe/kepler-aepcore@workspace:packages/core":
   version: 0.0.0-use.local
-  resolution: "@adobe/kepler-apecore@workspace:packages/core"
+  resolution: "@adobe/kepler-aepcore@workspace:packages/core"
   languageName: unknown
   linkType: soft
 
-"@adobe/kepler-apemedia@npm:^1.0.0, @adobe/kepler-apemedia@workspace:packages/media":
+"@adobe/kepler-aepmedia@npm:^1.0.0, @adobe/kepler-aepmedia@workspace:packages/media":
   version: 0.0.0-use.local
-  resolution: "@adobe/kepler-apemedia@workspace:packages/media"
+  resolution: "@adobe/kepler-aepmedia@workspace:packages/media"
   languageName: unknown
   linkType: soft
 
@@ -45,7 +45,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@amzn/keplersampleapp@workspace:apps/keplersampleapp"
   dependencies:
-    "@adobe/kepler-apemedia": "npm:^1.0.0"
+    "@adobe/kepler-aepcore": "npm:^1.0.0"
+    "@adobe/kepler-aepmedia": "npm:^1.0.0"
     "@amzn/kepler-cli-platform": "npm:^0"
     "@amzn/react-native-kepler": "npm:~2.0.0"
     "@react-native-community/cli": "npm:11.3.2"

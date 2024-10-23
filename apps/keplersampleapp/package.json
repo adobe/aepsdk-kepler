@@ -23,7 +23,8 @@
     "release": "npm-run-all lint test build build:app"
   },
   "dependencies": {
-    "@adobe/kepler-apemedia": "^1.0.0",
+    "@adobe/kepler-aepcore": "^1.0.0",
+    "@adobe/kepler-aepmedia": "^1.0.0",
     "@amzn/react-native-kepler": "~2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0"

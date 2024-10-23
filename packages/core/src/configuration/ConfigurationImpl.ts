@@ -16,7 +16,6 @@ import { Log } from "../core/utils/Log";
 import { ServiceLookup } from "../core/services";
 import { ConfigurationConstants } from "./ConfigurationConstants";
 
-
 const EXTENSION_NAME = ConfigurationConstants.EXTENSION_NAME;
 const EXTENSION_VERSION = ConfigurationConstants.EXTENSION_VERSION;
 const EVENT = ConfigurationConstants.Event;

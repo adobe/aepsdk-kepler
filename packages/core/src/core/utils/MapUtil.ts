@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { CoreConstants } from "../CoreConstants";
 import { Log } from "./Log";
 
-const LOG_TAG = "MapUtil"
+const LOG_TAG = "MapUtil";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 /**
@@ -21,7 +21,7 @@ const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
  * @returns true if the map is null or empty, false otherwise
  */
 const isNullOrEmptyMap = (map: Map<string, any> | null | undefined): boolean => {
-    return map === undefined || map === null || map.size === 0;
+  return map === undefined || map === null || map.size === 0;
 };
 
 /**
@@ -30,8 +30,8 @@ const isNullOrEmptyMap = (map: Map<string, any> | null | undefined): boolean => 
  * @returns a Map representation of the object
  */
 const getAsMap = (obj: Record<string, any>): Map<string, any> | null => {
-    const result = convertToMap(obj);
-    return result instanceof Map ? result: null;
+  const result = convertToMap(obj);
+  return result instanceof Map ? result : null;
 };
 
 /**
@@ -42,19 +42,23 @@ const getAsMap = (obj: Record<string, any>): Map<string, any> | null => {
  * @returns a Map representation of the object's key
  * @returns the fallback value if the key is not found
  */
-const optMap = (obj: Record<string, any>, key: string, fallback: Map<string, any> | null = new Map()): Map<string, any> | null => {
-    if (typeof obj === null && typeof obj !== 'object' ) {
-        return fallback;
-    }
+const optMap = (
+  obj: Record<string, any>,
+  key: string,
+  fallback: Map<string, any> | null = new Map()
+): Map<string, any> | null => {
+  if (typeof obj === null && typeof obj !== "object") {
+    return fallback;
+  }
 
-    var input = getAsMap(obj);
+  var input = getAsMap(obj);
 
-    const result = input?.get(key);
-    if (result === undefined || result === null ||  !(result instanceof Map)) {
-        return fallback;
-    }
+  const result = input?.get(key);
+  if (result === undefined || result === null || !(result instanceof Map)) {
+    return fallback;
+  }
 
-    return result;
+  return result;
 };
 
 /**
@@ -65,45 +69,41 @@ const optMap = (obj: Record<string, any>, key: string, fallback: Map<string, any
  * @returns the object as is if it's not convertible to a Map
  */
 const convertToMap = (input: any): Map<string, any> | null => {
-    try {
-        // TODO: Handle circular references to avoid infinite loops
-        if (input === null || input === undefined || input instanceof Function) {
-            return null;
+  try {
+    // TODO: Handle circular references to avoid infinite loops
+    if (input === null || input === undefined || input instanceof Function) {
+      return null;
+    } else if (typeof input !== "object" || !isMapCompatible(input)) {
+      return input;
+    } else if (input instanceof Map) {
+      // If the input is already a Map, return it, but recursively process its entries
+      const resultMap = new Map();
+      for (const [key, value] of input.entries()) {
+        if (isRestrictedType(value)) {
+          continue;
         }
-        else if (typeof input !== 'object' || !isMapCompatible(input)) {
-            return input;
-        }
-        else if (input instanceof Map) {
-            // If the input is already a Map, return it, but recursively process its entries
-            const resultMap = new Map();
-            for (const [key, value] of input.entries()) {
-                if (isRestrictedType(value)) {
-                    continue;
-                }
 
-                resultMap.set(key, convertToMap(value)); // Recursively convert nested objects
-            }
-            return resultMap;
+        resultMap.set(key, convertToMap(value)); // Recursively convert nested objects
+      }
+      return resultMap;
+    } else if (typeof input === "object") {
+      // If it's an object, convert it to a Map and process recursively
+      const resultMap = new Map<string, any>();
+      for (const [key, value] of Object.entries(input)) {
+        if (isRestrictedType(value)) {
+          continue;
         }
-        else if (typeof input === 'object') {
-            // If it's an object, convert it to a Map and process recursively
-            const resultMap = new Map<string, any>();
-            for (const [key, value] of Object.entries(input)) {
-                if (isRestrictedType(value)) {
-                    continue;
-                }
 
-                resultMap.set(key, convertToMap(value));
-
-            }
-            return resultMap;
-        }
-    } catch (error) {
-        Log.error(LOG_SOURCE, LOG_TAG, `Error converting object to Map: ${error}`);
-        return null;
+        resultMap.set(key, convertToMap(value));
+      }
+      return resultMap;
     }
-
+  } catch (error) {
+    Log.error(LOG_SOURCE, LOG_TAG, `Error converting object to Map: ${error}`);
     return null;
+  }
+
+  return null;
 };
 
 /**
@@ -112,7 +112,12 @@ const convertToMap = (input: any): Map<string, any> | null => {
  * @returns true if the value is compatible with a Map, false otherwise
  */
 const isMapCompatible = (value: any): boolean => {
-    return !((value instanceof Date) || (value instanceof RegExp) || (Array.isArray(value)) || (value instanceof Set));
+  return !(
+    value instanceof Date ||
+    value instanceof RegExp ||
+    Array.isArray(value) ||
+    value instanceof Set
+  );
 };
 
 /**
@@ -121,8 +126,7 @@ const isMapCompatible = (value: any): boolean => {
  * @returns true if the value is a restricted type, false otherwise
  */
 const isRestrictedType = (value: any): boolean => {
-    return (value instanceof Function);
+  return value instanceof Function;
 };
-
 
 export { isNullOrEmptyMap, optMap, getAsMap };

@@ -25,78 +25,79 @@ const LOG_TAG = "EdgeImpl";
 
 // Implementation
 export class EdgeImpl implements Edge {
+  private isActive: boolean = false;
+  private container: ExtensionContainer | null = null;
+  private serviceLookup: ServiceLookup | null = null;
+  private dataStore: DataStore | null = null;
+  private consentManager: ConsentManager | null = null;
+  private identityManager: IdentityManager | null = null;
+  private dispatchFn: DispatchFn | null = null;
+  private createXDMSharedState: createXDMSharedState | null = null;
 
-    private isActive: boolean = false;
-    private container: ExtensionContainer | null = null;
-    private serviceLookup: ServiceLookup | null = null;
-    private dataStore: DataStore | null = null;
-    private consentManager: ConsentManager | null = null;
-    private identityManager: IdentityManager | null = null;
-    private dispatchFn: DispatchFn | null = null;
-    private createXDMSharedState: createXDMSharedState | null = null;
+  public version: string = EdgeConstants.EXTENSION_VERSION;
+  public name: string = EdgeConstants.EXTENSION_NAME;
 
-    public version: string = EdgeConstants.EXTENSION_VERSION;
-    public name: string = EdgeConstants.EXTENSION_NAME;
+  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void {
+    this.container = extensionContainer;
+    this.dispatchFn = this.container.dispatch;
+    this.createXDMSharedState = this.container.createXDMSharedState;
 
-    onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void {
-        this.container = extensionContainer;
-        this.dispatchFn = this.container.dispatch;
-        this.createXDMSharedState = this.container.createXDMSharedState;
+    this.serviceLookup = serviceLookup;
+    this.dataStore = serviceLookup.getService("dataStore");
 
-        this.serviceLookup = serviceLookup;
-        this.dataStore = serviceLookup.getService('dataStore');
+    this.consentManager = new ConsentManager(this.dataStore);
+    this.identityManager = new IdentityManager(this.dataStore);
+    this.isActive = true;
 
+    this._registerListeners();
+  }
 
-        this.consentManager = new ConsentManager(this.dispatchFn);
-        this.identityManager = new IdentityManager(this.dataStore);
-        this.isActive = true;
+  sendEvent(xdm: Map<string, object>, data: Map<string, object>): void {}
 
-        this._registerListeners();
+  setConsent(consent: Map<string, object>): void {
+    //TODO: implement the logic here
+  }
+
+  getECID(): Promise<string | null> {
+    return this.identityManager?.getECID() ?? Promise.resolve(null);
+  }
+
+  _registerListeners(): void {
+    Log.debug(
+      EdgeConstants.EXTENSION_NAME,
+      LOG_TAG,
+      "_registerListeners() - Registering listeners"
+    );
+
+    // if the container is not available, then return
+    if (this.container === null) {
+      // log error message
+      return;
     }
 
-    sendEvent(xdm: Map<string, object>, data: Map<string, object>): void {}
+    this.container.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT, (event) => {
+      if (this.isActive) {
+        //TODO: implement the logic here
+      }
+    });
+  }
 
-    setConsent(consent: Map<string, object>): void {
-        this.consentManager?.setConsent(consent);
+  onUnregister(): void {
+    this.isActive = false;
+    this.container = null;
+    this.serviceLookup = null;
+  }
+
+  _createXDMSharedState(): void {
+    const state = new Map<string, any>();
+    // identity Map
+    const identityMap = this.identityManager?.getIdentityMap();
+    if (identityMap) {
+      state.set(EdgeConstants.XDMKey.IDENTITY_MAP, identityMap);
     }
 
-    getECID(): Promise<string | null> {
-        return this.identityManager?.getECID() ?? Promise.resolve(null);
-    }
+    // TODO: Add consents data to the state
 
-
-    _registerListeners(): void {
-        Log.debug(EdgeConstants.EXTENSION_NAME, LOG_TAG, "_registerListeners() - Registering listeners");
-
-        // if the container is not available, then return
-        if (this.container === null) {
-            // log error message
-            return;
-        }
-
-        this.container.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT, (event) => {
-            if (this.isActive) {
-                //TODO: implement the logic here
-            }
-        });
-    }
-
-    onUnregister(): void {
-        this.isActive = false;
-        this.container = null;
-        this.serviceLookup = null;
-    }
-
-    _createXDMSharedState(): void {
-        const state = new Map<string, any>();
-        // identity Map
-        const identityMap = this.identityManager?.getIdentityMap();
-        if (identityMap) {
-            state.set(EdgeConstants.XDMKeys.IDENTITY_MAP, identityMap);
-        }
-
-        // TODO: Add consents data to the state
-
-        this.createXDMSharedState?.(state, null);
-    }
+    this.createXDMSharedState?.(state, null);
+  }
 }

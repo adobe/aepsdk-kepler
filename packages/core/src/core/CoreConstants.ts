@@ -10,7 +10,7 @@ governing permissions and limitations under the License.
 */
 
 export const CoreConstants = {
-    EXTENSION_NAME: "com.adobe.marketing.core",
-    FRIENDLY_NAME: "Core",
-    EXTENSION_VERSION: "1.0.0",
+  EXTENSION_NAME: "com.adobe.marketing.core",
+  FRIENDLY_NAME: "Core",
+  EXTENSION_VERSION: "1.0.0",
 } as const;

@@ -89,7 +89,7 @@ export class IdentityManager {
    */
   _persistECID(ecid: string) {
     Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_persistECID() -  Persisting ECID: (${ecid})`);
-    this.dataStore.saveData(this.ECID_KEY, ecid);
+    this.dataStore.set(this.ECID_KEY, ecid);
   }
 
   /**
@@ -99,7 +99,7 @@ export class IdentityManager {
   _deleteECID() {
     Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_deleteECID() -  Deleting ECID.`);
     // TODO: Add deleteKV method in the DataStore interface
-    this.dataStore.saveData(this.ECID_KEY, null);
+    this.dataStore.set(this.ECID_KEY, null);
   }
 
   /**
@@ -112,6 +112,6 @@ export class IdentityManager {
       LOG_TAG,
       `_getECIDFromPersistence() -  Loading ECID from persistence.`
     );
-    return this.dataStore.loadData(this.ECID_KEY);
+    return this.dataStore.get(this.ECID_KEY);
   }
 }

@@ -22,8 +22,8 @@ describe('ConsentManager tests', () => {
     beforeEach(() => {
         // Create a mocked instance of DataStore
         mockDataStore = {
-            saveData: jest.fn(),
-            loadData: jest.fn(),
+            set: jest.fn(),
+            get: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 
@@ -45,21 +45,21 @@ describe('ConsentManager tests', () => {
     });
 
     test('getConsent returns persisted consent when not set in memory', async () => {
-        mockDataStore.loadData.mockResolvedValue(ConsentValue.NO);
+        mockDataStore.get.mockResolvedValue(ConsentValue.NO);
         const consentManager = new ConsentManager(mockDataStore);
 
         const consent = await consentManager.getCollectConsent();
         expect(consent).toBe(ConsentValue.NO);
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('consent.collect');
+        expect(mockDataStore.get).toHaveBeenCalledWith('consent.collect');
     });
 
 
     test('getConsent returns default consent when not set in memory or persisted', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+        mockDataStore.get.mockResolvedValue(null);
         const consentManager = new ConsentManager(mockDataStore);
 
         const configurationData = new Map<string, any>();
-        configurationData.set('consent.default',  {
+        configurationData.set('consent.default', {
             "consents": {
                 "collect": {
                     "val": "p"
@@ -72,15 +72,15 @@ describe('ConsentManager tests', () => {
 
         const consent = await consentManager.getCollectConsent();
         expect(consent).toBe(ConsentValue.PENDING);
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('consent.collect');
+        expect(mockDataStore.get).toHaveBeenCalledWith('consent.collect');
     });
 
     test('getConsent returns null when not set in cache or persistence and wrong consent value present in defaultconfiguration', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+        mockDataStore.get.mockResolvedValue(null);
         const consentManager = new ConsentManager(mockDataStore);
 
         const configurationData = new Map<string, any>();
-        configurationData.set('consent.default',  {
+        configurationData.set('consent.default', {
             "consents": {
                 "collect": {
                     "val": "invalidValue"
@@ -93,16 +93,16 @@ describe('ConsentManager tests', () => {
 
         const consent = await consentManager.getCollectConsent();
         expect(consent).toBe(null);
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('consent.collect');
+        expect(mockDataStore.get).toHaveBeenCalledWith('consent.collect');
     });
 
     test('getConsent returns null when consent is not set in memory, persisted or defaultConfig', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+        mockDataStore.get.mockResolvedValue(null);
         const consentManager = new ConsentManager(mockDataStore);
 
         const consent = await consentManager.getCollectConsent();
         expect(consent).toBeNull();
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('consent.collect');
+        expect(mockDataStore.get).toHaveBeenCalledWith('consent.collect');
     });
 
     test('updateConsent updates the consent value', async () => {
@@ -110,7 +110,7 @@ describe('ConsentManager tests', () => {
         consentManager.updateCollectConsent(ConsentValue.YES);
 
         // Verify that the consent value is saved in the data store
-        expect(mockDataStore.saveData).toHaveBeenCalledWith('consent.collect', ConsentValue.YES);
+        expect(mockDataStore.set).toHaveBeenCalledWith('consent.collect', ConsentValue.YES);
 
         const consent = await consentManager.getCollectConsent();
         expect(consent).toBe(ConsentValue.YES);

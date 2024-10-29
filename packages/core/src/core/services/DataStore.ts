@@ -10,24 +10,37 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { Log } from "../utils/Log";
+import { LOG_EXTENSION } from "./Constants";
+
+const LOG_TAG = "DefaultDataStore";
+
 export interface DataStore {
-  loadData(key: string): Promise<any>;
-  saveData(key: string, data: any): void;
+  get(key: string): Promise<string | null>;
+  set(key: string, value: string): void;
+  delete(key: string): void;
 }
 
 // In-memory data store implementation
 class DefaultDataStore implements DataStore {
-  private data: Map<string, any> = new Map();
+  private data: Map<string, string> = new Map();
 
-  loadData(key: string): Promise<any> {
+  get(key: string): Promise<string | null> {
+    Log.debug(LOG_EXTENSION, LOG_TAG, `Retrieve value for key: ${key}`);
+
+    const value = this.data.get(key);
     return new Promise((resolve) => {
-      resolve(this.data.get(key));
+      resolve(value ? value : null);
     });
   }
 
-  saveData(key: string, data: any): void {
-    this.data.set(key, data);
+  set(key: string, value: string): void {
+    Log.debug(LOG_EXTENSION, LOG_TAG, `Save data to a Map (key = ${key}, value = ${value})`);
+    this.data.set(key, value);
+  }
+
+  delete(key: string): void {
+    this.data.delete(key);
   }
 }
 

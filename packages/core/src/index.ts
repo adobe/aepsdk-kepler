@@ -14,6 +14,7 @@ import { Extension, createExtensionContainer } from "./core/extension";
 import { createEventHub } from "./core/eventhub";
 import { serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
+import { LogLevel } from "./core/services";
 import { configuration } from "./configuration";
 import { edge } from "./edge";
 import { registerPlatformService } from "./platform-kepler";
@@ -24,6 +25,7 @@ export interface SDKParams {
   // extensions?: Array<Extension>;
 
   config?: Map<string, any>;
+  // logLevel?: LogLevel;
 
   // The tennant paramater will be enabled in the future for the contianerlization support.
   // tenants?: Array<string>;
@@ -41,6 +43,10 @@ export const AEPSDK = {
     } catch (e) {
       Log.error(LOG_EXTENSION, LOG_TAG, "Failed to initialize the SDK: " + e);
     }
+  },
+
+  setLogLevel(logLevel: LogLevel): void {
+    serviceLookup.getService("logging").setLogLevel(logLevel);
   },
 
   updateConfiguration(configuration: Record<string, any>): void {

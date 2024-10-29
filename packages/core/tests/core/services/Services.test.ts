@@ -23,13 +23,14 @@ describe('test Services', () => {
 
     test('test registerService()', () => {
         const dataStore: DataStore = {
-            loadDate: (key: string) => Promise.resolve(`key: ${key}`),
-            saveData: jest.fn()
+            get: (key: string) => Promise.resolve(`key: ${key}`),
+            set: jest.fn(),
+            delete: jest.fn()
         };
         registerService('dataStore', dataStore);
         const retrievedDataStore = serviceLookup.getService('dataStore');
         expect(retrievedDataStore).toBeDefined();
-        expect(retrievedDataStore.loadDate('test')).resolves.toBe('key: test');
+        expect(retrievedDataStore.get('test')).resolves.toBe('key: test');
     });
 
 });

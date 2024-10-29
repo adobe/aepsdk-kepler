@@ -22,8 +22,8 @@ describe('IdentityManager tests', () => {
     beforeEach(() => {
         // Create a mocked instance of DataStore
         mockDataStore = {
-            saveData: jest.fn(),
-            loadData: jest.fn(),
+            set: jest.fn(),
+            get: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 
@@ -45,16 +45,16 @@ describe('IdentityManager tests', () => {
     });
 
     test('getECID returns persisted ECID when not set in memory', async () => {
-        mockDataStore.loadData.mockResolvedValue('persistedECID');
+        mockDataStore.get.mockResolvedValue('persistedECID');
         const identityManager = new IdentityManager(mockDataStore);
 
         const ecid = await identityManager.getECID();
         expect(ecid).toBe('persistedECID');
-        expect(mockDataStore.loadData).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
+        expect(mockDataStore.get).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
     });
 
     test('getECID returns null when ECID is not set or persisted', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+        mockDataStore.get.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore);
 
         const ecid = await identityManager.getECID();
@@ -70,7 +70,7 @@ describe('IdentityManager tests', () => {
     });
 
     test('getIdentityMap returns null when ECID is not set', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+        mockDataStore.get.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore);
 
         const identityMap = await identityManager.getIdentityMap();
@@ -82,7 +82,7 @@ describe('IdentityManager tests', () => {
 
         identityManager._updateECID('newECID');
         expect(identityManager.getECID()).resolves.toBe('newECID');
-        expect(mockDataStore.saveData).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'newECID');
+        expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'newECID');
     });
 
     test('_updateECID deletes ECID when null is passed', async () => {
@@ -90,6 +90,6 @@ describe('IdentityManager tests', () => {
         identityManager._updateECID('mockECID');
 
         identityManager._updateECID(null);
-        expect(mockDataStore.saveData).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, null);
+        expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, null);
     });
 });

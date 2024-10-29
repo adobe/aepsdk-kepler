@@ -9,14 +9,5 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { registerService } from "../core/services";
-import { KeplerDataStore } from "./DataStore";
-import { Log } from "../core/utils/Log";
-import { LOG_EXTENSION } from "./Constants";
 
-const LOG_TAG = "registerPlatformService";
-
-export function registerPlatformService(): void {
-  Log.debug(LOG_EXTENSION, LOG_TAG, "registerPlatformService() - Registering KeplerDataStore");
-  registerService("dataStore", new KeplerDataStore());
-}
+export const LOG_EXTENSION = "platform-kepler";

@@ -114,7 +114,7 @@ export class ConsentManager {
       LOG_TAG,
       `saveCollectConsentToPersistence() -  Saving Collect Consent with value: (${consent})`
     );
-    this.dataStore.saveData(EdgeConstants.DataStoreKey.COLLECT_CONSENT, consent);
+    this.dataStore.set(EdgeConstants.DataStoreKey.COLLECT_CONSENT, consent);
   }
 
   /**
@@ -126,7 +126,7 @@ export class ConsentManager {
       LOG_TAG,
       `deleteCollectConsentFromPersistence() -  Deleting Collect Consent from persistence.`
     );
-    this.dataStore.saveData(EdgeConstants.DataStoreKey.COLLECT_CONSENT, null);
+    this.dataStore.set(EdgeConstants.DataStoreKey.COLLECT_CONSENT, null);
   }
 
   /**
@@ -139,7 +139,7 @@ export class ConsentManager {
       LOG_TAG,
       `getCollectConsentFromPersistence() -  Getting Collect Consent from persistence.`
     );
-    return this.dataStore.loadData(EdgeConstants.DataStoreKey.COLLECT_CONSENT);
+    return this.dataStore.get(EdgeConstants.DataStoreKey.COLLECT_CONSENT);
   }
 
   /**

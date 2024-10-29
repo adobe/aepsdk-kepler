@@ -8,7 +8,8 @@ import React, {useState} from 'react';
 import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
 import {Link} from './components/Link';
 import {test} from '@adobe/kepler-aepmedia';
-import {HttpMethod, asyncRequest, NetworkRequest, BodyType, HttpConnection} from '@adobe/kepler-aepcore';
+import {AEPSDK, HttpMethod, asyncRequest, NetworkRequest, BodyType, HttpConnection} from '@adobe/kepler-aepcore';
+import {serviceLookup} from '@adobe/kepler-aepcore/dist/core/services';
 
 const images = {
   kepler: require('./assets/kepler.png'),
@@ -57,6 +58,14 @@ export const App = () => {
             linkText={'Build'}
             onPress={() => {
               setImage(images.build);
+              AEPSDK.start();
+              AEPSDK.setLogLevel(3);
+              serviceLookup.getService('dataStore').set('build', 'Build link pressed');
+              setTimeout(() => {
+                serviceLookup.getService('dataStore').get('build').then((data) => {
+                  console.log('[DDDDDDDD]data:', data);
+                });
+              }, 1000);
             }}
           />
           <Link

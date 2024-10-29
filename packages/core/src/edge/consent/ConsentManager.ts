@@ -13,7 +13,7 @@ import { Event, EventType, EventSource } from "../../core/eventhub";
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { getAsMap, isNullOrEmptyMap, optMap } from "../../core/utils/MapUtil";
+import { mapFromObject, isNullOrEmptyMap, optMap } from "../../core/utils/MapUtil";
 
 const LOG_TAG = "ConsentManager";
 const DefaultConsentConstants = {
@@ -46,7 +46,7 @@ export class ConsentManager {
     const data: Map<String, any> | null = event.data;
     const defaultConsentObj = data?.get(EdgeConstants.ConfigurationKey.DEFAULT_CONSENT);
 
-    this.defaultConsent = getAsMap(defaultConsentObj);
+    this.defaultConsent = mapFromObject(defaultConsentObj);
   }
 
   handleConsentEvent(event: Event) {

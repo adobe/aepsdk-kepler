@@ -29,7 +29,7 @@ const isNullOrEmptyMap = (map: Map<string, any> | null | undefined): boolean => 
  * @param obj the object to convert
  * @returns a Map representation of the object
  */
-const getAsMap = (obj: Record<string, any>): Map<string, any> | null => {
+const mapFromObject = (obj: Record<string, any>): Map<string, any> | null => {
   const result = convertToMap(obj);
   return result instanceof Map ? result : null;
 };
@@ -51,7 +51,7 @@ const optMap = (
     return fallback;
   }
 
-  var input = getAsMap(obj);
+  var input = mapFromObject(obj);
 
   const result = input?.get(key);
   if (result === undefined || result === null || !(result instanceof Map)) {
@@ -107,6 +107,54 @@ const convertToMap = (input: any): Map<string, any> | null => {
 };
 
 /**
+ * Converts a Map to an object.
+ * @param map the Map to convert
+ * @returns an object representation of the Map
+ */
+const mapToObject = (map: Map<string, any>): Record<string, any> => {
+  const obj: Record<string, any> = {};
+  for (const [key, value] of map) {
+    obj[key] = value instanceof Map ? mapToObject(value) : value;
+  }
+  return obj;
+};
+
+/**
+ * Converts a Map to a JSON string.
+ * @param map the Map to convert
+ * @returns a JSON string representation of the Map
+ * @returns null if the Map is invalid
+ */
+const mapToJson = (map: Map<string, any>): string | null => {
+  if (!(map instanceof Map)) {
+    return null;
+  }
+
+  try {
+    return JSON.stringify(mapToObject(map));
+  } catch (error) {
+    Log.error(LOG_SOURCE, LOG_TAG, `Error converting Map to JSON: ${error}`);
+    return null;
+  }
+};
+
+/**
+ * Converts a JSON string to a Map.
+ * @param json the JSON string to convert
+ * @returns a Map representation of the JSON string
+ * @returns null if the JSON string is invalid
+ */
+const mapFromJson = (json: string): Map<string, any> | null => {
+  try {
+    const obj = JSON.parse(json);
+    return convertToMap(obj) as Map<string, any>;
+  } catch (error) {
+    Log.error(LOG_SOURCE, LOG_TAG, `Error converting JSON to Map: ${error}`);
+    return null;
+  }
+};
+
+/**
  * Checks if the value is compatible with a Map.
  * @param value the value to check
  * @returns true if the value is compatible with a Map, false otherwise
@@ -129,4 +177,4 @@ const isRestrictedType = (value: any): boolean => {
   return value instanceof Function;
 };
 
-export { isNullOrEmptyMap, optMap, getAsMap };
+export { isNullOrEmptyMap, optMap, mapToObject, mapFromObject, mapToJson, mapFromJson };

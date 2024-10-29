@@ -9,7 +9,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { optMap, getAsMap, isNullOrEmptyMap } from "../../../src/core/utils/MapUtil";
+import { optMap, mapFromObject, isNullOrEmptyMap, mapFromJson, mapToJson, mapToObject } from "../../../src/core/utils/MapUtil";
 
 describe('MapUtil tests', () => {
 
@@ -86,7 +86,7 @@ describe('MapUtil tests', () => {
         expect(result?.size).toBe(1);
     });
 
-    test('getAsMap works recrusively and all nested objects are converted to map', () => {
+    test('mapFromObject works recrusively and all nested objects are converted to map', () => {
         const obj = {
             'key': {
                 'nested_key_1': {
@@ -114,7 +114,7 @@ describe('MapUtil tests', () => {
             }
         };
 
-        const result = getAsMap(obj);
+        const result = mapFromObject(obj);
 
         expect(result instanceof Map).toBe(true);
         expect(result?.size).toBe(1);
@@ -155,4 +155,99 @@ describe('MapUtil tests', () => {
         expect(keyMap?.get('nested_key_3')).toBe(undefined);
     });
 
+    test('mapToObject converts map to object', () => {
+        const map = new Map<string, any>(
+            [
+                ['key1', 'value1'],
+                ['key2', new Map<string, any>(
+                    [
+                        ['nested_key', 'nested_value'],
+                        ['nested_key_2', new Map<string, any>(
+                            [
+                                ['nested_key_2_1', 'nested_value_2_1'],
+                                ['nested_key_2_2', 'nested_value_2_2']
+                            ])
+                        ]
+                    ]
+                )],
+                ['key3', 3],
+                ['key4', null],
+                ['key5', true],
+                ['key6', false],
+                ['key7', 2.3]
+            ]
+        );
+
+        const result = mapToObject(map);
+        expect(result).toEqual({
+            'key1': 'value1',
+            'key2': {
+                'nested_key': 'nested_value',
+                'nested_key_2': {
+                    'nested_key_2_1': 'nested_value_2_1',
+                    'nested_key_2_2': 'nested_value_2_2'
+                }
+            },
+            'key3': 3,
+            'key4': null,
+            'key5': true,
+            'key6': false,
+            'key7': 2.3
+        });
+    });
+
+    test('mapToJson converts map to json', () => {
+        const map = new Map<string, any>(
+            [
+                ['key1', 'value1'],
+                ['key2', new Map(
+                    [
+                        ['nested_key', 'nested_value']
+                    ]
+                )],
+                ['key3', 3],
+                ['key4', null],
+                ['key5', true],
+                ['key6', false],
+                ['key7', 2.3]
+            ]
+        );
+
+        const result = mapToJson(map);
+        expect(result).toBe('{"key1":"value1","key2":{"nested_key":"nested_value"},"key3":3,"key4":null,"key5":true,"key6":false,"key7":2.3}');
+    });
+
+    test('mapFromJson converts json to map', () => {
+        const json = '{"key1":"value1","key2":{"nested_key":"nested_value"}, "key3": 3, "key4": null, "key5": true, "key6": false, "key7": 2.3}';
+        const result = mapFromJson(json);
+
+        expect(result instanceof Map).toBe(true);
+        expect(result?.size).toBe(7);
+        expect(result?.get('key1')).toBe('value1');
+
+        const nestedMap = result?.get('key2');
+        expect(nestedMap instanceof Map).toBe(true);
+        expect(nestedMap?.size).toBe(1);
+        expect(nestedMap?.get('nested_key')).toBe('nested_value');
+
+        expect(result?.get('key3')).toBe(3);
+        expect(result?.get('key4')).toBe(null);
+        expect(result?.get('key5')).toBe(true);
+        expect(result?.get('key6')).toBe(false);
+        expect(result?.get('key7')).toBe(2.3);
+    });
+
+    test('mapFromJson returns empty map when json is empty', () => {
+        const invalidJson = [
+            'key1: value1',
+            '{key1: value1}',
+            'key1: value1, key2: value2',
+            '',
+        ]
+
+        for (const json of invalidJson) {
+            const result = mapFromJson(json);
+            expect(result).toBe(null);
+        }
+    });
 });

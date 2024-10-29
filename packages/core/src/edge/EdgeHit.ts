@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { getAsMap } from "../core/utils/MapUtil";
+import { mapFromObject } from "../core/utils/MapUtil";
 
 export class EdgeHit {
   private _requestId: string = "";
@@ -113,7 +113,7 @@ export class EdgeHitBuilder {
 
   // Method to set data
   setData(data: Map<string, any>): EdgeHitBuilder {
-    this.data = getAsMap(data);
+    this.data = mapFromObject(data);
     return this;
   }
 

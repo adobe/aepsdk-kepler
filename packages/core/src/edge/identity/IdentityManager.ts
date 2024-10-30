@@ -98,8 +98,7 @@ export class IdentityManager {
    */
   _deleteECID() {
     Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_deleteECID() -  Deleting ECID.`);
-    // TODO: Add deleteKV method in the DataStore interface
-    this.dataStore.set(this.ECID_KEY, null);
+    this.dataStore.delete(this.ECID_KEY);
   }
 
   /**

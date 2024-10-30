@@ -1,0 +1,152 @@
+/*
+Copyright 2024 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
+
+import { DataStore } from "../core/services";
+import { mapFromObject, mapToJson } from "../core/utils/MapUtil";
+import { isNullOrEmptyString } from "../core/utils/StringUtil";
+import { Log } from "../core/utils/Log";
+import { EdgeConstants } from "./EdgeConstants";
+
+const LOCATION_HINT_KEY = "locationHint";
+const LOCATION_HINT_VALUE = "value";
+const LOCATION_HINT_EXPIRY_TS = "expiryTS";
+const DEFAULT_TTL_SECONDS = 1800; // 30 minutes
+
+const LOG_TAG = "LocationHintManager";
+const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
+
+/**
+ * Manages the location hint for the Edge Network.
+ */
+export class LocationHintManager {
+  private dataStore: DataStore;
+  private locationHint: string | null = null;
+  private expiryTS: number | null = null;
+
+  constructor(dataStore: DataStore) {
+    this.dataStore = dataStore;
+  }
+
+  /**
+   * Gets the location hint.
+   * @returns The location hint or null if it is not available or expired.
+   */
+  public async getLocationHint(): Promise<string | null> {
+    Log.verbose(LOG_SOURCE, LOG_TAG, "getLocationHint() - Getting location hint.");
+
+    if (isNullOrEmptyString(this.locationHint)) {
+      const locationHintObj = await this.getLocationHintFromPersistence();
+
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `getLocationHint() - Location hint object from persistence: ${locationHintObj}`
+      );
+
+      this.locationHint = locationHintObj?.get("hint") || null;
+      this.expiryTS = locationHintObj?.get("expiryTS") || null;
+    }
+
+    if (isNullOrEmptyString(this.locationHint) || this.isExpired()) {
+      Log.debug(
+        LOG_SOURCE,
+        LOG_TAG,
+        "getLocationHint() - Location hint is either empty or expired, returning null. Location hint will be deleted from persistence."
+      );
+      this.dataStore.delete(LOCATION_HINT_KEY);
+      return null;
+    }
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `getLocationHint() - Location hint found value = (${this.locationHint})`
+    );
+    return this.locationHint;
+  }
+
+  /**
+   * Sets the location hint.
+   * @param locationHint The location hint.
+   * @param ttlSeconds The time-to-live in seconds for the location hint.
+   * @param startTimeMillis The start time in milliseconds for the location hint.
+   * @returns A promise that resolves when the location hint is set.
+   */
+  public async setLocationHint(
+    locationHint: string,
+    ttlSeconds: number | null,
+    startTimeMillis: number = Date.now()
+  ): Promise<void> {
+    const expiryTS =
+      startTimeMillis + (ttlSeconds !== null ? ttlSeconds : DEFAULT_TTL_SECONDS) * 1000;
+
+    this.locationHint = locationHint;
+    this.expiryTS = expiryTS;
+
+    const locationHintObj = new Map<string, any>([
+      [LOCATION_HINT_VALUE, locationHint],
+      [LOCATION_HINT_EXPIRY_TS, expiryTS],
+    ]);
+
+    const locationHintJson = mapToJson(locationHintObj);
+
+    if (isNullOrEmptyString(locationHintJson)) {
+      Log.error(LOG_SOURCE, LOG_TAG, "setLocationHint() - Location hint object is null or empty.");
+      return;
+    }
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `setLocationHint() - Persisting location hint object: ${locationHintJson}`
+    );
+
+    return this.dataStore.set(LOCATION_HINT_KEY, locationHintJson!);
+  }
+
+  /**
+   * Checks if the location hint is expired.
+   * @param currentTime The current time in milliseconds.
+   * @returns True if the location hint is expired, false otherwise.
+   */
+  private isExpired(currentTime: number = Date.now()): boolean {
+    const isExpired = this.expiryTS !== null && this.expiryTS < currentTime;
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `Location hint has: ${isExpired ? "expired" : "not expired"} at expiryTS: ${
+        this.expiryTS
+      } and currentTime: ${currentTime}`
+    );
+
+    return isExpired;
+  }
+
+  /**
+   * Gets the location hint from persistence.
+   * @returns The location hint object from persistence.
+   * @returns null if the location hint is not found.
+   */
+  private async getLocationHintFromPersistence(): Promise<Map<string, any> | null> {
+    const locationHintJson = await this.dataStore.get(LOCATION_HINT_KEY);
+    const locationHintObj = locationHintJson ? JSON.parse(locationHintJson) : null;
+    const locationHintMap = locationHintObj ? mapFromObject(locationHintObj) : null;
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `Location hint from persistence: ${JSON.stringify(locationHintMap)}`
+    );
+
+    return locationHintMap;
+  }
+}

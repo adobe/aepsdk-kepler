@@ -24,6 +24,7 @@ describe('ConsentManager tests', () => {
         mockDataStore = {
             set: jest.fn(),
             get: jest.fn(),
+            delete: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 

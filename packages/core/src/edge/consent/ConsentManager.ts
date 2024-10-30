@@ -75,6 +75,7 @@ export class ConsentManager {
 
     return this._getCollectConsentFromPersistence().then((consent) => {
       // If the consent is available in the persistence, return it
+      const consentValue = consent as ConsentValue | null;
       if (consent) {
         return Promise.resolve(consent);
       } else {
@@ -126,7 +127,7 @@ export class ConsentManager {
       LOG_TAG,
       `deleteCollectConsentFromPersistence() -  Deleting Collect Consent from persistence.`
     );
-    this.dataStore.set(EdgeConstants.DataStoreKey.COLLECT_CONSENT, null);
+    this.dataStore.delete(EdgeConstants.DataStoreKey.COLLECT_CONSENT);
   }
 
   /**
@@ -139,7 +140,12 @@ export class ConsentManager {
       LOG_TAG,
       `getCollectConsentFromPersistence() -  Getting Collect Consent from persistence.`
     );
-    return this.dataStore.get(EdgeConstants.DataStoreKey.COLLECT_CONSENT);
+
+    return new Promise((resolve) => {
+      this.dataStore.get(EdgeConstants.DataStoreKey.COLLECT_CONSENT).then((value) => {
+        resolve(value as ConsentValue | null);
+      });
+    });
   }
 
   /**

@@ -24,6 +24,7 @@ describe('IdentityManager tests', () => {
         mockDataStore = {
             set: jest.fn(),
             get: jest.fn(),
+            delete: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 
@@ -87,9 +88,11 @@ describe('IdentityManager tests', () => {
 
     test('_updateECID deletes ECID when null is passed', async () => {
         const identityManager = new IdentityManager(mockDataStore);
+
         identityManager._updateECID('mockECID');
+        expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'mockECID');
 
         identityManager._updateECID(null);
-        expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, null);
+        expect(mockDataStore.delete).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
     });
 });

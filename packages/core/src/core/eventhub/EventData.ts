@@ -27,22 +27,22 @@ import {
 const LOG_TAG = "EventData";
 
 /**
- * The DataValue type presents the supported value types of the DataObject interface.
+ * The DataType type presents the supported value types of the DataObject interface.
  */
-export type DataValue = string | number | boolean | null | DataObject | DataArray;
+export type DataType = string | number | boolean | null | DataObject | DataArray;
 
 /**
  * The DataObject interface presents a recursive structure that represents the data that can be stored within EventData class.
  */
 export interface DataObject {
-  [key: string]: DataValue;
+  [key: string]: DataType;
 }
 
 /**
- * The DataArray type presents an array of DataValue.
+ * The DataArray type presents an array of DataType.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface DataArray extends Array<DataValue> {}
+export interface DataArray extends Array<DataType> {}
 /**
  * The EventData class is a wrapper class that stores the data in a recursive structure.
  */
@@ -109,7 +109,7 @@ export class EventData {
    * @param key  The path to the data that needs to be updated.
    * @param value The new value that needs to be updated.
    */
-  public updateData(key: string[], value: DataValue): void {
+  public updateData(key: string[], value: DataType): void {
     let current = this.data;
     for (let i = 0; i < key.length - 1; i++) {
       if (current[key[i]] === undefined) {
@@ -128,7 +128,7 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The data that is stored in the given path.
    */
-  private getDataValueFromPath(...key: string[]): DataValue | undefined {
+  private getDataType(...key: string[]): DataType | undefined {
     if (key.length === 0) {
       return this.data;
     }
@@ -141,7 +141,7 @@ export class EventData {
         return undefined;
       }
     }
-    return current[key[key.length - 1]] as DataValue | undefined;
+    return current[key[key.length - 1]] as DataType | undefined;
   }
 
   /**
@@ -149,8 +149,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The DataObject object that is stored in the given path.
    */
-  public getDataObjectFromPath(...key: string[]): DataObject | undefined {
-    const value = this.getDataValueFromPath(...key);
+  public getDataObject(...key: string[]): DataObject | undefined {
+    const value = this.getDataType(...key);
     if (isObject(value) && !isArray(value)) {
       return value as DataObject;
     }
@@ -162,8 +162,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The number that is stored in the given path, otherwise undefined.
    */
-  public getNumberFromPath(...key: string[]): number | undefined {
-    const value = this.getDataValueFromPath(...key);
+  public getNumber(...key: string[]): number | undefined {
+    const value = this.getDataType(...key);
     if (isNumber(value)) {
       return value as number;
     }
@@ -175,8 +175,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The string that is stored in the given path, otherwise undefined.
    */
-  public getStringFromPath(...key: string[]): string | undefined {
-    const value = this.getDataValueFromPath(...key);
+  public getString(...key: string[]): string | undefined {
+    const value = this.getDataType(...key);
     if (isString(value)) {
       return value as string;
     }
@@ -188,8 +188,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
-  public getBooleanFromPath(...key: string[]): boolean | undefined {
-    const value = this.getDataValueFromPath(...key);
+  public getBoolean(...key: string[]): boolean | undefined {
+    const value = this.getDataType(...key);
     if (isBoolean(value)) {
       return value as boolean;
     }
@@ -202,7 +202,7 @@ export class EventData {
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
   public isNull(...key: string[]): boolean | undefined {
-    const value = this.getDataValueFromPath(...key);
+    const value = this.getDataType(...key);
     if (value === null) {
       return true;
     } else if (isUndefined(value)) {
@@ -220,8 +220,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
-  public getArrayFromPath(...key: string[]): DataArray | undefined {
-    const value = this.getDataValueFromPath(...key);
+  public getArray(...key: string[]): DataArray | undefined {
+    const value = this.getDataType(...key);
     if (isArray(value)) {
       return value as DataArray;
     }

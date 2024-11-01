@@ -61,16 +61,16 @@ describe('test Configuration extension', () => {
         expect(dispatchedEvents[0].name).toEqual(UPDATE_CONFIGURATION_EVENT_NAME);
         expect(dispatchedEvents[0].type).toEqual(EventType.CONFIGURATION);
         expect(dispatchedEvents[0].source).toEqual(EventSource.REQUEST_CONTENT);
-        expect(dispatchedEvents[0].data?.getDataObjectFromPath(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({ key: 'value' });
+        expect(dispatchedEvents[0].data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({ key: 'value' });
 
         // configuration shared state
         expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
         expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
         expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
-        expect(dispatchedEvents[1].data?.getStringFromPath(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
+        expect(dispatchedEvents[1].data?.getString(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
 
         const result = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
-        expect(result?.value?.getDataObjectFromPath()).toEqual({ key: 'value' });
+        expect(result?.value?.getDataObject()).toEqual({ key: 'value' });
         expect(result?.status).toEqual(SharedStateStatus.SET);
     });
 

@@ -73,7 +73,7 @@ export class ConfigurationImpl implements Configuration, Extension {
       EventType.CONFIGURATION,
       EventSource.REQUEST_CONTENT,
       (event) => {
-        const configObj = event.data?.getDataObjectFromPath(UPDATE_CONFIGURATION_EVENT_KEY);
+        const configObj = event.data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY);
         if (!configObj) {
           Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is not found.");
           return;

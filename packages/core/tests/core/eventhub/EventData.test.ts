@@ -106,7 +106,7 @@ describe('test EventData class', () => {
         expect(data.toString().includes("newValue")).toBeFalsy();
     });
 
-    test('getStringFromPath() - should retrieve string from a given path', () => {
+    test('getString() - should retrieve string from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -114,12 +114,12 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: string | undefined = data.getStringFromPath("obj", "key2");
+        const value: string | undefined = data.getString("obj", "key2");
         expect(value).toEqual("value2");
-        expect(data.getStringFromPath("key1")).toEqual("value1");
+        expect(data.getString("key1")).toEqual("value1");
     });
 
-    test('getStringFromPath() - should return undefined if the given path is incorrect', () => {
+    test('getString() - should return undefined if the given path is incorrect', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -127,12 +127,12 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        expect(data.getStringFromPath("obj", "key3")).toBeUndefined();
-        expect(data.getStringFromPath("obj1")).toBeUndefined();
-        expect(data.getStringFromPath()).toBeUndefined();
+        expect(data.getString("obj", "key3")).toBeUndefined();
+        expect(data.getString("obj1")).toBeUndefined();
+        expect(data.getString()).toBeUndefined();
     });
 
-    test('getStringFromPath() - should return undefined if the type is mismatched', () => {
+    test('getString() - should return undefined if the type is mismatched', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -142,11 +142,11 @@ describe('test EventData class', () => {
             key4: true,
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        expect(data.getStringFromPath("obj", "key3")).toBeUndefined();
-        expect(data.getStringFromPath("key4")).toBeUndefined();
+        expect(data.getString("obj", "key3")).toBeUndefined();
+        expect(data.getString("key4")).toBeUndefined();
     });
 
-    test('getNumberFromPath() - should retrieve number from a given path', () => {
+    test('getNumber() - should retrieve number from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -155,12 +155,12 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: number | undefined = data.getNumberFromPath("obj", "numberKey");
+        const value: number | undefined = data.getNumber("obj", "numberKey");
         expect(value).not.toBeUndefined();
         expect(value).toEqual(1234);
     });
 
-    test('getNumberFromPath() - should return undefined if the type is mismatched', () => {
+    test('getNumber() - should return undefined if the type is mismatched', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -170,12 +170,12 @@ describe('test EventData class', () => {
             key3: "string",
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: number | undefined = data.getNumberFromPath("obj", "key2");
+        const value: number | undefined = data.getNumber("obj", "key2");
         expect(value).toBeUndefined();
-        expect(data.getNumberFromPath("obj", "key3")).toBeUndefined();
+        expect(data.getNumber("obj", "key3")).toBeUndefined();
     });
 
-    test('getArrayFromPath() - should retrieve Array from a given path', () => {
+    test('getArray() - should retrieve Array from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -183,16 +183,16 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: DataArray | undefined = data.getArrayFromPath("obj", "key2");
+        const value: DataArray | undefined = data.getArray("obj", "key2");
         if (value === undefined) {
             fail("value should not be undefined");
         }
         expect(value[0]).toEqual("value2");
         expect(value[1]).toEqual("value3");
-        expect(data.getArrayFromPath()).toBeUndefined();
+        expect(data.getArray()).toBeUndefined();
     });
 
-    test('getArrayFromPath() - should return undefined if the type is mismatched', () => {
+    test('getArray() - should return undefined if the type is mismatched', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -202,12 +202,12 @@ describe('test EventData class', () => {
             key3: "string",
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: DataArray | undefined = data.getArrayFromPath("obj", "key3");
+        const value: DataArray | undefined = data.getArray("obj", "key3");
         expect(value).toBeUndefined();
-        expect(data.getArrayFromPath("key4")).toBeUndefined();
+        expect(data.getArray("key4")).toBeUndefined();
     });
 
-    test('getBooleanFromPath() - should retrieve boolean from a given path', () => {
+    test('getBoolean() - should retrieve boolean from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -215,14 +215,14 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: boolean | undefined = data.getBooleanFromPath("obj", "key2");
+        const value: boolean | undefined = data.getBoolean("obj", "key2");
         if (value === undefined) {
             fail("value should not be undefined");
         }
         expect(value).toBeTruthy();
     });
 
-    test('getBooleanFromPath() - should return undefined if the type is mismatched', () => {
+    test('getBoolean() - should return undefined if the type is mismatched', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -232,13 +232,13 @@ describe('test EventData class', () => {
             key4: "string",
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: boolean | undefined = data.getBooleanFromPath("obj", "key3");
+        const value: boolean | undefined = data.getBoolean("obj", "key3");
         expect(value).toBeUndefined();
-        expect(data.getBooleanFromPath("key4")).toBeUndefined();
-        expect(data.getBooleanFromPath()).toBeUndefined();
+        expect(data.getBoolean("key4")).toBeUndefined();
+        expect(data.getBoolean()).toBeUndefined();
     });
 
-    test('getDataObjectFromPath() - should retrieve DataObject from a given path', () => {
+    test('getDataObject() - should retrieve DataObject from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -248,14 +248,14 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: DataObject | undefined = data.getDataObjectFromPath("obj", "key2");
+        const value: DataObject | undefined = data.getDataObject("obj", "key2");
         if (value === undefined) {
             fail("value should not be undefined");
         }
         expect(value).toEqual({ key3: "value3" });
     });
 
-    test('getDataObjectFromPath() - should retrieve the data root if the path is empty', () => {
+    test('getDataObject() - should retrieve the data root if the path is empty', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -265,14 +265,14 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: DataObject | undefined = data.getDataObjectFromPath();
+        const value: DataObject | undefined = data.getDataObject();
         if (value === undefined) {
             fail("value should not be undefined");
         }
         expect(value).toEqual(jsonObj);
     });
 
-    test('getDataObjectFromPath() - should return undefined if the type is mismatched', () => {
+    test('getDataObject() - should return undefined if the type is mismatched', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -281,9 +281,9 @@ describe('test EventData class', () => {
             }
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: DataObject | undefined = data.getDataObjectFromPath("obj", "key2");
+        const value: DataObject | undefined = data.getDataObject("obj", "key2");
         expect(value).toBeUndefined();
-        expect(data.getDataObjectFromPath("obj", "key3")).toBeUndefined();
+        expect(data.getDataObject("obj", "key3")).toBeUndefined();
     });
 
     test('isNull() - should retrieve boolean from a given path', () => {
@@ -324,9 +324,9 @@ describe('test EventData class', () => {
         }
         const data = (EventData.buildFrom(jsonObj) as EventData).clone();
         data.updateData(["obj", "newKey"], "newValue");
-        expect(data.getStringFromPath("obj", "newKey")).toEqual("newValue");
+        expect(data.getString("obj", "newKey")).toEqual("newValue");
         data.updateData(["newKey"], "newValue");
-        expect(data.getStringFromPath("newKey")).toEqual("newValue");
+        expect(data.getString("newKey")).toEqual("newValue");
     });
 
     test('updateData() - should add data to the right place - update existing data', () => {
@@ -338,9 +338,9 @@ describe('test EventData class', () => {
         }
         const data = (EventData.buildFrom(jsonObj) as EventData).clone();
         data.updateData(["obj", "key"], "newValue");
-        expect(data.getStringFromPath("obj", "key")).toEqual("newValue");
+        expect(data.getString("obj", "key")).toEqual("newValue");
         data.updateData(["key"], "newValue");
-        expect(data.getStringFromPath("key")).toEqual("newValue");
+        expect(data.getString("key")).toEqual("newValue");
     });
 
     test('updateData() - should add data to the right place - create an empty parent object', () => {
@@ -352,9 +352,9 @@ describe('test EventData class', () => {
         }
         const data = (EventData.buildFrom(jsonObj) as EventData).clone();
         data.updateData(["obj", "emptyParent", "newKey"], "newValue");
-        expect(data.getStringFromPath("obj", "emptyParent", "newKey")).toEqual("newValue");
+        expect(data.getString("obj", "emptyParent", "newKey")).toEqual("newValue");
         data.updateData(["emptyParent", "newKey"], "newValue");
-        expect(data.getStringFromPath("emptyParent", "newKey")).toEqual("newValue");
+        expect(data.getString("emptyParent", "newKey")).toEqual("newValue");
     });
 
 });

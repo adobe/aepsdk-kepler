@@ -10,19 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-export const ConfigurationConstants = {
-  EXTENSION_NAME: "com.adobe.marketing.configuration",
-  FRIENDLY_NAME: "Configuration",
-  EXTENSION_VERSION: "1.0.0",
-
-  Event: {
-    Data: {
-      Key: {
-        CONFIGURATION_UPDATE: "config.update",
-      },
-    },
-    Name: {
-      CONFIGURATION_UPDATE: "Configuration Update",
-    },
-  },
-} as const;
+export const EXTENSION_NAME = "com.adobe.marketing.configuration";
+export const FRIENDLY_NAME = "Configuration";
+export const EXTENSION_VERSION = "1.0.0";
+export const UPDATE_CONFIGURATION_EVENT_KEY = "config.update";
+export const UPDATE_CONFIGURATION_EVENT_NAME = "Configuration Update";

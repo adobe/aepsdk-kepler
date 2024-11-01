@@ -10,19 +10,5 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export enum SharedStateStatus {
-  SET,
-  PENDING,
-}
-
-/* Contains the status and value for a given shared state */
-export type SharedStateResult = {
-  status: SharedStateStatus;
-  value: Map<string, any> | null;
-};
-
-export const SharedStateEventConstants = {
-  NAME_SHARED_STATE: "Shared state change (XDM)",
-  KEY_SHARED_STATE_OWNER: "stateowner",
-} as const;
+export const SHARED_STATE_NAME = "Shared state change (XDM)";
+export const SHARED_STATE_KEY_OWNER = "stateowner";

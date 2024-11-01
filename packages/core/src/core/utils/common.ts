@@ -10,7 +10,6 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Provides a safe way to converts a JavaScript value to a JavaScript Object Notation (JSON) string.
  * Returns an empty string if the conversion fails.
@@ -21,8 +20,8 @@ governing permissions and limitations under the License.
  *
  */
 
-export function stringify(
-  value: any,
+export function safeStringify(
+  value: unknown,
   replacer?: (number | string)[] | null,
   space?: string | number
 ): string {

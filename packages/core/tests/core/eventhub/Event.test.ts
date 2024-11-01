@@ -10,44 +10,18 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event } from "../../../src/core/eventhub";
-import { _cloneEventData } from "../../../src/core/eventhub/Event";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+import { EventData } from "../../../src/core/eventhub";
+
 describe('test Event class', () => {
 
     beforeEach(() => { });
 
     afterEach(() => { });
 
-    test('test utility function: _cloneEventData()', () => {
-        const data = new Map<string, any>();
-        data.set("key1", "value1");
-        data.set("key2", 123);
-        data.set("key3", {
-            "nest_obj_key_1": "value2",
-            "nest_obj_key_2": {
-                "nest_obj_key_2_1": "value3",
-                "nest_obj_key_2_2": 456,
-            },
-        });
-        const clonedData = _cloneEventData(data);
-
-        // verify the basic clone behavior
-        data.delete("key1");
-        expect(clonedData.get("key1")).toEqual("value1");
-
-        // verify the nest data
-        expect(clonedData.get("key3")).toEqual({
-            "nest_obj_key_1": "value2",
-            "nest_obj_key_2": {
-                "nest_obj_key_2_1": "value3",
-                "nest_obj_key_2_2": 456,
-            },
-        });
-    });
-
     test('test Event: constructor()', () => {
-        const data = new Map<string, any>();
-        data.set("key", "value");
+        const data = EventData.buildFrom({
+            key: "value"
+        });
         const event = new Event("name", "type", "source", data);
 
         expect(event.uuid).toBeDefined();
@@ -59,10 +33,11 @@ describe('test Event class', () => {
         expect(event.data).toEqual(data);
     });
 
-    test('test Event: constructor() with null data map', () => {
+    test('test Event: constructor() - data is null', () => {
         const event = new Event("name", "type", "source");
 
         expect(event.uuid).toBeDefined();
+        expect(event.timestamp).toBeDefined();
         expect(event.id).toBe(-1);
         expect(event.name).toBe("name");
         expect(event.type).toBe("type");
@@ -85,18 +60,32 @@ describe('test Event class', () => {
     });
 
     test('test Event: toString()', () => {
-        const str = new Event("event_name", "event_type", "event_source", new Map([["k", "v"]])).toString();
+        const data = EventData.buildFrom({
+            key: "value"
+        });
+        const str = new Event("event_name", "event_type", "event_source", data).toString();
         // console.log(str);
         expect(str).toContain("name: event_name");
-        expect(str).toContain(`data: [["k","v"]]`);
+        expect(str).toContain("data: {\"key\":\"value\"}");
         expect(str).toContain("type: event_type");
         expect(str).toContain("source: event_source");
     });
 
     test('test Event: cloneWithEventData()', () => {
-        const event = new Event("event_name", "event_type", "event_source", new Map([["k", "v"]]));
-        const clonedEvent = event.cloneWithEventData(new Map([["k2", "v2"]]))
-        expect(clonedEvent.data).toEqual(new Map([["k2", "v2"]]));
+        const data = EventData.buildFrom({
+            key: "value"
+        });
+        const event = new Event("event_name", "event_type", "event_source", data);
+        const newData = EventData.buildFrom({
+            key: "newValue"
+        });
+        const clonedEvent = event.cloneWithEventData(newData);
+        expect(clonedEvent.data).toEqual(newData);
+        expect(clonedEvent.id).toEqual(event.id);
+        expect(clonedEvent.name).toEqual(event.name);
+        expect(clonedEvent.type).toEqual(event.type);
+        expect(clonedEvent.source).toEqual(event.source);
+        expect(clonedEvent.timestamp).toEqual(event.timestamp);
     });
 
 });

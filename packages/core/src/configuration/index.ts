@@ -11,14 +11,13 @@ governing permissions and limitations under the License.
 */
 import { ConfigurationImpl } from "./ConfigurationImpl";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Configuration {
   /**
    * Update the SDK configuration
    *
    * @param configuration Configuration key/value pairs to be updated or added.
    */
-  updateConfiguration(configuration: Map<string, any>): void;
+  updateConfiguration(configuration: Record<string, any>): void; /* eslint-disable @typescript-eslint/no-explicit-any */
 }
 
 export const configuration: Configuration = new ConfigurationImpl();

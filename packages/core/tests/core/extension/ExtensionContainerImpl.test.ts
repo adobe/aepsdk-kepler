@@ -10,9 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { createExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
-import { Event, EventHub, EventListener, EventSource, EventType } from "../../../src/core/eventhub";
+import { Event, EventHub, EventListener, EventSource, EventType, EventData } from "../../../src/core/eventhub";
 import { SharedStateManager, SharedStateStatus } from "../../../src/core/sharedstate";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 describe('test ExtensionContainerImpl class', () => {
 
     beforeEach(() => { });
@@ -63,8 +62,7 @@ describe('test ExtensionContainerImpl class', () => {
         sharedStateManager.updateSharedState = jest.fn();
 
         const container = createExtensionContainer(eventHub, "extension_name", sharedStateManager)
-
-        const state = new Map<string, any>();
+        const state = EventData.buildFrom({}) as EventData
         container.createXDMSharedState(state, null);
 
         expect(sharedStateManager.updateSharedState).toBeCalledTimes(1);
@@ -93,7 +91,7 @@ describe('test ExtensionContainerImpl class', () => {
         const eventId = 101;
         const e = new Event("name", "type", "source");
         e.id = eventId;
-        const state = new Map<string, any>();
+        const state = EventData.buildFrom({}) as EventData
         container.createXDMSharedState(state, e);
 
         expect(sharedStateManager.updateSharedState).toBeCalledTimes(1);
@@ -165,13 +163,11 @@ describe('test ExtensionContainerImpl class', () => {
         const promise: Promise<SharedStateResolver> = container.createPendingXDMSharedState(e);
 
         expect(sharedStateManager.updateSharedState).toBeCalledTimes(1);
-        expect(sharedStateManager.updateSharedState).toBeCalledWith("extension_name", eventId, expect.any(Map), SharedStateStatus.PENDING);
+        expect(sharedStateManager.updateSharedState).toBeCalledWith("extension_name", eventId, null, SharedStateStatus.PENDING);
 
         expect(eventHub.dispatchEvent).toBeCalledTimes(0);
 
-        const sharedState = new Map<string, any>();
-        sharedState.set("key", "value");
-
+        const sharedState = EventData.buildFrom({ "key": "value" }) as EventData
         promise.then((resolver) => {
             resolver(sharedState);
         }).then(() => {
@@ -206,7 +202,7 @@ describe('test ExtensionContainerImpl class', () => {
         const promise: Promise<SharedStateResolver> = container.createPendingXDMSharedState(e);
 
         expect(sharedStateManager.updateSharedState).toBeCalledTimes(1);
-        expect(sharedStateManager.updateSharedState).toBeCalledWith("extension_name", eventId, expect.any(Map), SharedStateStatus.PENDING);
+        expect(sharedStateManager.updateSharedState).toBeCalledWith("extension_name", eventId, null, SharedStateStatus.PENDING);
 
 
         expect(eventHub.dispatchEvent).toBeCalledTimes(0);

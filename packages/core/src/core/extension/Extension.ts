@@ -23,3 +23,7 @@ export interface Extension {
    */
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void;
 }
+
+export function isExtension(extension: any): extension is Extension {
+  return extension && extension.name && extension.version && typeof extension.onRegister === 'function';
+}

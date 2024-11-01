@@ -11,28 +11,28 @@ governing permissions and limitations under the License.
 */
 import { uuid } from "../utils/uuid";
 import { Log } from "../utils/Log";
+import { EventData } from "./EventData";
+import { LOG_EXTENSION } from "../CoreConstants";
 
 const LOG_TAG = "Event";
-const LOG_EXTENSION = "Core";
 /**
  * Event class is the basic building block of the EventHub. It is used to represent an event that is being sent or received.
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class Event {
-  private _uuid: string = uuid();
+  readonly uuid: string = uuid();
 
-  private _timestamp: Date = new Date();
+  readonly timestamp: Date = new Date();
 
   // Note: incrementally increasing id number, "-1" stands for the unprocessed event
-  private _sequentialId: number = -1;
+  private sequentialId: number = -1;
 
-  private _type: string = "";
+  readonly type: string;
 
-  private _source: string = "";
+  readonly source: string;
 
-  private _name: string = "";
+  readonly name: string;
 
-  private _data: Map<string, any> | null = null;
+  readonly data: EventData | null;
 
   /**
    * Constructor of the Event class.
@@ -42,22 +42,11 @@ export class Event {
    * @param source  the source of the event
    * @param data  the data of the event
    */
-  constructor(name: string, type: string, source: string, data: Map<string, any> | null = null) {
-    this._name = name;
-    this._type = type;
-    this._source = source;
-    if (data) {
-      this._data = _cloneEventData(data);
-    }
-  }
-
-  /**
-   * Get the UUID of the event.
-   *
-   * @returns the string of the UUID
-   */
-  get uuid(): string {
-    return this._uuid;
+  constructor(name: string, type: string, source: string, data: EventData | null = null) {
+    this.name = name;
+    this.type = type;
+    this.source = source;
+    this.data = data;
   }
 
   /**
@@ -66,7 +55,7 @@ export class Event {
    * @returns the sequential id number
    */
   get id(): number {
-    return this._sequentialId;
+    return this.sequentialId;
   }
 
   /**
@@ -76,50 +65,11 @@ export class Event {
    * @param value the id number
    */
   set id(value: number) {
-    if (this._sequentialId === -1) this._sequentialId = value;
-  }
-
-  /**
-   * Get the type of the event.
-   *
-   * @returns the type string
-   */
-  get type(): string {
-    return this._type;
-  }
-
-  /**
-   * Get the source of the event.
-   *
-   * @returns the source string
-   */
-  get source(): string {
-    return this._source;
-  }
-
-  /**
-   * Get the name of the event.
-   *
-   * @returns the name string
-   */
-  get name(): string {
-    return this._name;
-  }
-
-  /**
-   * Get the data map of the event.
-   */
-  get data(): Map<string, any> | null {
-    return this._data;
-  }
-
-  /**
-   * Get the timestamp of the event.
-   *
-   * @returns an Date object
-   */
-  get timestamp(): Date {
-    return this._timestamp;
+    if (this.sequentialId === -1) {
+      this.sequentialId = value;
+    } else {
+      Log.warning(LOG_EXTENSION, LOG_TAG, `Failed to set the event id to: ${value}. It has already been set to: ${this.sequentialId}`);
+    }
   }
 
   /**
@@ -129,22 +79,15 @@ export class Event {
    */
 
   toString(): string {
-    const data: Map<any, any> = this._data || new Map();
-    const tsString = this._timestamp.toTimeString();
-    let dataString = "unknown format";
-    try {
-      dataString = JSON.stringify(Array.from(data.entries()));
-    } catch (e) {
-      Log.error(LOG_EXTENSION, LOG_TAG, `Event.toString() failed to stringify data. Error: ${e}`);
-    }
-
+    const tsString = this.timestamp.toTimeString();
+    const dataString = this.data?.toString() || "unknown format";
     return `
     [
-      id: ${this._sequentialId}
-      uuid: ${this._uuid}
-      name: ${this._name}
-      type: ${this._type}
-      source: ${this._source}
+      id: ${this.sequentialId}
+      uuid: ${this.uuid}
+      name: ${this.name}
+      type: ${this.type}
+      source: ${this.source}
       ts: ${tsString}
       data: ${dataString}
     ]
@@ -156,25 +99,9 @@ export class Event {
    *
    * @returns a clone of the event object
    */
-  cloneWithEventData(data: Map<string, any> | null = null): Event {
-    const clonedData = data ? _cloneEventData(data) : null;
-    const newEvent = new Event(this._name, this._type, this._source, clonedData);
+  cloneWithEventData(data: EventData | null = null): Event {
+    const newEvent = new Event(this.name, this.type, this.source, data);
     newEvent.id = this.id;
     return newEvent;
   }
-}
-
-/**
- * Clone the event data map
- *
- * @param data  the data map to be cloned
- * @returns  the cloned data map
- */
-export function _cloneEventData(data: Map<string, any>): Map<string, any> {
-  const newData = new Map<string, any>();
-  data.forEach((value, key) => {
-    const deepCopy = JSON.parse(JSON.stringify(value));
-    newData.set(key, deepCopy);
-  });
-  return newData;
 }

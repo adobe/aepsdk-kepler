@@ -10,23 +10,22 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { ExtensionContainer, SharedStateResolver } from ".";
-import { EventHub, EventListener, Event } from "../eventhub";
+import { EventHub, EventListener, Event, EventData } from "../eventhub";
 import { buildSharedStateEvent } from "../sharedstate";
 import { SharedStateStatus, SharedStateResult, SharedStateManager } from "../sharedstate";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class ExtensionContainerImpl implements ExtensionContainer {
   constructor(
     private eventHub: EventHub,
     private extensionName: string,
     private sharedStateManager: SharedStateManager
-  ) {}
+  ) { }
 
   registerEventListener(eventType: string, EventSource: string, listener: EventListener): void {
     this.eventHub.on(eventType, EventSource, listener);
   }
 
-  createXDMSharedState(state: Map<string, any>, event: Event | null): void {
+  createXDMSharedState(state: EventData, event: Event | null): void {
     const version = event ? event.id : 0;
     this.sharedStateManager.updateSharedState(
       this.extensionName,
@@ -43,12 +42,12 @@ export class ExtensionContainerImpl implements ExtensionContainer {
     this.sharedStateManager.updateSharedState(
       this.extensionName,
       version,
-      new Map(),
+      null,
       SharedStateStatus.PENDING
     );
 
     return new Promise((resolve) => {
-      resolve((state: Map<string, any> | null) => {
+      resolve((state: EventData | null) => {
         if (state) {
           this.sharedStateManager.updateSharedState(
             this.extensionName,

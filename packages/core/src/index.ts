@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { SharedStateManager } from "./core/sharedstate/SharedStateManager";
-import { Extension, createExtensionContainer } from "./core/extension";
+import { isExtension, createExtensionContainer } from "./core/extension";
 import { createEventHub } from "./core/eventhub";
 import { serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
@@ -53,10 +53,6 @@ export const AEPSDK = {
     configuration.updateConfiguration(configuration);
   },
 };
-
-function isExtension(extension: any): extension is Extension {
-  return extension && extension.name && extension.onRegister;
-}
 
 function _start(params?: SDKParams): void {
   Log.debug(LOG_EXTENSION, LOG_TAG, "Start to register the platform services.");

@@ -23,8 +23,8 @@ export class EventHubImpl implements EventHub {
   private currentEventId: number = 1;
 
   start(): void {
-    this.eventQueue.forEach((event) => this.dispatchEvent(event));
     this.isStarted = true;
+    this.eventQueue.forEach((event) => this.dispatchEvent(event));
     this.eventQueue = [];
   }
 

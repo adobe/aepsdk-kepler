@@ -11,12 +11,11 @@ governing permissions and limitations under the License.
 */
 
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { Log } from "../Log";
 import { NetworkRequest, HttpConnection } from "./";
 import { DEFAULT_HEADER, DEFAULT_TIMEOUT, ERROR_CONNECTION } from "./Constants";
-import { stringify } from "../Common";
+import { safeStringify } from "../Common";
 
 const LOG_TAG = "Networking";
 const LOG_EXTENSION = "Utils";
@@ -37,14 +36,14 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
   Log.debug(
     LOG_EXTENSION,
     LOG_TAG,
-    `Send request to ${request.url}, body: ${stringify(request.body)}`
+    `Send request to ${request.url}, body: ${safeStringify(request.body)}`
   );
 
   const mergedHeader: Record<string, string> = request.headers
     ? { ...DEFAULT_HEADER, ...request.headers }
     : DEFAULT_HEADER;
 
-  Log.debug(LOG_EXTENSION, LOG_TAG, `Merged headers: ${stringify(mergedHeader)}`);
+  Log.debug(LOG_EXTENSION, LOG_TAG, `Merged headers: ${safeStringify(mergedHeader)}`);
 
   const { abortController, clearAbortTimer } = buildAbortSignal(
     request.timeout > 0 ? request.timeout : DEFAULT_TIMEOUT

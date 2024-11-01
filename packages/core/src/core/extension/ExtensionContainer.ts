@@ -11,8 +11,8 @@ governing permissions and limitations under the License.
 */
 import { EventListener, Event } from "../eventhub";
 import { SharedStateResult } from "../sharedstate";
+import { EventData } from "../eventhub";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface ExtensionContainer {
   /**
    * Register an event listener for the specified event type and event source.
@@ -28,10 +28,10 @@ export interface ExtensionContainer {
    *  1. If this extension has not previously published a shared state, shared state will be versioned at 0.
    *  2. If this extension has previously published a shared state, shared state will be versioned at the latest.
    *
-   * @param state A map representing current state of this extension
+   * @param state An EventData object representing current state of this extension
    * @param event The event for which the state is being set.
    */
-  createXDMSharedState(state: Map<string, any>, event: Event | null): void;
+  createXDMSharedState(state: EventData, event: Event | null): void;
 
   /**
    * Creates a pending shared state for this extension.
@@ -56,4 +56,4 @@ export interface ExtensionContainer {
   dispatch(event: Event): void;
 }
 
-export type SharedStateResolver = (state: Map<string, any> | null) => void;
+export type SharedStateResolver = (state: EventData | null) => void;

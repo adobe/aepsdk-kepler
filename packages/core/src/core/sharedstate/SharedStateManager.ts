@@ -10,10 +10,10 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import type { SharedStateStatus, SharedStateResult } from ".";
+import { EventData } from "../eventhub";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export class SharedStateManager {
-  constructor() {}
+  constructor() { }
 
   private sharedStateMap: Map<string, Map<number, SharedStateResult>> = new Map();
 
@@ -28,7 +28,7 @@ export class SharedStateManager {
   public updateSharedState(
     extensionName: string,
     version: number,
-    state: Map<string, any> | null,
+    state: EventData | null,
     status: SharedStateStatus
   ): void {
     if (!this.sharedStateMap.has(extensionName)) {

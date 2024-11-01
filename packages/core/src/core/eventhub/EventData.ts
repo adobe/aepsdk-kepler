@@ -42,7 +42,7 @@ export interface DataType {
 /**
  * The DataArray type presents an array of DataValue.
  */
-export interface DataArray extends Array<DataValue> {}
+export interface DataArray extends Array<DataValue> { }
 
 /**
  * The EventData class is a wrapper class that stores the data in a recursive structure.
@@ -78,8 +78,7 @@ export class EventData {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${
-          (error as Error).message
+        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${(error as Error).message
         }`
       );
       return null;
@@ -243,8 +242,7 @@ export class EventData {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to convert the EventData object to a JSON string, error: ${
-          (error as Error).message
+        `Failed to convert the EventData object to a JSON string, error: ${(error as Error).message
         }`
       );
       return "";

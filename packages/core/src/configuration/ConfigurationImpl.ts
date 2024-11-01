@@ -10,27 +10,20 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Configuration } from ".";
-import { Event, EventType, EventSource } from "../core/eventhub";
+import { Event, EventType, EventSource, EventData } from "../core/eventhub";
 import { Extension, ExtensionContainer } from "../core/extension";
 import { Log } from "../core/utils/Log";
 import { ServiceLookup } from "../core/services";
-import { ConfigurationConstants } from "./ConfigurationConstants";
+import { EXTENSION_NAME, FRIENDLY_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "./Constants";
 
-const EXTENSION_NAME = ConfigurationConstants.EXTENSION_NAME;
-const EXTENSION_VERSION = ConfigurationConstants.EXTENSION_VERSION;
-const EVENT = ConfigurationConstants.Event;
-
-const LOG_EXTENSION = EXTENSION_NAME;
+const LOG_EXTENSION = FRIENDLY_NAME;
 const LOG_TAG = "ConfigurationImpl";
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Implementation
 export class ConfigurationImpl implements Configuration, Extension {
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
   private isRegistered: boolean = false;
-
-  private currentConfiguration: Map<string, any> = new Map();
 
   public get name(): string {
     return EXTENSION_NAME;
@@ -40,16 +33,23 @@ export class ConfigurationImpl implements Configuration, Extension {
     return EXTENSION_VERSION;
   }
 
-  updateConfiguration(configuration: Map<string, any>): void {
-    if (this.isRegistered) {
+  updateConfiguration(configuration: Record<string, any>): void { /* eslint-disable @typescript-eslint/no-explicit-any */
+    if (!this.isRegistered) {
       Log.error(LOG_EXTENSION, LOG_TAG, "The Configuration extension is not registered.");
       return;
     }
-    const data = new Map<string, any>();
-    data.set(EVENT.Data.Key.CONFIGURATION_UPDATE, configuration);
+    const data = EventData.buildFrom({
+      [UPDATE_CONFIGURATION_EVENT_KEY]: configuration
+    });
+
+    if (data === null) {
+      Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is malformatted.");
+      return;
+    }
+
     this.container?.dispatch(
       new Event(
-        EVENT.Name.CONFIGURATION_UPDATE,
+        UPDATE_CONFIGURATION_EVENT_NAME,
         EventType.CONFIGURATION,
         EventSource.REQUEST_CONTENT,
         data
@@ -67,16 +67,13 @@ export class ConfigurationImpl implements Configuration, Extension {
       EventType.CONFIGURATION,
       EventSource.REQUEST_CONTENT,
       (event) => {
-        const configMap = event.data?.get(EVENT.Data.Key.CONFIGURATION_UPDATE);
-        if (!configMap) {
-          Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is missing.");
+        const configObj = event.data?.retrieveDataTypeFromPath(UPDATE_CONFIGURATION_EVENT_KEY);
+        if (!configObj) {
+          Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is not found.");
           return;
         }
-        //TODO: We may need to validate the configuration key.
-        for (const key in configMap) {
-          this.currentConfiguration.set(key, configMap[key]);
-        }
-        this.container?.createXDMSharedState(this.currentConfiguration, event);
+        const state = EventData.buildFrom(configObj) as EventData;
+        this.container?.createXDMSharedState(state, event);
       }
     );
   }

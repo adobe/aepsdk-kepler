@@ -25,7 +25,7 @@ describe('test SharedState related classes', () => {
         expect(event.source).toBe('com.adobe.eventSource.sharedState');
         const data = event.data as EventData;
         expect(data).toBeDefined();
-        expect(data.retrieveStringFromPath('stateowner')).toBe('extensionName1');
+        expect(data.getStringFromPath('stateowner')).toBe('extensionName1');
     });
 
     test('test SharedStateManager - set and get state', () => {

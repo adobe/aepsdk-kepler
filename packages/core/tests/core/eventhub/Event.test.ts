@@ -71,7 +71,7 @@ describe('test Event class', () => {
         expect(str).toContain("source: event_source");
     });
 
-    test('test Event: cloneWithEventData()', () => {
+    test('test Event: cloneWithEventData()', async () => {
         const data = EventData.buildFrom({
             key: "value"
         });
@@ -79,13 +79,18 @@ describe('test Event class', () => {
         const newData = EventData.buildFrom({
             key: "newValue"
         });
+
+        await new Promise((r) => setTimeout(r, 10));
+
         const clonedEvent = event.cloneWithEventData(newData);
         expect(clonedEvent.data).toEqual(newData);
         expect(clonedEvent.id).toEqual(event.id);
         expect(clonedEvent.name).toEqual(event.name);
         expect(clonedEvent.type).toEqual(event.type);
         expect(clonedEvent.source).toEqual(event.source);
-        expect(clonedEvent.timestamp).toEqual(event.timestamp);
+
+        expect(clonedEvent.uuid).not.toEqual(event.uuid);
+        expect(clonedEvent.timestamp.getMilliseconds()).not.toEqual(event.timestamp.getMilliseconds());
     });
 
 });

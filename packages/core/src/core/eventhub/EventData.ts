@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 
 import { Log } from "../utils/Log";
-import { CoreConstants } from "../CoreConstants";
+import { LOG_EXTENSION } from "../CoreConstants";
 import {
   isArray,
   isString,
@@ -22,47 +22,47 @@ import {
   isMap,
   isSymbol,
   isObject,
-} from "../utils/Types";
+} from "../utils/TypeCheck";
 
 const LOG_TAG = "EventData";
-const LOG_EXTENSION = CoreConstants.FRIENDLY_NAME;
 
 /**
- * The DataValue type presents the supported value types of the DataType interface.
+ * The DataValue type presents the supported value types of the DataObject interface.
  */
-export type DataValue = string | number | boolean | null | DataType | DataArray;
+export type DataValue = string | number | boolean | null | DataObject | DataArray;
 
 /**
- * The DataType interface presents a recursive structure that represents the data that can be stored within EventData class.
+ * The DataObject interface presents a recursive structure that represents the data that can be stored within EventData class.
  */
-export interface DataType {
+export interface DataObject {
   [key: string]: DataValue;
 }
 
 /**
  * The DataArray type presents an array of DataValue.
  */
-export interface DataArray extends Array<DataValue> { }
-
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface DataArray extends Array<DataValue> {}
 /**
  * The EventData class is a wrapper class that stores the data in a recursive structure.
  */
 export class EventData {
-  private data: DataType;
+  private data: DataObject;
 
-  private constructor(data: DataType) {
+  private constructor(data: DataObject) {
     this.data = data;
   }
 
   /**
-   * This method creates an EventData object from a JSON object that conforms to the Record<string, any> type.
+   * This method creates an EventData object from a JSON object that conforms to the "Record<string, any>" type.
    *
-   * @param jsonObj The JSON object that conforms to the Record<string, any> type.
+   * @param jsonObj The "Record<string, any>" object that conforms to JSON object.
    * @returns An EventData object if the input is a valid JSON object, otherwise null.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public static buildFrom(jsonObj: Record<string, any>): EventData | null {
     try {
-      const data: DataType = JSON.parse(
+      const data: DataObject = JSON.parse(
         JSON.stringify(jsonObj, (k, v) => {
           if (isFunction(v) || isMap(v) || isSymbol(v)) {
             return undefined;
@@ -78,7 +78,8 @@ export class EventData {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${(error as Error).message
+        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${
+          (error as Error).message
         }`
       );
       return null;
@@ -114,7 +115,7 @@ export class EventData {
       if (current[key[i]] === undefined) {
         current[key[i]] = {};
       }
-      current = current[key[i]] as DataType;
+      current = current[key[i]] as DataObject;
     }
     current[key[key.length - 1]] = value;
   }
@@ -127,7 +128,7 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The data that is stored in the given path.
    */
-  private retrieveDataValueFromPath(...key: string[]): DataValue | undefined {
+  private getDataValueFromPath(...key: string[]): DataValue | undefined {
     if (key.length === 0) {
       return this.data;
     }
@@ -135,7 +136,7 @@ export class EventData {
     let current = this.data;
     for (let i = 0; i < key.length - 1; i++) {
       if (isObject(current[key[i]]) && !isArray(current[key[i]])) {
-        current = current[key[i]] as DataType;
+        current = current[key[i]] as DataObject;
       } else {
         return undefined;
       }
@@ -146,12 +147,12 @@ export class EventData {
   /**
    *
    * @param key The path to the data that needs to be retrieved.
-   * @returns The DataType object that is stored in the given path.
+   * @returns The DataObject object that is stored in the given path.
    */
-  public retrieveDataTypeFromPath(...key: string[]): DataType | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+  public getDataObjectFromPath(...key: string[]): DataObject | undefined {
+    const value = this.getDataValueFromPath(...key);
     if (isObject(value) && !isArray(value)) {
-      return value as DataType;
+      return value as DataObject;
     }
     return undefined;
   }
@@ -161,8 +162,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The number that is stored in the given path, otherwise undefined.
    */
-  public retrieveNumberFromPath(...key: string[]): number | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+  public getNumberFromPath(...key: string[]): number | undefined {
+    const value = this.getDataValueFromPath(...key);
     if (isNumber(value)) {
       return value as number;
     }
@@ -174,8 +175,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The string that is stored in the given path, otherwise undefined.
    */
-  public retrieveStringFromPath(...key: string[]): string | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+  public getStringFromPath(...key: string[]): string | undefined {
+    const value = this.getDataValueFromPath(...key);
     if (isString(value)) {
       return value as string;
     }
@@ -187,8 +188,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
-  public retrieveBooleanFromPath(...key: string[]): boolean | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+  public getBooleanFromPath(...key: string[]): boolean | undefined {
+    const value = this.getDataValueFromPath(...key);
     if (isBoolean(value)) {
       return value as boolean;
     }
@@ -201,7 +202,7 @@ export class EventData {
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
   public isNull(...key: string[]): boolean | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+    const value = this.getDataValueFromPath(...key);
     if (value === null) {
       return true;
     } else if (isUndefined(value)) {
@@ -219,8 +220,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
-  public retrieveArrayFromPath(...key: string[]): DataArray | undefined {
-    const value = this.retrieveDataValueFromPath(...key);
+  public getArrayFromPath(...key: string[]): DataArray | undefined {
+    const value = this.getDataValueFromPath(...key);
     if (isArray(value)) {
       return value as DataArray;
     }
@@ -242,7 +243,8 @@ export class EventData {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to convert the EventData object to a JSON string, error: ${(error as Error).message
+        `Failed to convert the EventData object to a JSON string, error: ${
+          (error as Error).message
         }`
       );
       return "";

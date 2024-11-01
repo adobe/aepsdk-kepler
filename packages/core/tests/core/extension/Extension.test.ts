@@ -13,6 +13,7 @@ import { isExtension, Extension, ExtensionContainer } from "../../../src/core/ex
 import { ServiceLookup } from "../../../src/core/services";
 describe('test isExtension() function', () => {
     test('should identify Extension objects', () => {
+        /* eslint-disable @typescript-eslint/no-unused-vars */
         const extension: Extension = {
             name: "extension",
             version: "1.0.0",

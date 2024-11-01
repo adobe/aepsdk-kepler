@@ -15,4 +15,4 @@ export const CoreConstants = {
   EXTENSION_VERSION: "1.0.0",
 } as const;
 
-export const LOG_EXTENSION = CoreConstants.FRIENDLY_NAME;
+export const LOG_EXTENSION = CoreConstants.EXTENSION_NAME;

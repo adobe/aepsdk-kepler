@@ -23,7 +23,9 @@ export interface Extension {
    */
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void;
 }
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isExtension(extension: any): extension is Extension {
-  return extension && extension.name && extension.version && typeof extension.onRegister === 'function';
+  return (
+    extension && extension.name && extension.version && typeof extension.onRegister === "function"
+  );
 }

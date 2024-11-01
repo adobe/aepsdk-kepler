@@ -17,7 +17,8 @@ export interface Configuration {
    *
    * @param configuration Configuration key/value pairs to be updated or added.
    */
-  updateConfiguration(configuration: Record<string, any>): void; /* eslint-disable @typescript-eslint/no-explicit-any */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateConfiguration(configuration: Record<string, any>): void;
 }
 
 export const configuration: Configuration = new ConfigurationImpl();

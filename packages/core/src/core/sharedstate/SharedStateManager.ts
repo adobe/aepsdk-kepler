@@ -13,7 +13,7 @@ import type { SharedStateStatus, SharedStateResult } from ".";
 import { EventData } from "../eventhub";
 
 export class SharedStateManager {
-  constructor() { }
+  constructor() {}
 
   private sharedStateMap: Map<string, Map<number, SharedStateResult>> = new Map();
 

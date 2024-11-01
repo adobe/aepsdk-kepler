@@ -14,9 +14,14 @@ import { Event, EventType, EventSource, EventData } from "../core/eventhub";
 import { Extension, ExtensionContainer } from "../core/extension";
 import { Log } from "../core/utils/Log";
 import { ServiceLookup } from "../core/services";
-import { EXTENSION_NAME, FRIENDLY_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "./Constants";
+import {
+  EXTENSION_NAME,
+  EXTENSION_VERSION,
+  UPDATE_CONFIGURATION_EVENT_KEY,
+  UPDATE_CONFIGURATION_EVENT_NAME,
+} from "./Constants";
 
-const LOG_EXTENSION = FRIENDLY_NAME;
+const LOG_EXTENSION = EXTENSION_NAME;
 const LOG_TAG = "ConfigurationImpl";
 
 // Implementation
@@ -33,13 +38,14 @@ export class ConfigurationImpl implements Configuration, Extension {
     return EXTENSION_VERSION;
   }
 
-  updateConfiguration(configuration: Record<string, any>): void { /* eslint-disable @typescript-eslint/no-explicit-any */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  updateConfiguration(configuration: Record<string, any>): void {
     if (!this.isRegistered) {
       Log.error(LOG_EXTENSION, LOG_TAG, "The Configuration extension is not registered.");
       return;
     }
     const data = EventData.buildFrom({
-      [UPDATE_CONFIGURATION_EVENT_KEY]: configuration
+      [UPDATE_CONFIGURATION_EVENT_KEY]: configuration,
     });
 
     if (data === null) {
@@ -67,7 +73,7 @@ export class ConfigurationImpl implements Configuration, Extension {
       EventType.CONFIGURATION,
       EventSource.REQUEST_CONTENT,
       (event) => {
-        const configObj = event.data?.retrieveDataTypeFromPath(UPDATE_CONFIGURATION_EVENT_KEY);
+        const configObj = event.data?.getDataObjectFromPath(UPDATE_CONFIGURATION_EVENT_KEY);
         if (!configObj) {
           Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is not found.");
           return;

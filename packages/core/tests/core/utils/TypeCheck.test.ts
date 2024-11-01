@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { isArray, isString, isBoolean, isNumber, isUndefined, isFunction, isMap, isSymbol, isObject } from '../../../src/core/utils/Types';
+import { isArray, isString, isBoolean, isNumber, isUndefined, isFunction, isMap, isSymbol, isObject } from '../../../src/core/utils/TypeCheck';
 
 const EMPTY_ARRAY: unknown = [];
 const ARRAY: unknown = [1, '', true, null, {}, []];

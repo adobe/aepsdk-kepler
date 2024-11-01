@@ -68,7 +68,11 @@ export class Event {
     if (this.sequentialId === -1) {
       this.sequentialId = value;
     } else {
-      Log.warning(LOG_EXTENSION, LOG_TAG, `Failed to set the event id to: ${value}. It has already been set to: ${this.sequentialId}`);
+      Log.warning(
+        LOG_EXTENSION,
+        LOG_TAG,
+        `Failed to set the event id to: ${value}. It has already been set to: ${this.sequentialId}`
+      );
     }
   }
 
@@ -95,7 +99,8 @@ export class Event {
   }
 
   /**
-   * Clone the current Event object with updated data
+   * Clone the current Event object with the updated data.
+   * The cloned event will have the same id as the original event, but the uuid and timestamp will be different.
    *
    * @returns a clone of the event object
    */

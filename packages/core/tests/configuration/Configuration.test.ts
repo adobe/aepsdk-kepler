@@ -11,18 +11,12 @@ governing permissions and limitations under the License.
 */
 import { ConfigurationImpl } from "../../src/configuration/ConfigurationImpl";
 import { Configuration } from "../../src/configuration";
-import { isExtension } from "../../src/core/extension";
-import { createEventHub } from "../../src/core/eventhub";
-import { SharedStateManager } from "../../src/core/sharedstate";
-import { createExtensionContainer } from "../../src/core/extension";
+import { Event, createEventHub, EventType, EventSource } from "../../src/core/eventhub";
+import { SharedStateManager, SharedStateStatus } from "../../src/core/sharedstate";
+import { createExtensionContainer, isExtension, ExtensionContainer } from "../../src/core/extension";
 import { serviceLookup } from "../../src/core/services";
-import { Event } from "../../src/core/eventhub";
-import { UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "../../src/configuration/Constants";
-import { EventType, EventSource } from "../../src/core/eventhub";
+import { EXTENSION_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "../../src/configuration/Constants";
 import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/sharedstate/Constants";
-import { EXTENSION_NAME } from "../../src/configuration/Constants";
-import { ExtensionContainer } from "../../src/core/extension";
-import { SharedStateStatus } from "../../src/core/sharedstate/SharedStateStatus";
 
 describe('test Configuration extension', () => {
     let configuration: Configuration = new ConfigurationImpl();
@@ -43,6 +37,15 @@ describe('test Configuration extension', () => {
         }
     });
 
+    it('should return correct extension name & extension version', () => {
+        if (isExtension(configuration)) {
+            expect(configuration.name).toEqual(EXTENSION_NAME);
+            expect(configuration.version).toEqual(EXTENSION_VERSION);
+        } else {
+            throw new Error("Configuration is not an extension");
+        }
+    });
+
     it('updateConfiguration() - should update the configuration state and dispatch shared state event', () => {
         const dispatchedEvents: Event[] = [];
         eventHub.registerEventProcessor((event: Event) => {
@@ -58,17 +61,19 @@ describe('test Configuration extension', () => {
         expect(dispatchedEvents[0].name).toEqual(UPDATE_CONFIGURATION_EVENT_NAME);
         expect(dispatchedEvents[0].type).toEqual(EventType.CONFIGURATION);
         expect(dispatchedEvents[0].source).toEqual(EventSource.REQUEST_CONTENT);
-        expect(dispatchedEvents[0].data?.retrieveDataTypeFromPath(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({ key: 'value' });
+        expect(dispatchedEvents[0].data?.getDataObjectFromPath(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({ key: 'value' });
 
         // configuration shared state
         expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
         expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
         expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
-        expect(dispatchedEvents[1].data?.retrieveStringFromPath(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
+        expect(dispatchedEvents[1].data?.getStringFromPath(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
 
         const result = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
-        expect(result?.value?.retrieveDataTypeFromPath()).toEqual({ key: 'value' });
+        expect(result?.value?.getDataObjectFromPath()).toEqual({ key: 'value' });
         expect(result?.status).toEqual(SharedStateStatus.SET);
     });
+
+
 
 });

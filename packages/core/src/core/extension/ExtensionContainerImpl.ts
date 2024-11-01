@@ -19,7 +19,7 @@ export class ExtensionContainerImpl implements ExtensionContainer {
     private eventHub: EventHub,
     private extensionName: string,
     private sharedStateManager: SharedStateManager
-  ) { }
+  ) {}
 
   registerEventListener(eventType: string, EventSource: string, listener: EventListener): void {
     this.eventHub.on(eventType, EventSource, listener);

@@ -20,13 +20,12 @@ import { EventData } from "../eventhub";
  * @returns The shared state event
  */
 export function buildSharedStateEvent(extensionName: string): Event {
-
   return new Event(
     SHARED_STATE_NAME,
     EventType.HUB,
     EventSource.SHARED_STATE,
     EventData.buildFrom({
-      [SHARED_STATE_KEY_OWNER]: extensionName
+      [SHARED_STATE_KEY_OWNER]: extensionName,
     })
   );
 }

@@ -10,11 +10,11 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { EventData } from '../eventhub';
-import { SharedStateStatus } from './SharedStateStatus';
+import { EventData } from "../eventhub";
+import { SharedStateStatus } from "./SharedStateStatus";
 
 /* Contains the status and value for a given shared state */
 export type SharedStateResult = {
-    status: SharedStateStatus;
-    value: EventData | null;
+  status: SharedStateStatus;
+  value: EventData | null;
 };

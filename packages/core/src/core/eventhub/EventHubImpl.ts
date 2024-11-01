@@ -11,9 +11,9 @@ governing permissions and limitations under the License.
 */
 import { Log } from "../utils/Log";
 import { EventHub, EventListener, EventProcessor, Event } from ".";
+import { LOG_EXTENSION } from "../CoreConstants";
 
 const LOG_TAG = "EventHubImpl";
-const LOG_EXTENSION = "Core";
 
 export class EventHubImpl implements EventHub {
   private isStarted: boolean = false;

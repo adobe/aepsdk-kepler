@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-export { SharedStateStatus, } from "./SharedStateStatus";
+export { SharedStateStatus } from "./SharedStateStatus";
 export { type SharedStateResult } from "./SharedStateResult";
 export { SharedStateManager } from "./SharedStateManager";
 export { buildSharedStateEvent } from "./SharedStateEvent";

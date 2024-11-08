@@ -67,7 +67,7 @@ describe('IdentityManager tests', () => {
         identityManager._updateECID('mockECID');
 
         const identityMap = await identityManager.getIdentityMap();
-        expect(identityMap).toEqual(new Map([[EdgeConstants.IdentityMap.NameSpace.ECID, 'mockECID']]));
+        expect(identityMap).toEqual({"ECID": [{"authenticatedState": "ambiguous", "id": "mockECID", "primary": true}]});
     });
 
     test('getIdentityMap returns null when ECID is not set', async () => {
@@ -94,5 +94,111 @@ describe('IdentityManager tests', () => {
 
         identityManager._updateECID(null);
         expect(mockDataStore.delete).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
+    });
+
+    test('processEdgeResponse updates ECID when set in response handle', async () => {
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [
+                {
+                    namespace: {
+                        code: "ECID",
+                    },
+                    id: 'newECID',
+                },
+            ],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe('newECID');
+    });
+
+    test('processEdgeResponse does not update ECID when not set in response handle', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [
+                {
+                    namespace: {
+                        code: "nonECID",
+                    },
+                    id: 'newECID',
+                },
+            ],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
+    });
+
+    test('processEdgeResponse does not update ECID when payload is null', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: null,
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
+    });
+
+    test('processEdgeResponse does not update ECID when payload is empty', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
+    });
+
+    test('processEdgeResponse does not update ECID when namespace is null', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [
+                {
+                    id: 'newECID',
+                },
+            ],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
+    });
+
+    test('processEdgeResponse does not update ECID when namespace is empty', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [
+                {
+                    namespace: {},
+                    id: 'newECID',
+                },
+            ],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
+    });
+
+    test('processEdgeResponse does not update ECID when namespace code is empty', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+        const identityManager = new IdentityManager(mockDataStore);
+        const responseHandle = {
+            payload: [
+                {
+                    namespace: {
+                        code: "",
+                    },
+                    id: 'newECID',
+                },
+            ],
+        };
+
+        identityManager.processEdgeResponse(responseHandle);
+        expect(identityManager.getECID()).resolves.toBe(null);
     });
 });

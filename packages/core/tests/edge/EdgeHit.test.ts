@@ -10,82 +10,68 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+import { DataObject } from '../../src/core/eventhub/EventData';
 import { EdgeHit, EdgeHitType } from '../../src/edge/EdgeHit';
 
 describe('EdgeHit tests', () => {
 
     test('EdgeHit builder type edge', () => {
-        const builder = EdgeHit.builder();
-        builder.requestId = "requestId";
-        builder.timestamp = new Date();
-        builder.meta = new Map<string, any>();
-        builder.path = "custom/path/here";
-        builder.type = EdgeHitType.EDGE;
-        builder.data = new Map([["key", "value"]]);
+        const testTimeStamp = Date.now();
 
-        const edgeHit = builder.build();
+        const edgeHit = EdgeHit.builder()
+            .setRequestId("requestId")
+            .setTimestamp(testTimeStamp)
+            .setMeta({"metaKey": "value"})
+            .setPath("custom/path/here")
+            .setType(EdgeHitType.EDGE)
+            .setData({"dataKey": "value"})
+            .build();
 
         expect(edgeHit.requestId).toBe("requestId");
-        expect(edgeHit.timestamp).toBeInstanceOf(Date);
-        expect(edgeHit.meta).toBeInstanceOf(Map);
+        expect(edgeHit.timestamp).toEqual(testTimeStamp);
+        expect(edgeHit.meta as DataObject).not.toBeNull();
+        expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
+        expect(edgeHit.meta?.["metaKey"]).toBe("value");
         expect(edgeHit.path).toBe("custom/path/here");
         expect(edgeHit.type).toBe(EdgeHitType.EDGE);
-        expect(edgeHit.data).toBeInstanceOf(Map);
-        expect(edgeHit.data?.size).toBe(1);
-        expect(edgeHit.data?.get("key")).toBe("value");
+        expect(Object.keys(edgeHit.data ?? {}).length).toBe(1);
+        expect(edgeHit.data?.["dataKey"]).toBe("value");
     });
 
     test('EdgeHit builder type consent', () => {
-        const builder = EdgeHit.builder();
-        builder.requestId = "requestId";
-        builder.timestamp = new Date();
-        builder.meta = new Map<string, any>();
-        builder.path = "custom/path/here";
-        builder.type = EdgeHitType.CONSENT;
-        builder.data = new Map([["key", "value"]]);
+        const testTimeStamp = Date.now();
 
-        const edgeHit = builder.build();
+        const edgeHit = EdgeHit.builder()
+            .setRequestId("requestId")
+            .setTimestamp(testTimeStamp)
+            .setMeta({"metaKey": "value"})
+            .setPath("custom/path/here")
+            .setType(EdgeHitType.CONSENT)
+            .setData({"dataKey": "value"})
+            .build();
 
         expect(edgeHit.requestId).toBe("requestId");
-        expect(edgeHit.timestamp).toBeInstanceOf(Date);
-        expect(edgeHit.meta).toBeInstanceOf(Map);
+        expect(edgeHit.timestamp).toEqual(testTimeStamp);
+        expect(edgeHit.meta as DataObject).not.toBeNull();
+        expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
+        expect(edgeHit.meta?.["metaKey"]).toBe("value");
         expect(edgeHit.path).toBe("custom/path/here");
         expect(edgeHit.type).toBe(EdgeHitType.CONSENT);
-        expect(edgeHit.data).toBeInstanceOf(Map);
-        expect(edgeHit.data?.size).toBe(1);
-        expect(edgeHit.data?.get("key")).toBe("value");
-    });
-
-    test('EdgeHit builder null event data', () => {
-        const builder = EdgeHit.builder();
-        builder.requestId = "requestId";
-        builder.timestamp = new Date();
-        builder.meta = new Map<string, any>();
-        builder.path = "custom/path/here";
-        builder.type = EdgeHitType.EDGE;
-        builder.data = null;
-
-        const edgeHit = builder.build();
-
-        expect(edgeHit.requestId).toBe("requestId");
-        expect(edgeHit.timestamp).toBeInstanceOf(Date);
-        expect(edgeHit.meta).toBeInstanceOf(Map);
-        expect(edgeHit.path).toBe("custom/path/here");
-        expect(edgeHit.type).toBe(EdgeHitType.EDGE);
-        expect(edgeHit.data).toBeNull();
+        expect(edgeHit.data as DataObject).not.toBeNull();
+        expect(Object.keys(edgeHit.data ?? {}).length).toBe(1);
+        expect(edgeHit.data?.["dataKey"]).toBe("value");
     });
 
     test('EdgeHit builder no fields set', () => {
-        const builder = EdgeHit.builder();
-        const edgeHit = builder.build();
+        const edgeHit = EdgeHit.builder().build();
 
         expect(edgeHit.requestId).toBe("");
-        expect(edgeHit.timestamp).toBeInstanceOf(Date);
+        // If not set the timestamp is set to the time of creation of edge hit
+        expect(edgeHit.timestamp <= Date.now()).toBeTruthy();
         expect(edgeHit.meta).toBeNull();
         expect(edgeHit.path).toBe("");
         expect(edgeHit.type).toBe(EdgeHitType.EDGE);
         expect(edgeHit.data).toBeNull();
     });
-
 
 });

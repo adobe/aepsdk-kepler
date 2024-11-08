@@ -9,11 +9,13 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Event } from "../../core/eventhub";
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
+import { DataArray, DataObject, DataType } from "../../core/eventhub/EventData";
+import { isNullOrEmptyString } from "../../core/utils/StringUtil";
 
+const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "IdentityManager";
 
 /**
@@ -30,10 +32,29 @@ export class IdentityManager {
     this.dataStore = dataStore;
   }
 
-  processEdgeResponseEvent(event: Event) {
-    // TODO: process the response from the edge
-    // Extract the ECID from the response
-    // update the ecid value
+  processEdgeResponse(responseHandle: DataObject) {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `processEdgeResponse() -  Processing Edge Response handle:(${JSON.stringify(
+        responseHandle
+      )}).`
+    );
+
+    const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
+
+    for (const payload of payloadArr) {
+      const payloadObj = (payload as DataObject) ?? {};
+      const namespace = (payloadObj?.["namespace"] as DataObject) ?? {};
+      const code = (namespace?.["code"] as string) ?? "";
+
+      if (code === this.ECID_NAMESPACE) {
+        const ecid = payloadObj["id"] as string;
+        if (!isNullOrEmptyString(ecid)) {
+          this._updateECID(ecid);
+        }
+      }
+    }
   }
 
   /**
@@ -41,7 +62,7 @@ export class IdentityManager {
    * @returns Promise<string | null>
    */
   async getECID(): Promise<string | null> {
-    Log.debug(EdgeConstants.LOG_SOURCE, LOG_TAG, `getECID() -  Getting ECID.`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `getECID() -  Getting ECID.`);
     if (this.ecid) {
       return Promise.resolve(this.ecid);
     }
@@ -51,16 +72,24 @@ export class IdentityManager {
 
   /**
    * Creates and returns the identity map
-   * @returns Promise<Map<string, string> | null>
+   * @returns Promise<Record<string, DataType> | null>
    */
-  async getIdentityMap(): Promise<Map<string, string> | null> {
-    Log.debug(EdgeConstants.LOG_SOURCE, LOG_TAG, `getIdentityMap() -  Getting Identity Map.`);
+  async getIdentityMap(): Promise<Record<string, DataType> | null> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `getIdentityMap() -  Getting Identity Map.`);
     return this.getECID().then((ecid) => {
       if (ecid === null) {
         return Promise.resolve(null);
       }
 
-      const identityMap = new Map([[this.ECID_NAMESPACE, ecid]]);
+      const identityMap: Record<string, DataType> = {};
+      identityMap[this.ECID_NAMESPACE] = [
+        {
+          id: ecid,
+          primary: true,
+          authenticatedState: "ambiguous",
+        },
+      ];
+
       return Promise.resolve(identityMap);
     });
   }
@@ -72,14 +101,20 @@ export class IdentityManager {
    * @returns void
    */
   _updateECID(ecid: string | null) {
-    Log.debug(EdgeConstants.LOG_SOURCE, LOG_TAG, `_updateECID() -  Updating ECID: (${ecid})`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `_updateECID() -  Updating ECID: (${ecid})`);
 
-    if (ecid) {
-      this.ecid = ecid;
-      this._persistECID(ecid);
-    } else {
+    if (isNullOrEmptyString(ecid)) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `_updateECID() -  Deleting ECID, since the value:(${ecid}) is null or empty.`
+      );
       this.ecid = null;
       this._deleteECID();
+    } else {
+      Log.verbose(LOG_SOURCE, LOG_TAG, `_updateECID() -  Updating ECID with value: (${ecid})`);
+      this.ecid = ecid;
+      this._persistECID(ecid!);
     }
   }
 
@@ -88,7 +123,7 @@ export class IdentityManager {
    * @returns void
    */
   _persistECID(ecid: string) {
-    Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_persistECID() -  Persisting ECID: (${ecid})`);
+    Log.verbose(LOG_SOURCE, LOG_TAG, `_persistECID() -  Persisting ECID: (${ecid})`);
     this.dataStore.set(this.ECID_KEY, ecid);
   }
 
@@ -97,7 +132,7 @@ export class IdentityManager {
    * @returns void
    */
   _deleteECID() {
-    Log.verbose(EdgeConstants.LOG_SOURCE, LOG_TAG, `_deleteECID() -  Deleting ECID.`);
+    Log.verbose(LOG_SOURCE, LOG_TAG, `_deleteECID() -  Deleting ECID.`);
     this.dataStore.delete(this.ECID_KEY);
   }
 
@@ -106,11 +141,7 @@ export class IdentityManager {
    * @returns Promise<string | null>
    */
   _getECIDFromPersistence(): Promise<string | null> {
-    Log.verbose(
-      EdgeConstants.LOG_SOURCE,
-      LOG_TAG,
-      `_getECIDFromPersistence() -  Loading ECID from persistence.`
-    );
+    Log.verbose(LOG_SOURCE, LOG_TAG, `_getECIDFromPersistence() -  Loading ECID from persistence.`);
     return this.dataStore.get(this.ECID_KEY);
   }
 }

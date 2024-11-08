@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { uuid } from "../utils/uuid";
 import { Log } from "../utils/Log";
 import { EventData } from "./EventData";
-import { LOG_EXTENSION } from "../CoreConstants";
+import { LOG_SOURCE } from "../CoreConstants";
 
 const LOG_TAG = "Event";
 /**
@@ -69,7 +69,7 @@ export class Event {
       this.sequentialId = value;
     } else {
       Log.warning(
-        LOG_EXTENSION,
+        LOG_SOURCE,
         LOG_TAG,
         `Failed to set the event id to: ${value}. It has already been set to: ${this.sequentialId}`
       );

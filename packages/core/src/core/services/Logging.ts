@@ -20,10 +20,10 @@ export interface Logging {
   setLogLevel(level: LogLevel): void;
   getLogLevel(): LogLevel;
 
-  verbose(tag: string, message: string): void;
-  debug(tag: string, message: string): void;
-  warning(tag: string, message: string): void;
-  error(tag: string, message: string): void;
+  verbose(extension: string, tag: string, message: string): void;
+  debug(extension: string, tag: string, message: string): void;
+  warning(extension: string, tag: string, message: string): void;
+  error(extension: string, tag: string, message: string): void;
 }
 
 export class DefaultLogging implements Logging {
@@ -37,32 +37,32 @@ export class DefaultLogging implements Logging {
     this.logLevel = level;
   }
 
-  verbose(tag: string, message: string): void {
+  verbose(extension: string, tag: string, message: string): void {
     if (this.logLevel >= LogLevel.VERBOSE) {
-      this.print(tag, message);
+      this.print(extension, tag, message);
     }
   }
 
-  debug(tag: string, message: string): void {
+  debug(extension: string, tag: string, message: string): void {
     if (this.logLevel >= LogLevel.DEBUG) {
-      this.print(tag, message);
+      this.print(extension, tag, message);
     }
   }
 
-  warning(tag: string, message: string): void {
+  warning(extension: string, tag: string, message: string): void {
     if (this.logLevel >= LogLevel.WARNING) {
-      this.print(tag, message);
+      this.print(extension, tag, message);
     }
   }
 
-  error(tag: string, message: string): void {
+  error(extension: string, tag: string, message: string): void {
     if (this.logLevel >= LogLevel.ERROR) {
-      this.print(tag, message);
+      this.print(extension, tag, message);
     }
   }
 
-  private print(tag: string, message: string): void {
-    console.log(`[${tag}] ${message}`);
+  private print(extension: string, tag: string, message: string): void {
+    console.log(`[${extension}][${tag}]${message}`);
   }
 }
 

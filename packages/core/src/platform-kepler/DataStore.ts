@@ -30,7 +30,11 @@ export class KeplerDataStore implements DataStore {
 
   async get(key: string): Promise<string | null> {
     const prefixedKey = this.getKeyWithPrefix(key);
-    Log.debug(LOG_EXTENSION, LOG_TAG, `Retrieve value for key: ${prefixedKey}`);
+    Log.debug(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `get() - Retrieving value for key(${prefixedKey}) from KeplerDataStore`
+    );
 
     try {
       const value = await AsyncStorage.getItem(prefixedKey);
@@ -39,7 +43,9 @@ export class KeplerDataStore implements DataStore {
       Log.debug(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to retrieve value for key: ${prefixedKey}, error: ${(error as Error).message}`
+        `get() - Failed to retrieve value for key(${prefixedKey}), error(${
+          (error as Error).message
+        })`
       );
       return null;
     }
@@ -50,7 +56,7 @@ export class KeplerDataStore implements DataStore {
     Log.debug(
       LOG_EXTENSION,
       LOG_TAG,
-      `Save data to local storage. (key = ${prefixedKey}, value = ${value})`
+      `set() - Saving Key(${prefixedKey}) with value(${value}) to KeplerDataStore`
     );
     try {
       AsyncStorage.setItem(prefixedKey, value);
@@ -58,7 +64,7 @@ export class KeplerDataStore implements DataStore {
       Log.debug(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to save data to local storage. (key = ${prefixedKey}, value = ${value}), error: ${
+        `set() - Failed to save key(${prefixedKey}) with value(${value}), error: ${
           (error as Error).message
         }`
       );
@@ -67,16 +73,18 @@ export class KeplerDataStore implements DataStore {
 
   delete(key: string): void {
     const prefixedKey = this.getKeyWithPrefix(key);
-    Log.debug(LOG_EXTENSION, LOG_TAG, `Delete data from local storage. (key = ${prefixedKey})`);
+    Log.debug(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `delete() - Deleting key(${prefixedKey}) from KeplerDataStore`
+    );
     try {
       AsyncStorage.removeItem(prefixedKey);
     } catch (error) {
       Log.debug(
         LOG_EXTENSION,
         LOG_TAG,
-        `Failed to delete data from local storage. (key = ${prefixedKey}, error: ${
-          (error as Error).message
-        }`
+        `delete() - Failed to delete key(${prefixedKey}), error(${(error as Error).message})`
       );
     }
   }

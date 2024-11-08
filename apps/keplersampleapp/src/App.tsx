@@ -7,82 +7,114 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
 import {Link} from './components/Link';
-import {test} from '@adobe/kepler-aepmedia';
-import {AEPSDK, HttpMethod, asyncRequest, NetworkRequest, BodyType, HttpConnection} from '@adobe/kepler-aepcore';
-import {serviceLookup} from '@adobe/kepler-aepcore/dist/core/services';
+import {AEPSDK} from '@adobe/kepler-aepcore';
 
 const images = {
-  kepler: require('./assets/kepler.png'),
-  learn: require('./assets/learn.png'),
-  support: require('./assets/support.png'),
-  build: require('./assets/build.png'),
+  aep: require('./assets/aepsdk-black.png'),
 };
 
 export const App = () => {
-  const [image, setImage] = useState(images.kepler);
+  const [ecid, setECID] = useState('not set');
 
   const styles = getStyles();
+  AEPSDK.setLogLevel(3);
+  AEPSDK.start();
+
+  const setConsent = (consentValue: string = 'y') => {
+    const consentData = {
+      "consent": [
+          {
+              "standard": "Adobe",
+              "version": "2.0",
+              "value": {
+                  "collect": {
+                      "val": consentValue,
+                  },
+                  "metadata": {
+                    "time": Date.now(),
+                  }
+              }
+          }
+      ]
+  }
+    AEPSDK.setConsent(consentData)
+  }
+
+  const getECID = async () => {
+    AEPSDK.getExperienceCloudId().then((ecid) => {
+      if (ecid) {
+        setECID(ecid);
+      }
+    });
+  };
+
+  getECID();
 
   return (
     <ImageBackground
-      source={require('./assets/background.png')}
+      source={require('./assets/aep_bg.png')}
       style={styles.background}>
       <View style={styles.container}>
         <View style={styles.links}>
           <View style={styles.headerContainer}>
-            <Text style={styles.headerText}>Hello World!</Text>
             <Text style={styles.subHeaderText}>
-              Select one of the options below to start your Kepler journey 🚀
+              AEP SDK Sample App
             </Text>
           </View>
           <Link
-            linkText={'Learn'}
+            linkText={'SendEvent'}
             onPress={() => {
-              setImage(images.learn);
-              console.log('[DDDDDDDD]Learn link pressed');
-              test();
-              asyncRequest({
-                url: 'https://www.adobe.com',
-                method: HttpMethod.GET,
-                timeout:5000,
-              }).then((response) => {
-                console.log('[DDDDDDDD]x:', response);
-              }).catch((e) => {
-              });
-              
-              // AsyncStorage.setItem('learn', 'Learn link pressed');
-            }}
-            testID="sampleLink"
-          />
-          <Link
-            linkText={'Build'}
-            onPress={() => {
-              setImage(images.build);
-              AEPSDK.start();
-              AEPSDK.setLogLevel(3);
-              serviceLookup.getService('dataStore').set('build', 'Build link pressed');
-              setTimeout(() => {
-                serviceLookup.getService('dataStore').get('build').then((data) => {
-                  console.log('[DDDDDDDD]data:', data);
-                });
-              }, 1000);
+              AEPSDK.sendEvent(
+                {
+                  xdm :
+                  {
+                    xdmKey: 'xdmVal'
+                  },
+                  data: {
+                    freeformKey: 'freeformVal'
+                  }
+                }
+
+              );
             }}
           />
           <Link
-            linkText={'Support'}
+            linkText={'Get ECID'}
             onPress={() => {
-              setImage(images.support);
+              {
+                getECID();
+              }
             }}
           />
-        </View>
-        <View style={styles.image}>
-          <Image source={image} />
+          <Link
+            linkText={'Set Consent (y)'}
+            onPress={() => {
+              setConsent('y')
+            }}
+          />
+          <Link
+            linkText={'Set Consent (n)'}
+            onPress={() => {
+              setConsent('n')
+            }}
+          />
+          <Link
+            linkText={'Set Consent (p)'}
+            onPress={() => {
+              setConsent('p')
+            }}
+          />
         </View>
       </View>
       <View style={styles.textContainer}>
-        <Text style={styles.text}>
-          💡 Edit App.tsx to change this screen and then come back to see your
-          edits
+        <View style={styles.image}>
+          <Image source={images.aep}/>
+        </View>
+        <Text style={styles.sdkInfoText}>
+          SDK Version: {AEPSDK.version}
+        </Text>
+        <Text style={styles.sdkInfoText}>
+          ECID: {ecid}
         </Text>
       </View>
     </ImageBackground>
@@ -111,7 +143,8 @@ const getStyles = () =>
     },
     subHeaderText: {
       color: 'white',
-      fontSize: 40,
+      fontSize: 45,
+      fontWeight: 'bold',
     },
     links: {
       flex: 1,
@@ -121,7 +154,7 @@ const getStyles = () =>
     },
     image: {
       flex: 1,
-      paddingLeft: 150,
+      paddingLeft: 10,
     },
     textContainer: {
       justifyContent: 'center',
@@ -131,5 +164,12 @@ const getStyles = () =>
     text: {
       color: 'white',
       fontSize: 40,
+    },
+    sdkInfoText: {
+      color: 'white',
+      fontSize: 40,
+      marginLeft: 150,
+      marginBottom: 30,
+      fontWeight: 'bold'
     },
   });

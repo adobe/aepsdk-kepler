@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 
 import { Log } from "../utils/Log";
-import { LOG_EXTENSION } from "../CoreConstants";
+import { LOG_SOURCE } from "../CoreConstants";
 import {
   isArray,
   isString,
@@ -76,7 +76,7 @@ export class EventData {
       return new EventData(data);
     } catch (error) {
       Log.error(
-        LOG_EXTENSION,
+        LOG_SOURCE,
         LOG_TAG,
         `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${
           (error as Error).message
@@ -84,6 +84,10 @@ export class EventData {
       );
       return null;
     }
+  }
+
+  public getData(): DataObject {
+    return this.data;
   }
 
   /**
@@ -96,7 +100,7 @@ export class EventData {
       return new EventData(deepCopy);
     } catch (error) {
       Log.error(
-        LOG_EXTENSION,
+        LOG_SOURCE,
         LOG_TAG,
         `Failed to clone the EventData object, error: ${(error as Error).message}`
       );
@@ -241,7 +245,7 @@ export class EventData {
       return JSON.stringify(this.data);
     } catch (error) {
       Log.error(
-        LOG_EXTENSION,
+        LOG_SOURCE,
         LOG_TAG,
         `Failed to convert the EventData object to a JSON string, error: ${
           (error as Error).message

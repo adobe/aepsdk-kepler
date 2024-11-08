@@ -10,110 +10,110 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { mapFromObject } from "../core/utils/MapUtil";
+import { DataObject } from "../core/eventhub/EventData";
 
 export class EdgeHit {
-  private _requestId: string = "";
-  private _timestamp: Date = new Date();
-  private _meta: Map<string, any> | null = null;
-  private _path: string = "";
-  private _type: EdgeHitType = EdgeHitType.EDGE;
-  private _data: Map<string, any> | null = null;
+  readonly requestId: string = "";
+  readonly timestamp: number = Date.now();
+  readonly meta: DataObject | null = null;
+  readonly path: string = "";
+  readonly type: EdgeHitType = EdgeHitType.EDGE;
+  readonly xdm: DataObject | null = null;
+  readonly data: DataObject | null = null;
 
   // Public constructor to be called by the builder
   constructor(builder: EdgeHitBuilder) {
-    this._requestId = builder.requestId;
-    this._timestamp = builder.timestamp;
-    this._meta = builder.meta;
-    this._path = builder.path;
-    this._type = builder.type;
-    this._data = builder.data;
+    this.requestId = builder.requestId;
+    this.timestamp = builder.timestamp;
+    this.meta = builder.meta;
+    this.path = builder.path;
+    this.type = builder.type;
+    this.xdm = builder.xdm;
+    this.data = builder.data;
   }
 
   // Static method to initialize the builder
   static builder() {
     return new EdgeHitBuilder();
   }
+}
 
-  // Getter for requestId
+export class EdgeHitBuilder {
+  private _requestId: string = "";
+  private _timestamp: number = Date.now();
+  private _meta: DataObject | null = null;
+  private _path: string = "";
+  private _type: EdgeHitType = EdgeHitType.EDGE;
+  private _xdm: DataObject | null = null;
+  private _data: DataObject | null = null;
+
   get requestId(): string {
     return this._requestId;
   }
 
-  // Getter for timestamp
-  get timestamp(): Date {
+  get timestamp(): number {
     return this._timestamp;
   }
 
-  // Getter for meta
-  get meta(): Map<string, any> | null {
+  get meta(): DataObject | null {
     return this._meta;
   }
 
-  // Getter for path
   get path(): string {
     return this._path;
   }
 
-  // Getter for type
   get type(): EdgeHitType {
     return this._type;
   }
 
-  // Getter for data
-  get data(): Map<string, any> | null {
+  get xdm(): DataObject | null {
+    return this._xdm;
+  }
+
+  get data(): DataObject | null {
     return this._data;
   }
-}
-
-export class EdgeHitBuilder {
-  requestId: string = "";
-  timestamp: Date = new Date();
-  meta: Map<string, any> | null = null;
-  path: string = "";
-  type: EdgeHitType = EdgeHitType.EDGE;
-  source: string = "";
-  data: Map<string, any> | null = null;
 
   // Method to set requestId
   setRequestId(requestId: string): EdgeHitBuilder {
-    this.requestId = requestId;
+    this._requestId = requestId;
     return this;
   }
 
   // Method to set timestamp
-  setTimestamp(timestamp: Date): EdgeHitBuilder {
-    this.timestamp = timestamp;
+  setTimestamp(timestamp: number): EdgeHitBuilder {
+    this._timestamp = timestamp;
     return this;
   }
 
   // Method to set meta
-  setMeta(meta: Map<string, any> | null): EdgeHitBuilder {
-    this.meta = meta;
+  setMeta(meta: DataObject | null): EdgeHitBuilder {
+    this._meta = meta;
     return this;
   }
 
   // Method to set path
   setPath(path: string): EdgeHitBuilder {
-    this.path = path;
+    this._path = path;
     return this;
   }
 
   // Method to set type
   setType(type: EdgeHitType): EdgeHitBuilder {
-    this.type = type;
+    this._type = type;
     return this;
   }
 
-  // Method to set source
-  setSource(source: string): EdgeHitBuilder {
-    this.source = source;
+  // Method to set xdm
+  setXdm(xdm: DataObject): EdgeHitBuilder {
+    this._xdm = xdm;
     return this;
   }
 
   // Method to set data
-  setData(data: Map<string, any>): EdgeHitBuilder {
-    this.data = mapFromObject(data);
+  setData(data: DataObject): EdgeHitBuilder {
+    this._data = data;
     return this;
   }
 

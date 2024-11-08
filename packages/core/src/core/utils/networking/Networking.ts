@@ -16,9 +16,10 @@ import { Log } from "../Log";
 import { NetworkRequest, HttpConnection } from "./";
 import { DEFAULT_HEADER, DEFAULT_TIMEOUT, ERROR_CONNECTION } from "./Constants";
 import { safeStringify } from "../Common";
+import { EXTENSION_NAME } from "../Constants";
 
 const LOG_TAG = "Networking";
-const LOG_EXTENSION = "Utils";
+const LOG_SOURCE = EXTENSION_NAME;
 
 /**
  * Initiates an asynchronous network connection
@@ -26,24 +27,24 @@ const LOG_EXTENSION = "Utils";
 export async function asyncRequest(request: NetworkRequest): Promise<HttpConnection> {
   if (!request.url.toLowerCase().startsWith("https://")) {
     Log.error(
-      LOG_EXTENSION,
+      LOG_SOURCE,
       LOG_TAG,
-      `Invalid URL ${request.url}, only HTTPS protocol is supported`
+      `asyncRequest() - Invalid URL ${request.url}, only HTTPS protocol is supported`
     );
     return ERROR_CONNECTION;
   }
 
   Log.debug(
-    LOG_EXTENSION,
+    LOG_SOURCE,
     LOG_TAG,
-    `Send request to ${request.url}, body: ${safeStringify(request.body)}`
+    `asyncRequest() - Send request to ${request.url}, body: ${safeStringify(request.body)}`
   );
 
   const mergedHeader: Record<string, string> = request.headers
     ? { ...DEFAULT_HEADER, ...request.headers }
     : DEFAULT_HEADER;
 
-  Log.debug(LOG_EXTENSION, LOG_TAG, `Merged headers: ${safeStringify(mergedHeader)}`);
+  Log.debug(LOG_SOURCE, LOG_TAG, `asyncRequest() - Merged headers: ${safeStringify(mergedHeader)}`);
 
   const { abortController, clearAbortTimer } = buildAbortSignal(
     request.timeout > 0 ? request.timeout : DEFAULT_TIMEOUT
@@ -57,14 +58,18 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
       signal: abortController.signal,
     });
 
-    Log.debug(LOG_EXTENSION, LOG_TAG, `Response code is: ${response.status}`);
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `asyncRequest() - Request sent with response code: ${response.status}`
+    );
 
     const headers: Record<string, string> = {};
     for (const [name, value] of response.headers) {
       headers[name] = value;
     }
 
-    Log.debug(LOG_EXTENSION, LOG_TAG, "Start to parse response body as text.");
+    Log.debug(LOG_SOURCE, LOG_TAG, "asyncRequest() - Parsing response body as text.");
     const text = await response.text();
 
     return {
@@ -73,7 +78,11 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
       bodyAsText: text,
     };
   } catch (error) {
-    Log.error(LOG_EXTENSION, LOG_TAG, `Failed to send request: ${(error as Error).message}`);
+    Log.error(
+      LOG_SOURCE,
+      LOG_TAG,
+      `asyncRequest() - Failed to send request: ${(error as Error).message}`
+    );
     return ERROR_CONNECTION;
   } finally {
     clearAbortTimer();

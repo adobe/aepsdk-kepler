@@ -10,14 +10,17 @@ governing permissions and limitations under the License.
 */
 
 export const EdgeConstants = {
-  EXTENSION_NAME: "com.adobe.mobile.marketing.edge",
+  EXTENSION_NAME: "com.adobe.marketing.edge",
   FRIENDLY_NAME: "Edge",
   EXTENSION_VERSION: "1.0.0",
 
-  LOG_SOURCE: "Edge",
+  ConfigurationKey: {
+    DEFAULT_CONSENT: "consent.default",
+  },
 
   DataStoreKey: {
     ECID: "ecid",
+    COLLECT_CONSENT: "consent.collect",
   },
 
   IdentityMap: {
@@ -34,7 +37,51 @@ export const EdgeConstants = {
     },
   },
 
-  XDMKeys: {
-    IDENTITY_MAP: "identityMap",
+  Response: {
+    Data: {
+      Handle: {
+        KEY: "handle",
+        TYPE: "type",
+        IDENTITY_RESULT: "identity:result",
+        CONSENT_PREFERENCES: "consent:preferences",
+        LOCATION_HINT_RESULT: "locationHint:result",
+        STATE_STORE: "state:store",
+      },
+      Payload: {
+        KEY: "payload",
+        MAX_AGE: "maxAge",
+      },
+      SCOPE: "scope",
+    },
+  },
+
+  Request: {
+    Data: {
+      IDENTITY_MAP: "identityMap",
+      XDM: "xdm",
+      META: "meta",
+      Query: {
+        KEY: "query",
+        IDENTITY: "identity",
+        CONSENT: "consent",
+        UPDATE: "update",
+      },
+    },
+    ImplementationDetails: {
+      NAME: "https://ns.adobe.com/experience/mobilesdk/kepler",
+      ENVIRONMENT: "app",
+    },
+    Path: {
+      PREFIX: "/ee",
+      INTERACT: "/v1/interact",
+      CONSENT: "/v1/privacy/set-consent",
+    },
+    Url: {
+      DEFAULT: "https://edge.adobedc.net",
+    },
+    Retry: {
+      TIMEOUT: 5000,
+    },
+    RecoverableStatusCodes: [408, 500, 503],
   },
 } as const;

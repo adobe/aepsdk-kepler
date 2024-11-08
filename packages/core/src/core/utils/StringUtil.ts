@@ -9,11 +9,13 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+import { isString } from "./TypeCheck";
+
 /**
  * Check if a string is null or empty.
  * @param str the string to check
  * @returns true if the string is null or empty, false otherwise
  */
 export const isNullOrEmptyString = (str: string | null | undefined): boolean => {
-  return str === undefined || str === null || str.trim().length === 0;
+  return str === undefined || str === null || !isString(str) || str.trim().length === 0;
 };

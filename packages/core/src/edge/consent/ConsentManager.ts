@@ -9,12 +9,13 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Event, EventType, EventSource } from "../../core/eventhub";
+import { Event } from "../../core/eventhub";
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { mapFromObject, isNullOrEmptyMap, optMap } from "../../core/utils/MapUtil";
+import { DataObject, EventData, DataArray } from "../../core/eventhub/EventData";
 
+const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "ConsentManager";
 const DefaultConsentConstants = {
   CONSENTS: "consents",
@@ -31,34 +32,62 @@ export enum ConsentValue {
 export class ConsentManager {
   private dataStore: DataStore;
   private collectConsent: ConsentValue | null = null;
-  private defaultConsent: Map<string, any> | null = null;
+  private defaultConsent: DataObject | null = null;
 
   constructor(dataStore: DataStore) {
     this.dataStore = dataStore;
   }
 
+  /**
+   * Processes the Configuration Event to update the defaultConsent value.
+   * @param event Event
+   */
   processConfigurationEvent(event: Event) {
     Log.verbose(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `processConfigurationEvent() -  Processing Configuration Event.`
     );
-    const data: Map<String, any> | null = event.data;
-    const defaultConsentObj = data?.get(EdgeConstants.ConfigurationKey.DEFAULT_CONSENT);
-
-    this.defaultConsent = mapFromObject(defaultConsentObj);
+    const data: EventData | null = event.data;
+    this.defaultConsent =
+      data?.getDataObject(EdgeConstants.ConfigurationKey.DEFAULT_CONSENT) ?? null;
   }
 
-  handleConsentEvent(event: Event) {
-    // TODO: handle the setConset event
-    // Create the payload for the consent request
-    // This might be included in the edge extension as it that is responsible for sending the request
-  }
+  /**
+   * Processes the Edge response to update the Collect consent value.
+   * @param responseHandle DataObject
+   **/
+  processEdgeResponse(responseHandle: DataObject) {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `processEdgeResponse() -  Processing Edge Response handle:(${JSON.stringify(
+        responseHandle
+      )}).`
+    );
 
-  processEdgeResponseEvent(event: Event) {
-    // TODO: process the response from the edge
-    // Extract the consent value from the response
-    // update the collectConsent value
+    const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
+
+    for (const payload of payloadArr) {
+      const payloadObj = (payload as DataObject) ?? {};
+      const collect = (payloadObj["collect"] as DataObject) ?? {};
+      const val = (collect["val"] as ConsentValue) ?? null;
+
+      if (Object.values(ConsentValue).includes(val)) {
+        Log.verbose(
+          LOG_SOURCE,
+          LOG_TAG,
+          `processEdgeResponse() -  Updating Collect Consent with value: (${val}).`
+        );
+        this.updateCollectConsent(val);
+      } else {
+        Log.debug(
+          LOG_SOURCE,
+          LOG_TAG,
+          `processEdgeResponse() -  Invalid Collect Consent value: (${collect["val"]}).`
+        );
+      }
+    }
   }
 
   /**
@@ -68,8 +97,15 @@ export class ConsentManager {
    * @returns Promise<ConsentValue | null>
    */
   async getCollectConsent(): Promise<ConsentValue | null> {
-    Log.debug(EdgeConstants.LOG_SOURCE, LOG_TAG, `getCollectConsent() -  Getting Collect Consent.`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `getCollectConsent() -  Getting collect consent value.`);
+
     if (this.collectConsent) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `getCollectConsent() -  Returning collect consent value from cache: (${this.collectConsent})`
+      );
+
       return Promise.resolve(this.collectConsent);
     }
 
@@ -77,9 +113,19 @@ export class ConsentManager {
       // If the consent is available in the persistence, return it
       const consentValue = consent as ConsentValue | null;
       if (consent) {
-        return Promise.resolve(consent);
+        Log.verbose(
+          LOG_SOURCE,
+          LOG_TAG,
+          `getCollectConsent() -  Returning collect consent value from persistence: (${consentValue})`
+        );
+        return Promise.resolve(consentValue);
       } else {
         // If the consent is not available in the persistence, get it from the configuration
+        Log.verbose(
+          LOG_SOURCE,
+          LOG_TAG,
+          `getCollectConsent() -  Returning collect consent value from configuration.`
+        );
         return Promise.resolve(this._getCollectConsentFromConfiguration());
       }
     });
@@ -93,7 +139,7 @@ export class ConsentManager {
    */
   updateCollectConsent(consent: ConsentValue) {
     Log.debug(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `updateCollectConsent() -  Updating Collect Consent with value: (${consent})`
     );
@@ -111,7 +157,7 @@ export class ConsentManager {
    */
   private _saveCollectConsentToPersistence(consent: ConsentValue) {
     Log.verbose(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `saveCollectConsentToPersistence() -  Saving Collect Consent with value: (${consent})`
     );
@@ -123,7 +169,7 @@ export class ConsentManager {
    */
   private _deleteCollectConsentFromPersistence() {
     Log.verbose(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `deleteCollectConsentFromPersistence() -  Deleting Collect Consent from persistence.`
     );
@@ -136,7 +182,7 @@ export class ConsentManager {
    */
   private _getCollectConsentFromPersistence(): Promise<ConsentValue | null> {
     Log.verbose(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `getCollectConsentFromPersistence() -  Getting Collect Consent from persistence.`
     );
@@ -155,33 +201,33 @@ export class ConsentManager {
    */
   private _getCollectConsentFromConfiguration(): ConsentValue | null {
     Log.verbose(
-      EdgeConstants.LOG_SOURCE,
+      LOG_SOURCE,
       LOG_TAG,
       `getCollectConsentFromConfiguration() -  Getting Collect Consent from configuration.`
     );
 
-    if (isNullOrEmptyMap(this.defaultConsent)) {
+    if (!this.defaultConsent) {
       return null;
     }
 
-    this.defaultConsent = this.defaultConsent as Map<string, any>;
+    const consents: DataObject =
+      (this.defaultConsent[DefaultConsentConstants.CONSENTS] as DataObject) ?? null;
 
-    const consents: Map<string, any> | null = optMap(
-      this.defaultConsent,
-      DefaultConsentConstants.CONSENTS,
-      null
-    );
+    const collectConsent: DataObject | null =
+      (consents[DefaultConsentConstants.COLLECT] as DataObject) ?? null;
 
-    const collectConsent: Map<string, any> | null = consents
-      ? optMap(consents, DefaultConsentConstants.COLLECT, null)
-      : null;
+    const collectConsentValue: ConsentValue | null =
+      (collectConsent[DefaultConsentConstants.VAL] as ConsentValue) ?? null;
 
-    const collectConsentValue: ConsentValue | null = collectConsent
-      ? collectConsent.get(DefaultConsentConstants.VAL)
-      : null;
-
-    return collectConsentValue && Object.values(ConsentValue).includes(collectConsentValue)
+    const ret = Object.values(ConsentValue).includes(collectConsentValue)
       ? collectConsentValue
       : null;
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `getCollectConsentFromConfiguration() -  Returning Collect Consent from configuration: (${ret})`
+    );
+    return ret;
   }
 }

@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 
 import { LocationHintManager } from '../../src/edge/LocationHintManager';
 import { DataStore } from '../../src/core/services/DataStore';
+import { DataArray, DataObject } from '../../src/core/eventhub/EventData';
 
 // Mock the DataStore module
 jest.mock('../../src/core/services/DataStore');
@@ -22,8 +23,9 @@ describe('LocationHintManager', () => {
     beforeEach(() => {
         // Create a mocked instance of DataStore
         mockDataStore = {
-            saveData: jest.fn(),
-            loadData: jest.fn(),
+            get: jest.fn(),
+            set: jest.fn(),
+            delete: jest.fn(),
         } as jest.Mocked<DataStore>;
     });
 
@@ -31,12 +33,12 @@ describe('LocationHintManager', () => {
         jest.clearAllMocks();
     });
 
-  it('LocationHintManager should be defined', () => {
+test('LocationHintManager should be defined', () => {
     const locationHintManager = new LocationHintManager(mockDataStore);
     expect(locationHintManager).toBeDefined();
   });
 
-    it('getLocationHint returns location hint when set in memory', async () => {
+  test('getLocationHint returns location hint when set in memory', async () => {
         const locationHintManager = new LocationHintManager(mockDataStore);
         locationHintManager.setLocationHint('mockLocationHint', 1800);
 
@@ -44,43 +46,198 @@ describe('LocationHintManager', () => {
         expect(locationHint).toBe('mockLocationHint');
     });
 
-    it('getLocationHint returns persisted location hint when not set in memory', async () => {
-        const mockLocationHintJson = JSON.stringify({ hint: 'persistedLocationHint', expiryTS: (Date.now() + 1800) });
-        mockDataStore.loadData.mockResolvedValue(mockLocationHintJson);
+    test('getLocationHint returns persisted location hint when not set in memory', async () => {
+        const mockLocationHintJson = JSON.stringify({ value: 'persistedLocationHint', expiryTS: (Date.now() + 1800) });
+        mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
         const locationHintManager = new LocationHintManager(mockDataStore);
 
         const locationHint = await locationHintManager.getLocationHint();
         expect(locationHint).toBe('persistedLocationHint');
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('locationHint');
+        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
     });
 
-    it('getLocationHint returns null when location hint is not set or persisted', async () => {
-        mockDataStore.loadData.mockResolvedValue(null);
+    test('getLocationHint returns null when location hint is not set or persisted', async () => {
+        mockDataStore.get.mockResolvedValue(null);
         const locationHintManager = new LocationHintManager(mockDataStore);
 
         const locationHint = await locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('locationHint');
+        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
     });
 
-    it('getLocationHint returns null when location hint is expired', async () => {
+    test('getLocationHint returns null when location hint is expired', async () => {
         const mockLocationHintJson = JSON.stringify({ hint: 'expiredLocationHint', expiryTS: (Date.now() - 1) });
-        mockDataStore.loadData.mockResolvedValue(mockLocationHintJson);
+        mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
         const locationHintManager = new LocationHintManager(mockDataStore);
 
         const locationHint = await locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
-        expect(mockDataStore.loadData).toHaveBeenCalledWith('locationHint');
+        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
     });
 
-    it('setLocationHint persists location hint', async () => {
+    test('setLocationHint persists location hint', async () => {
         const locationHintManager = new LocationHintManager(mockDataStore);
         await locationHintManager.setLocationHint('mockLocationHint', 100, 0);
 
         const expectedLocationHintJson =
         JSON.stringify({ value: 'mockLocationHint', expiryTS: (100000) });
-        expect(mockDataStore.saveData).toHaveBeenCalledWith('locationHint', expectedLocationHintJson);
+        expect(mockDataStore.set).toHaveBeenCalledWith('locationHint', expectedLocationHintJson);
+    });
+
+    test('test processEdgeResponse with location hint', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const responseHandle = {
+            "payload": [
+                {
+                    "scope": "EdgeNetwork",
+                    "hint": "mockLocationHint",
+                    "ttlSeconds": 100
+                }
+            ]
+        };
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe('mockLocationHint');
+        expect(locationHintManager.setLocationHint).toHaveBeenCalledWith('mockLocationHint', 100);
+    });
+
+    test('test processEdgeResponse without EdgeNetwork scope', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const responseHandle = {
+            "payload": [
+                {
+                    "scope": "InvalidScope",
+                    "hint": "mockLocationHint",
+                    "ttlSeconds": 100
+                }
+            ]
+        };
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe(null);
+        expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
+    });
+
+    test('test processEdgeResponse without hint', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+        const responseHandle = {
+            "payload": [
+                {
+                    "scope": "EdgeNetwork",
+                    "ttlSeconds": 100
+                }
+            ]
+        };
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe(null);
+        expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
+    });
+
+    test('test processEdgeResponse without ttlSeconds and sets to default ttl.', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const responseHandle = {
+            "payload": [
+                {
+                    "scope": "EdgeNetwork",
+                    "hint": "mockLocationHint"
+                }
+            ]
+        };
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe('mockLocationHint');
+        expect(locationHintManager.setLocationHint).toHaveBeenCalledWith('mockLocationHint', 1800);
+    });
+
+    test('test processEdgeResponse without hint and ttlSeconds', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const responseHandle = {
+            "payload": [
+                {
+                    "scope": "EdgeNetwork"
+                }
+            ]
+        };
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe(null);
+        expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
+    });
+
+    test('test processEdgeResponse responsehandle missing payload', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const invalidResponseHandles: DataArray = [
+            {},
+            { payload: null },
+            { payload: [] }
+        ];
+
+        for (let i=0; i<invalidResponseHandles.length; i++) {
+            const responseHandle = invalidResponseHandles[i] as DataObject ?? {};
+
+            locationHintManager.processEdgeResponse(responseHandle);
+
+            const locationHint = await locationHintManager.getLocationHint();
+            expect(locationHint).toBe(null);
+            expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
+        }
+    });
+
+    test('test processEdgeResponse responsehandle missing scope', async () => {
+        const locationHintManager = new LocationHintManager(mockDataStore);
+
+        // spy the setLocationHint method
+        jest.spyOn(locationHintManager, 'setLocationHint');
+
+        const responseHandle = {
+            "payload": [
+                {
+                    "hint": "mockLocationHint",
+                    "ttlSeconds": 100
+                }
+            ]
+        };
+
+        locationHintManager.processEdgeResponse(responseHandle);
+
+        const locationHint = await locationHintManager.getLocationHint();
+        expect(locationHint).toBe(null);
+        expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
     });
 });

@@ -18,6 +18,8 @@ import { LogLevel } from "./core/services";
 import { configuration } from "./configuration";
 import { edge } from "./edge";
 import { registerPlatformService } from "./platform-kepler";
+import { DataObject } from "./core/eventhub/EventData";
+import { CoreConstants } from "./core/CoreConstants";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export interface SDKParams {
@@ -32,7 +34,7 @@ export interface SDKParams {
 }
 
 const LOG_TAG = "Index";
-const LOG_EXTENSION = "Core";
+const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 export const AEPSDK = {
   version: "1.0.0" as const,
@@ -41,7 +43,7 @@ export const AEPSDK = {
     try {
       _start(params);
     } catch (e) {
-      Log.error(LOG_EXTENSION, LOG_TAG, "Failed to initialize the SDK: " + e);
+      Log.error(LOG_SOURCE, LOG_TAG, "start() - Failed to initialize the SDK: " + e);
     }
   },
 
@@ -52,10 +54,22 @@ export const AEPSDK = {
   updateConfiguration(configuration: Record<string, any>): void {
     configuration.updateConfiguration(configuration);
   },
+
+  sendEvent(event: DataObject): void {
+    edge.sendEvent(event);
+  },
+
+  setConsent(consent: DataObject): void {
+    edge.setConsent(consent);
+  },
+
+  getExperienceCloudId(): Promise<string | null> {
+    return edge.getExperienceCloudId();
+  },
 };
 
 function _start(params?: SDKParams): void {
-  Log.debug(LOG_EXTENSION, LOG_TAG, "Start to register the platform services.");
+  Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering platform services.");
   registerPlatformService();
 
   const eventHub = createEventHub();
@@ -68,14 +82,14 @@ function _start(params?: SDKParams): void {
   // eventHub.registerEventProcessor(processor);
 
   if (isExtension(configuration)) {
-    Log.debug(LOG_EXTENSION, LOG_TAG, "Start to register the Configuration extension.");
+    Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering the Configuration extension.");
     configuration.onRegister(
       createExtensionContainer(eventHub, configuration.name, sharedStateManager),
       serviceLookup
     );
   }
   if (isExtension(edge)) {
-    Log.debug(LOG_EXTENSION, LOG_TAG, "Start to register the Edge extension.");
+    Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering the Edge extension.");
     edge.onRegister(
       createExtensionContainer(eventHub, edge.name, sharedStateManager),
       serviceLookup
@@ -92,10 +106,10 @@ function _start(params?: SDKParams): void {
 
   const config = params?.config;
   if (config) {
-    Log.debug(LOG_EXTENSION, LOG_TAG, "Start to update the SDK configuration.");
+    Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Updating SDK configuration.");
     configuration.updateConfiguration(config);
   }
-  Log.debug(LOG_EXTENSION, LOG_TAG, "SDK is initialized correctly.");
+  Log.debug(LOG_SOURCE, LOG_TAG, "_start() - SDK initialized succesfully!");
 }
 
 export { edge };

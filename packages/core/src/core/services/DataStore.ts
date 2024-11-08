@@ -26,7 +26,11 @@ class DefaultDataStore implements DataStore {
   private data: Map<string, string> = new Map();
 
   get(key: string): Promise<string | null> {
-    Log.debug(LOG_EXTENSION, LOG_TAG, `Retrieve value for key: ${key}`);
+    Log.debug(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `get() - Retrieving value for key(${key}) from DefaultDataStore`
+    );
 
     const value = this.data.get(key);
     return new Promise((resolve) => {
@@ -35,11 +39,16 @@ class DefaultDataStore implements DataStore {
   }
 
   set(key: string, value: string): void {
-    Log.debug(LOG_EXTENSION, LOG_TAG, `Save data to a Map (key = ${key}, value = ${value})`);
+    Log.debug(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `set() - Saving key(${key}) with value(${value}) to DefaultDataStore`
+    );
     this.data.set(key, value);
   }
 
   delete(key: string): void {
+    Log.debug(LOG_EXTENSION, LOG_TAG, `delete() - Deleting key(${key}) from DefaultDataStore`);
     this.data.delete(key);
   }
 }

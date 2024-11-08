@@ -8,20 +8,17 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
+import { DataStore } from "../core/services";
+import { isNullOrEmptyString } from "../core/utils/StringUtil";
+import { Log } from "../core/utils/Log";
+import { EdgeConstants } from "./EdgeConstants";
+import { DataObject, DataArray } from "../core/eventhub/EventData";
 
-import { DataObject } from "../core/eventhub/EventData";
-import { Extension } from "../core/extension";
-import { EdgeImpl } from "./EdgeImpl";
+export class StateStoreManager {
+  private dataStore: DataStore;
+  private expiryTS: number | null = null;
 
-// Interface
-export interface Edge extends Extension {
-  // public APIs
-  sendEvent(xdm: DataObject): void;
-  getExperienceCloudId(): Promise<string | null>;
-  setConsent(consent: DataObject): void;
-  // sendEventWithPromise(xdm: Map<string, object>, data: Map<string, object>): Promise<any>;
-  // getECID(): string | null;
-  //setConsent(consent: Map<string, object>): void;
+  constructor(dataStore: DataStore) {
+    this.dataStore = dataStore;
+  }
 }
-
-export const edge: Edge = new EdgeImpl();

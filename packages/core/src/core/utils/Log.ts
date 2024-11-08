@@ -29,7 +29,7 @@ export const Log = {
    * @param message The string to be logged
    */
   debug: (extension: string, tag: string, message: string) => {
-    serviceLookup.getService("logging").debug(`${extension}-${tag}`, message);
+    serviceLookup.getService("logging").debug(extension, tag, message);
   },
 
   /**
@@ -43,7 +43,7 @@ export const Log = {
    * @param message The string to be logged
    */
   warning: (extension: string, tag: string, message: string) => {
-    serviceLookup.getService("logging").warning(`${extension}-${tag}`, message);
+    serviceLookup.getService("logging").warning(extension, tag, message);
   },
 
   /**
@@ -55,7 +55,7 @@ export const Log = {
    * @param message The string to be logged
    */
   error: (extension: string, tag: string, message: string) => {
-    serviceLookup.getService("logging").error(`${extension}-${tag}`, message);
+    serviceLookup.getService("logging").error(extension, tag, message);
   },
 
   /**
@@ -67,6 +67,6 @@ export const Log = {
    * @param message The string to be logged
    */
   verbose: (extension: string, tag: string, message: string) => {
-    serviceLookup.getService("logging").verbose(`${extension}-${tag}`, message);
+    serviceLookup.getService("logging").verbose(extension, tag, message);
   },
 };

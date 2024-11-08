@@ -111,10 +111,27 @@ const convertToMap = (input: any): Map<string, any> | null => {
  * @param map the Map to convert
  * @returns an object representation of the Map
  */
-const mapToObject = (map: Map<string, any>): Record<string, any> => {
+const mapToObject = (map: Map<string, any> | null): Record<string, any> | null => {
+  if (map === null || map === undefined) {
+    return null;
+  }
+
+  // const obj: Record<string, any> = {};
+  // for (const [key, value] of map) {
+  //   obj[key] = value instanceof Map ? mapToObject(value) : value;
+  // }
+  // return obj;
+
   const obj: Record<string, any> = {};
   for (const [key, value] of map) {
-    obj[key] = value instanceof Map ? mapToObject(value) : value;
+    if (value instanceof Map) {
+      obj[key] = mapToObject(value);
+    } else if (Array.isArray(value)) {
+      // Handle arrays, converting each element if it's a Map
+      obj[key] = value.map((item) => (item instanceof Map ? mapToObject(item) : item));
+    } else {
+      obj[key] = value;
+    }
   }
   return obj;
 };

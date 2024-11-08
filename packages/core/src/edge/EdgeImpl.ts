@@ -11,16 +11,22 @@ governing permissions and limitations under the License.
 
 import { Edge } from ".";
 import { Event, EventType, EventSource } from "../core/eventhub";
-import { Extension, ExtensionContainer } from "../core/extension";
+import { ExtensionContainer } from "../core/extension";
 import { DataStore, ServiceLookup } from "../core/services";
 import { ConsentManager } from "./consent/ConsentManager";
 import { EdgeConstants } from "./EdgeConstants";
 import { IdentityManager } from "./identity/IdentityManager";
 import { Log } from "../core/utils/Log";
+import { EdgeHit, EdgeHitType } from "./EdgeHit";
+import { EdgeHitProcessor } from "./EdgeHitProcessor";
+import { EdgeResponseManager } from "./EdgeResponseManager";
+import { LocationHintManager } from "./LocationHintManager";
+import { DataObject, DataType } from "../core/eventhub/EventData";
 
 export type DispatchFn = (event: Event) => void;
-export type createXDMSharedState = (state: Map<string, any>, event: Event | null) => void;
+export type createXDMSharedState = (state: Record<string, DataType>, event: Event | null) => void;
 
+const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeImpl";
 
 // Implementation
@@ -31,8 +37,10 @@ export class EdgeImpl implements Edge {
   private dataStore: DataStore | null = null;
   private consentManager: ConsentManager | null = null;
   private identityManager: IdentityManager | null = null;
+  private locationHintManager: LocationHintManager | null = null;
   private dispatchFn: DispatchFn | null = null;
   private createXDMSharedState: createXDMSharedState | null = null;
+  private hitProcessor: EdgeHitProcessor | null = null;
 
   public version: string = EdgeConstants.EXTENSION_VERSION;
   public name: string = EdgeConstants.EXTENSION_NAME;
@@ -40,23 +48,73 @@ export class EdgeImpl implements Edge {
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void {
     this.container = extensionContainer;
     this.dispatchFn = this.container.dispatch;
-    this.createXDMSharedState = this.container.createXDMSharedState;
+    //this.createXDMSharedState = this.container.createXDMSharedState;
 
     this.serviceLookup = serviceLookup;
     this.dataStore = serviceLookup.getService("dataStore");
 
     this.consentManager = new ConsentManager(this.dataStore);
     this.identityManager = new IdentityManager(this.dataStore);
+    this.locationHintManager = new LocationHintManager(this.dataStore);
+
+    this.hitProcessor = new EdgeHitProcessor(
+      new EdgeResponseManager(this.identityManager, this.consentManager, this.locationHintManager),
+      this.consentManager,
+      this.identityManager,
+      this.locationHintManager
+    );
     this.isActive = true;
 
     this._registerListeners();
   }
 
-  sendEvent(xdm: Map<string, object>, data: Map<string, object>): void {}
-
-  setConsent(consent: Map<string, object>): void {
-    //TODO: implement the logic here
+  getExperienceCloudId(): Promise<string | null> {
+    Log.debug(LOG_SOURCE, LOG_TAG, "getExperienceCloudId() - Getting ECID.");
+    return this.identityManager?.getECID() ?? Promise.resolve(null);
   }
+
+  sendEvent(data: DataObject): void {
+    const xdm = data.xdm as DataObject;
+    if (!xdm) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `sendEvent() - Event data(${data}) does not contain xdm object.`
+      );
+      return;
+    }
+
+    Log.debug(LOG_SOURCE, LOG_TAG, "sendEvent() - Received event with data: " + data.toString());
+
+    let hitTimestamp = xdm["timestamp"] as number;
+    if (!hitTimestamp) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        "sendEvent() - Adding timestamp to the event data, since timestamp not present."
+      );
+      hitTimestamp = Date.now();
+      xdm["timestamp"] = hitTimestamp;
+    }
+
+    const edgeHit = EdgeHit.builder().setData(data).setTimestamp(hitTimestamp).build();
+
+    this.hitProcessor?.queueHit(edgeHit);
+    this.hitProcessor?.process();
+  }
+
+  setConsent(consent: DataObject) {
+    Log.debug(LOG_SOURCE, LOG_TAG, "setConsent() - Received consent data: " + consent.toString());
+
+    const consentHit = EdgeHit.builder().setData(consent).setType(EdgeHitType.CONSENT).build();
+
+    this.hitProcessor?.queueHit(consentHit);
+    this.hitProcessor?.process();
+  }
+
+  // setConsent(consent: Map<string, object>): void {
+  //   //TODO: implement the logic here
+  // }
 
   getECID(): Promise<string | null> {
     return this.identityManager?.getECID() ?? Promise.resolve(null);
@@ -76,8 +134,16 @@ export class EdgeImpl implements Edge {
     }
 
     this.container.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT, (event) => {
+      Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
       if (this.isActive) {
         //TODO: implement the logic here
+        const eventData = event.data;
+        // const xdm = eventData?.getDataObject("xdm");
+        // const data = eventData?.getDataObject("data");
+        if (eventData) {
+          Log.debug(LOG_SOURCE, LOG_TAG, "Received data: " + eventData?.toString());
+          this.sendEvent(eventData.getData());
+        }
       }
     });
   }
@@ -88,16 +154,19 @@ export class EdgeImpl implements Edge {
     this.serviceLookup = null;
   }
 
-  _createXDMSharedState(): void {
-    const state = new Map<string, any>();
+  async _createXDMSharedState(): Promise<void> {
+    const state: Record<string, DataType> = {};
     // identity Map
-    const identityMap = this.identityManager?.getIdentityMap();
+    const identityMap = await this.identityManager?.getIdentityMap();
     if (identityMap) {
-      state.set(EdgeConstants.XDMKey.IDENTITY_MAP, identityMap);
+      state[EdgeConstants.Request.Data.IDENTITY_MAP] = identityMap;
     }
 
     // TODO: Add consents data to the state
 
-    this.createXDMSharedState?.(state, null);
+    //this.createXDMSharedState?.(state, null);
   }
+
+  // Add repeated timer to process the hits
+  // This method will be called every 5 seconds
 }

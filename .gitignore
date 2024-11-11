@@ -132,7 +132,7 @@ dist
 
 out/
 
-.vscode/
+.vscode/.react
 
 # DS_Store
 *.DS_Store

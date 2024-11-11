@@ -1,0 +1,47 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "apps/keplersampleapp"
+		}
+		
+	],
+	"settings": {},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "tsc build all",
+				"type": "shell",
+				"command": "yarn build_all",
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "fix format",
+				"type": "shell",
+				"command": "yarn fix_format",
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			},
+			{
+				"label": "linting",
+				"type": "shell",
+				"command": "yarn lint",
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			}
+		]
+	}
+}

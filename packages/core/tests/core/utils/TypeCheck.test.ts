@@ -140,7 +140,7 @@ describe('test Types utils', () => {
     });
 
     it('isObject() - should work', () => {
-        expect(isObject(ARRAY)).toBe(true);
+        expect(isObject(ARRAY)).not.toBe(true);
         expect(isObject(OBJECT)).toBe(true);
         expect(isObject(DATE)).toBe(true);
         expect(isObject(MAP)).toBe(true);

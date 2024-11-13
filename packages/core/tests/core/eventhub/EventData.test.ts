@@ -286,7 +286,7 @@ describe('test EventData class', () => {
         expect(data.getDataObject("obj", "key3")).toBeUndefined();
     });
 
-    test('isNull() - should retrieve boolean from a given path', () => {
+    test('getNull() - should retrieve boolean from a given path', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -295,12 +295,12 @@ describe('test EventData class', () => {
             key3: "string",
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: boolean | undefined = data.isNull("obj", "key2");
+        const value: boolean | undefined = data.getNull("obj", "key2");
         expect(value).toBeTruthy();
-        expect(data.isNull("key3")).toBeFalsy();
+        expect(data.getNull("key3")).toBeFalsy();
     });
 
-    test('isNull() - should return undefined if the given path is incorrect', () => {
+    test('getNull() - should return undefined if the given path is incorrect', () => {
         const jsonObj = {
             key1: "value1",
             obj: {
@@ -310,9 +310,9 @@ describe('test EventData class', () => {
             key4: "string",
         }
         const data = EventData.buildFrom(jsonObj) as EventData;
-        const value: boolean | undefined = data.isNull("obj", "key3");
+        const value: boolean | undefined = data.getNull("obj", "key3");
         expect(value).toBeUndefined();
-        expect(data.isNull()).toBeFalsy();
+        expect(data.getNull()).toBeFalsy();
     });
 
     test('updateData() - should add data to the right place - basic', () => {

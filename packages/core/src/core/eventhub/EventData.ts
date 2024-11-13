@@ -13,16 +13,12 @@ governing permissions and limitations under the License.
 import { Log } from "../utils/Log";
 import { LOG_SOURCE } from "../CoreConstants";
 import {
-  isArray,
-  isString,
-  isBoolean,
-  isNumber,
-  isUndefined,
   isFunction,
   isMap,
   isSymbol,
-  isObject,
 } from "../utils/TypeCheck";
+
+import { getDataObject, getNumber, getString, getBoolean, getNull, getArray } from "../utils/DataObjectUtil";
 
 const LOG_TAG = "EventData";
 
@@ -42,16 +38,13 @@ export interface DataObject {
  * The DataArray type presents an array of DataType.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface DataArray extends Array<DataType> {}
+export interface DataArray extends Array<DataType> { }
 /**
  * The EventData class is a wrapper class that stores the data in a recursive structure.
  */
 export class EventData {
-  private data: DataObject;
 
-  private constructor(data: DataObject) {
-    this.data = data;
-  }
+  private constructor(private data: DataObject) { }
 
   /**
    * This method creates an EventData object from a JSON object that conforms to the "Record<string, any>" type.
@@ -78,8 +71,7 @@ export class EventData {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${
-          (error as Error).message
+        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${(error as Error).message
         }`
       );
       return null;
@@ -130,35 +122,10 @@ export class EventData {
   /**
    *
    * @param key The path to the data that needs to be retrieved.
-   * @returns The data that is stored in the given path.
-   */
-  private getDataType(...key: string[]): DataType | undefined {
-    if (key.length === 0) {
-      return this.data;
-    }
-
-    let current = this.data;
-    for (let i = 0; i < key.length - 1; i++) {
-      if (isObject(current[key[i]]) && !isArray(current[key[i]])) {
-        current = current[key[i]] as DataObject;
-      } else {
-        return undefined;
-      }
-    }
-    return current[key[key.length - 1]] as DataType | undefined;
-  }
-
-  /**
-   *
-   * @param key The path to the data that needs to be retrieved.
    * @returns The DataObject object that is stored in the given path.
    */
   public getDataObject(...key: string[]): DataObject | undefined {
-    const value = this.getDataType(...key);
-    if (isObject(value) && !isArray(value)) {
-      return value as DataObject;
-    }
-    return undefined;
+    return getDataObject(this.data, ...key);
   }
 
   /**
@@ -167,11 +134,7 @@ export class EventData {
    * @returns The number that is stored in the given path, otherwise undefined.
    */
   public getNumber(...key: string[]): number | undefined {
-    const value = this.getDataType(...key);
-    if (isNumber(value)) {
-      return value as number;
-    }
-    return undefined;
+    return getNumber(this.data, ...key);
   }
 
   /**
@@ -180,11 +143,7 @@ export class EventData {
    * @returns The string that is stored in the given path, otherwise undefined.
    */
   public getString(...key: string[]): string | undefined {
-    const value = this.getDataType(...key);
-    if (isString(value)) {
-      return value as string;
-    }
-    return undefined;
+    return getString(this.data, ...key);
   }
 
   /**
@@ -193,11 +152,7 @@ export class EventData {
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
   public getBoolean(...key: string[]): boolean | undefined {
-    const value = this.getDataType(...key);
-    if (isBoolean(value)) {
-      return value as boolean;
-    }
-    return undefined;
+    return getBoolean(this.data, ...key);
   }
 
   /**
@@ -205,15 +160,8 @@ export class EventData {
    * @param key The path to the data that needs to be retrieved.
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
-  public isNull(...key: string[]): boolean | undefined {
-    const value = this.getDataType(...key);
-    if (value === null) {
-      return true;
-    } else if (isUndefined(value)) {
-      return undefined;
-    } else {
-      return false;
-    }
+  public getNull(...key: string[]): boolean | undefined {
+    return getNull(this.data, ...key);
   }
 
   //TODO: let's add this method if we have a specific use case for it.
@@ -225,11 +173,7 @@ export class EventData {
    * @returns The boolean that is stored in the given path, otherwise undefined.
    */
   public getArray(...key: string[]): DataArray | undefined {
-    const value = this.getDataType(...key);
-    if (isArray(value)) {
-      return value as DataArray;
-    }
-    return undefined;
+    return getArray(this.data, ...key);
   }
 
   /**
@@ -247,8 +191,7 @@ export class EventData {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `Failed to convert the EventData object to a JSON string, error: ${
-          (error as Error).message
+        `Failed to convert the EventData object to a JSON string, error: ${(error as Error).message
         }`
       );
       return "";

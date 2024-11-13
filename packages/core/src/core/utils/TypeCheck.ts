@@ -27,7 +27,7 @@ export function isNumber(value: unknown): boolean {
 }
 
 export function isObject(value: unknown): boolean {
-  return value !== null && typeof value === "object";
+  return (value !== null && typeof value === "object") && !isArray(value);
 }
 
 export function isUndefined(value: unknown): boolean {

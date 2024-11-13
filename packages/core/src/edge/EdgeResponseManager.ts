@@ -12,9 +12,11 @@ governing permissions and limitations under the License.
 import { ConsentManager } from "./consent/ConsentManager";
 import { IdentityManager } from "./identity/IdentityManager";
 import { LocationHintManager } from "./LocationHintManager";
+import { StateStoreManager } from "./StateStoreManager";
 import { DataArray, DataObject } from "../core/eventhub/EventData";
 import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
+import { getAsDataObject, getAsString, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeResponseManager";
@@ -22,37 +24,36 @@ const LOG_TAG = "EdgeResponseManager";
 const HANDLE = EdgeConstants.Response.Data.Handle;
 
 export class EdgeResponseManager {
-  locationHintManager: LocationHintManager;
-  identityManager: IdentityManager;
-  consentManager: ConsentManager;
-
   constructor(
-    identityManager: IdentityManager,
-    consentManager: ConsentManager,
-    locationHintManager: LocationHintManager
-  ) {
-    this.locationHintManager = locationHintManager;
-    this.identityManager = identityManager;
-    this.consentManager = consentManager;
-  }
+    private identityManager: IdentityManager,
+    private consentManager: ConsentManager,
+    private locationHintManager: LocationHintManager,
+    private stateStoreManager: StateStoreManager
+  ) {}
 
   handleEdgeResponse(response: DataObject) {
     Log.debug(LOG_SOURCE, LOG_TAG, `handleEdgeResponse() -  ${JSON.stringify(response)}`);
 
-    if (!response) {
+    if (isNullOrEmptyObject(response)) {
+      Log.verbose(LOG_SOURCE, LOG_TAG, "handleEdgeResponse() - Edge response is empty or null.");
       return;
     }
 
     const handles = response[HANDLE.KEY] as DataArray;
 
     if (!handles) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        "handleEdgeResponse() - Edge response does not contain handles."
+      );
       return;
     }
 
     for (let i = 0; i < handles.length; i++) {
-      const handle = handles[i] as DataObject;
+      const handle = getAsDataObject(handles[i]) ?? {};
+      const type = getAsString(handle?.[HANDLE.TYPE]) ?? "";
 
-      const type = handle?.[HANDLE.TYPE] as string;
       if (type === HANDLE.IDENTITY_RESULT) {
         this.identityManager.processEdgeResponse(handle);
       } else if (type === HANDLE.CONSENT_PREFERENCES) {
@@ -60,7 +61,7 @@ export class EdgeResponseManager {
       } else if (type === HANDLE.LOCATION_HINT_RESULT) {
         this.locationHintManager.processEdgeResponse(handle);
       } else if (type === HANDLE.STATE_STORE) {
-        //this.stateStoreManager.processEdgeResponse(handle);
+        this.stateStoreManager.processEdgeResponse(handle);
       }
     }
   }

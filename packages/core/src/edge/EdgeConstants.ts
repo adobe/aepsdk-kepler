@@ -47,10 +47,6 @@ export const EdgeConstants = {
         LOCATION_HINT_RESULT: "locationHint:result",
         STATE_STORE: "state:store",
       },
-      Payload: {
-        KEY: "payload",
-        MAX_AGE: "maxAge",
-      },
       SCOPE: "scope",
     },
   },
@@ -59,7 +55,11 @@ export const EdgeConstants = {
     Data: {
       IDENTITY_MAP: "identityMap",
       XDM: "xdm",
-      META: "meta",
+      Meta: {
+        KEY: "meta",
+        ENTRIES: "entries",
+        STATE: "state",
+      },
       Query: {
         KEY: "query",
         IDENTITY: "identity",

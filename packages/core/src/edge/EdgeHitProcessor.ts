@@ -22,6 +22,7 @@ import { Log } from "../core/utils/Log";
 import { asyncRequest, HttpConnection, HttpMethod } from "../core/utils/networking";
 import { DataObject, DataArray } from "../core/eventhub/EventData";
 import { StateStoreManager } from "./StateStoreManager";
+import { getAsDataArray, getAsDataObject, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeHitProcessor";
@@ -32,6 +33,7 @@ const RETRY = EdgeConstants.Request.Retry;
 const RECOVERABLE_ERRORS = EdgeConstants.Request.RecoverableStatusCodes;
 const DATA = EdgeConstants.Request.Data;
 const QUERY = EdgeConstants.Request.Data.Query;
+const META = EdgeConstants.Request.Data.Meta;
 const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
 
 const MAX_QUEUE_SIZE = 100;
@@ -47,7 +49,8 @@ export class EdgeHitProcessor {
     private edgeResponseManager: EdgeResponseManager,
     private consentManager: ConsentManager,
     private identityManager: IdentityManager,
-    private locationHintManager: LocationHintManager //private stateStoreManager: StateStoreManager
+    private locationHintManager: LocationHintManager,
+    private stateStoreManager: StateStoreManager
   ) {
     this.hitQueue = new EdgeHitQueue();
     this.consentHitQueue = new EdgeHitQueue();
@@ -113,56 +116,39 @@ export class EdgeHitProcessor {
     try {
       while (!this.hitQueue.isEmpty() || !this.consentHitQueue.isEmpty()) {
         const consent = await this.consentManager.getCollectConsent();
-
-        const edgeHit = this.hitQueue.peek();
-        const consentHit = this.consentHitQueue.peek();
-
-        if (!edgeHit && !consentHit) {
-          break;
-        }
-
-        let hit: EdgeHit | null = null;
-
-        if (consent === ConsentValue.PENDING) {
-          // If consent is NO or PENDING, we will process the consent hit
-          if (consentHit) {
-            hit = consentHit;
-          } else {
-            // If there is no consent hit, we will process the edge hit
-            break;
-          }
-        } else if (edgeHit && consentHit) {
-          // If both edge and consent hits are present, we will process the hit with the oldest timestamp
-          const edgeHitTs = edgeHit?.timestamp ?? 0;
-          const consentHitTs = consentHit?.timestamp ?? 0;
-
-          hit = edgeHitTs <= consentHitTs ? edgeHit : consentHit;
-        } else {
-          // If only one of edge or consent hit is present, we will process that hit
-          hit = edgeHit ?? consentHit;
-        }
+        const hit = this.getNextHit(consent);
 
         if (!hit) {
-          // This code should never be reached, but adding a null check to force unwrapping hit
+          // This condition can be reached if the collect consent is pending and there are no consent hits
           break;
         }
 
         if (consent === ConsentValue.NO && hit.type !== EdgeHitType.CONSENT) {
           // if the consent is NO and the hit is not a consent hit,
           // remove the hit from the queue and drop it.
+          Log.debug(
+            LOG_SOURCE,
+            LOG_TAG,
+            `process() - Dropping edge hit with id:(${hit.requestId}) as collect consent is set to NO.`
+          );
           this.popHit(hit);
           continue;
         }
 
+        let meta = hit.meta;
         const identity = await this.identityManager.getIdentityMap();
         const locationHint =
           (await this.locationHintManager.getLocationHint()) as LocationHintValue;
+        const stateStore = await this.stateStoreManager.getStateStore();
+
+        meta = this.appendStateToMeta(meta, stateStore);
+
         this.lastHitTs = Date.now();
 
         const requestBody =
           hit.type === EdgeHitType.EDGE
-            ? this.createEdgeRequestBody(hit, identity)
-            : this.createConsentRequestBody(hit, identity);
+            ? this.createEdgeRequestBody(hit, identity, meta)
+            : this.createConsentRequestBody(hit, identity, meta);
 
         const url = this.getURLForHit(hit, locationHint);
 
@@ -179,6 +165,41 @@ export class EdgeHitProcessor {
     }
 
     return Promise.resolve(false);
+  }
+
+  private getNextHit(collectConsent: ConsentValue | null): EdgeHit | null {
+    const consentHit = this.consentHitQueue.peek();
+    const edgeHit = this.hitQueue.peek();
+
+    if (!edgeHit && !consentHit) {
+      return null;
+    }
+
+    if (collectConsent === ConsentValue.PENDING) {
+      return consentHit;
+    }
+
+    if (edgeHit && consentHit) {
+      return edgeHit.timestamp < consentHit.timestamp ? edgeHit : consentHit;
+    }
+
+    return edgeHit ?? consentHit;
+  }
+
+  private appendStateToMeta(meta: DataObject | null, stateStore: DataArray | null): DataObject {
+    const updatedMeta = getAsDataObject(meta) ?? {};
+    const stateMetadata: DataObject = {};
+    const stateStoreArr = getAsDataArray(stateStore) ?? [];
+
+    if (stateStoreArr.length > 0) {
+      stateMetadata[META.ENTRIES] = stateStore;
+    }
+
+    if (!isNullOrEmptyObject(stateMetadata)) {
+      updatedMeta[META.STATE] = stateMetadata;
+    }
+
+    return updatedMeta;
   }
 
   /**
@@ -255,7 +276,11 @@ export class EdgeHitProcessor {
    * @param identityMap DataObject to be sent in the request body
    * @returns requestBody string
    */
-  private createConsentRequestBody(hit: EdgeHit, identityMap: DataObject | null): string {
+  private createConsentRequestBody(
+    hit: EdgeHit,
+    identityMap: DataObject | null,
+    meta: DataObject | null
+  ): string {
     // TODO: Add timestamp to the hitE
     const consentData = (hit.data?.consent as DataArray) ?? [];
 
@@ -278,7 +303,7 @@ export class EdgeHitProcessor {
         .identity as DataObject;
     }
 
-    if (hit.meta) requestObj[DATA.META] = hit.meta;
+    if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
 
     const requestBody = JSON.stringify(requestObj);
 
@@ -297,7 +322,11 @@ export class EdgeHitProcessor {
    * @param identityMap DataObject to be sent in the request body
    * @returns requestBody string
    */
-  private createEdgeRequestBody(hit: EdgeHit, identityMap: DataObject | null): string {
+  private createEdgeRequestBody(
+    hit: EdgeHit,
+    identityMap: DataObject | null,
+    meta: DataObject | null
+  ): string {
     const requestObj: DataObject = {
       xdm: {
         implementationDetails: this.getImplentationDetails(),
@@ -311,7 +340,7 @@ export class EdgeHitProcessor {
       requestObj[QUERY.KEY] = this.getECIDQueryPayload();
     }
 
-    if (hit.meta) requestObj[DATA.META] = hit.meta;
+    if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
 
     const requestBody = JSON.stringify(requestObj);
 
@@ -340,11 +369,9 @@ export class EdgeHitProcessor {
    */
   private getURLForHit(hit: EdgeHit, locationHint: LocationHintValue | null = null): string {
     let url = URL.DEFAULT + PATH.PREFIX;
-    const query =
-      "?configId=" +
-      "<YOUR_EDGE_DATASTREAM_ID>" +
-      "&requestId=" +
-      "407fd2c2-24fc-453e-bf16-613166aa16ce";
+    const requestId = hit.requestId;
+    // TODO get the configId from configuration
+    const query = `?configId=${"<YOUR_EDGE_DATASTREAM_ID>"}&requestId=${requestId}`;
 
     url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
 

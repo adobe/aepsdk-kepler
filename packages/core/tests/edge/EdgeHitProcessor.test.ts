@@ -17,6 +17,7 @@ import { ConsentManager, ConsentValue } from '../../src/edge/consent/ConsentMana
 import { DataStore } from '../../src/core/services/DataStore';
 import { IdentityManager } from '../../src/edge/identity/IdentityManager';
 import { LocationHintManager } from '../../src/edge/LocationHintManager';
+import { StateStoreManager } from '../../src/edge/StateStoreManager';
 import { asyncRequest } from '../../src/core/utils/networking';
 
 jest.mock('../../src/core/utils/networking');
@@ -24,6 +25,7 @@ jest.mock('../../src/core/services/DataStore');
 jest.mock('../../src/edge/identity/IdentityManager');
 jest.mock('../../src/edge/consent/ConsentManager');
 jest.mock('../../src/edge/LocationHintManager');
+jest.mock('../../src/edge/StateStoreManager');
 
 describe('EdgeHitProcessor tests', () => {
     let mockAsyncRequest: jest.MockedFunction<typeof asyncRequest>;
@@ -31,7 +33,7 @@ describe('EdgeHitProcessor tests', () => {
     let mockConsentManager: jest.Mocked<ConsentManager>;
     let mockIdentityManager: jest.Mocked<IdentityManager>;
     let mockLocationHintManager: jest.Mocked<LocationHintManager>;
-
+    let mockStateStoreManager: jest.Mocked<StateStoreManager>;
 
     beforeEach(() => {
         mockAsyncRequest = asyncRequest as jest.MockedFunction<typeof asyncRequest>;
@@ -50,24 +52,29 @@ describe('EdgeHitProcessor tests', () => {
         jest.spyOn(mockIdentityManager, 'getIdentityMap').mockResolvedValue(null);
 
         mockLocationHintManager = new LocationHintManager(mockDataStore) as jest.Mocked<LocationHintManager>;
+
+        mockStateStoreManager = new StateStoreManager(mockDataStore) as jest.Mocked<StateStoreManager>;
     });
 
     afterEach(() => {
         jest.clearAllMocks();
     });
     test('EdgeHitProcessor should be defined', () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
         expect(edgeHitProcessor).toBeDefined();
     });
 
     test('process should do nothing when queue is empty', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         await edgeHitProcessor.process();
     });
 
     test('should queue edge and consent hits correctly', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const edgeHit = EdgeHit.builder().setType(EdgeHitType.EDGE).build();
         const consentHit = EdgeHit.builder().setType(EdgeHitType.CONSENT).build();
@@ -80,7 +87,8 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send edge hit to edge network and remove it from queue', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
         const edgeHit = EdgeHit.builder()
@@ -121,7 +129,8 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send all the queued hits', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
         const edgeHit = EdgeHit.builder()
@@ -164,7 +173,8 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send consent hit to edge network and remove it from queue', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
         const consentHit = EdgeHit.builder()
@@ -222,7 +232,8 @@ describe('EdgeHitProcessor tests', () => {
     test('process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n', async () => {
         jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.NO);
 
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
         const edgeHit = EdgeHit.builder()
@@ -289,7 +300,8 @@ describe('EdgeHitProcessor tests', () => {
     test('process should not send edge hit but should send consent hit to edge network when consent is p', async () => {
         jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.PENDING);
 
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
         const edgeHit = EdgeHit.builder()
@@ -354,7 +366,8 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('test queueHit when max queue size is reached', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         jest.spyOn(edgeHitProcessor, 'queueHit');
 
@@ -378,7 +391,8 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('test queueHit when max queue size is reached for consent queue', async () => {
-        const edgeHitProcessor = new EdgeHitProcessor( new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager), mockConsentManager, mockIdentityManager, mockLocationHintManager);
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         jest.spyOn(edgeHitProcessor, 'queueHit');
 
@@ -401,5 +415,356 @@ describe('EdgeHitProcessor tests', () => {
         expect(edgeHitProcessor.getConsentQueueSize()).toBe(100);
         expect(edgeHitProcessor.queueHit).toHaveBeenCalledTimes(101);
         expect(edgeHitProcessor.queueHit).toHaveBeenLastCalledWith(consentHit101);
+    });
+
+    test('process should send edge hit with location hint when location hint is present', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const edgeHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({"xdm": { "key": "value"}, "data": { "key": "value"}, timestamp: testTS})
+            .setTimestamp(testTS)
+            .build();
+
+        edgeHitProcessor.queueHit(edgeHit);
+
+        mockLocationHintManager.getLocationHint.mockResolvedValue('mockLocationHint');
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+        expect(mockLocationHintManager.getLocationHint).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/mockLocationHint/v1/interact?configId');
+        expect(actualBody).toEqual(
+            "{\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"}},\"events\":[{\"xdm\":{\"key\":\"value\"},\"data\":{\"key\":\"value\"},\"timestamp\":"+ testTS +"}],\"query\":{\"identity\":{\"fetch\":[\"ECID\"]}}}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
+    });
+
+    test('process should send consent hit with location hint when location hint is present', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const consentHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({
+                "consent": [
+                    {
+                        "standard": "Adobe",
+                        "version": "2.0",
+                        "value": {
+                            "collect": {
+                                "val": 'y',
+                            },
+                            "metadata": {
+                              "time": testTS,
+                            }
+                        }
+                    }
+                ]
+            })
+            .setTimestamp(testTS)
+            .setType(EdgeHitType.CONSENT)
+            .build();
+
+        edgeHitProcessor.queueHit(consentHit);
+
+        mockLocationHintManager.getLocationHint.mockResolvedValue('mockLocationHint');
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+        expect(mockLocationHintManager.getLocationHint).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/mockLocationHint/v1/privacy/set-consent?configId');
+        expect(actualBody).toEqual("{\"consent\":[{\"standard\":\"Adobe\",\"version\":\"2.0\",\"value\":{\"collect\":{\"val\":\"y\"},\"metadata\":{\"time\":" + testTS + "}}}],\"query\":{\"consent\":{\"operation\":\"update\"},\"identity\":{\"fetch\":[\"ECID\"]}},\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"}}}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
+    });
+
+    test('process should send edge hit with identity map when identity map is present and not add fetch ecid query', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const edgeHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({"xdm": { "key": "value"}, "data": { "key": "value"}, timestamp: testTS})
+            .setTimestamp(testTS)
+            .build();
+
+        edgeHitProcessor.queueHit(edgeHit);
+
+        mockIdentityManager.getIdentityMap.mockResolvedValue(
+            {
+                "ECID": [
+                    {
+                        "authenticatedState": "ambiguous",
+                        "id": "mockECID",
+                        "primary": true
+                    }
+                ]
+            }
+        );
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/v1/interact?configId');
+        expect(actualBody).toEqual(
+            "{\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"},\"identityMap\":{\"ECID\":[{\"authenticatedState\":\"ambiguous\",\"id\":\"mockECID\",\"primary\":true}]}},\"events\":[{\"xdm\":{\"key\":\"value\"},\"data\":{\"key\":\"value\"},\"timestamp\":"+ testTS +"}]}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
+    });
+
+    test('process should send consent hit with identity map when identity map is present and not add fetch ecid query', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const consentHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({
+                "consent": [
+                    {
+                        "standard": "Adobe",
+                        "version": "2.0",
+                        "value": {
+                            "collect": {
+                                "val": 'y',
+                            },
+                            "metadata": {
+                              "time": testTS,
+                            }
+                        }
+                    }
+                ]
+            })
+            .setTimestamp(testTS)
+            .setType(EdgeHitType.CONSENT)
+            .build();
+
+        edgeHitProcessor.queueHit(consentHit);
+
+        mockIdentityManager.getIdentityMap.mockResolvedValue(
+            {
+                "ECID": [
+                    {
+                        "authenticatedState": "ambiguous",
+                        "id": "mockECID",
+                        "primary": true
+                    }
+                ]
+            }
+        );
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/v1/privacy/set-consent?configId');
+        expect(actualBody).toEqual("{\"consent\":[{\"standard\":\"Adobe\",\"version\":\"2.0\",\"value\":{\"collect\":{\"val\":\"y\"},\"metadata\":{\"time\":" + testTS + "}}}],\"query\":{\"consent\":{\"operation\":\"update\"}},\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"},\"identityMap\":{\"ECID\":[{\"authenticatedState\":\"ambiguous\",\"id\":\"mockECID\",\"primary\":true}]}}}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
+    });
+
+    test('process should send edge hit with state store when state store is present', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const edgeHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({"xdm": { "key": "value"}, "data": { "key": "value"}, timestamp: testTS})
+            .setTimestamp(testTS)
+            .build();
+
+        edgeHitProcessor.queueHit(edgeHit);
+
+        mockStateStoreManager.getStateStore.mockResolvedValue(
+            [
+                {
+                    key: "kndctr_1234_AdobeOrg_cluster",
+                    value: "or2",
+                    maxAge: 1800
+                },
+                {
+                    key: "kndctr_1234_AdobeOrg_identity",
+                    value: "123456789abcdef",
+                    maxAge: 1800
+                }
+            ]
+        );
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockStateStoreManager.getStateStore).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/v1/interact?configId');
+        expect(actualBody).toEqual(
+            "{\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"}},\"events\":[{\"xdm\":{\"key\":\"value\"},\"data\":{\"key\":\"value\"},\"timestamp\":"+ testTS +"}],\"query\":{\"identity\":{\"fetch\":[\"ECID\"]}},\"meta\":{\"state\":{\"entries\":[{\"key\":\"kndctr_1234_AdobeOrg_cluster\",\"value\":\"or2\",\"maxAge\":1800},{\"key\":\"kndctr_1234_AdobeOrg_identity\",\"value\":\"123456789abcdef\",\"maxAge\":1800}]}}}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
+    });
+
+    test('process should send consent hit with state store when state store is present', async () => {
+        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
+
+        const testTS = Date.now();
+        const consentHit = EdgeHit.builder()
+            .setRequestId("requestId1")
+            .setData({
+                "consent": [
+                    {
+                        "standard": "Adobe",
+                        "version": "2.0",
+                        "value": {
+                            "collect": {
+                                "val": 'y',
+                            },
+                            "metadata": {
+                              "time": testTS,
+                            }
+                        }
+                    }
+                ]
+            })
+            .setTimestamp(testTS)
+            .setType(EdgeHitType.CONSENT)
+            .build();
+
+        edgeHitProcessor.queueHit(consentHit);
+
+        mockStateStoreManager.getStateStore.mockResolvedValue(
+            [
+                {
+                    key: "kndctr_1234_AdobeOrg_cluster",
+                    value: "or2",
+                    maxAge: 1800
+                },
+                {
+                    key: "kndctr_1234_AdobeOrg_identity",
+                    value: "123456789abcdef",
+                    maxAge: 1800
+                }
+            ]
+        );
+
+        mockAsyncRequest.mockResolvedValue({
+            responseCode: 200,
+            bodyAsText: '{}',
+        });
+
+        const success = await edgeHitProcessor.process();
+        expect(success).toBe(true);
+
+        expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
+        expect(mockStateStoreManager.getStateStore).toHaveBeenCalledTimes(1);
+        expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+
+        expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+        expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+        const actualUrl = mockAsyncRequest.mock.calls[0][0]['url'] as string;
+        const actualBody = mockAsyncRequest.mock.calls[0][0]['body'] as string;
+        const actualMethod = mockAsyncRequest.mock.calls[0][0]['method'] as string;
+        const actualTimeout = mockAsyncRequest.mock.calls[0][0]['timeout'] as number;
+
+        expect(actualUrl).toContain('https://edge.adobedc.net/ee/v1/privacy/set-consent?configId');
+        expect(actualBody).toEqual("{\"consent\":[{\"standard\":\"Adobe\",\"version\":\"2.0\",\"value\":{\"collect\":{\"val\":\"y\"},\"metadata\":{\"time\":" + testTS + "}}}],\"query\":{\"consent\":{\"operation\":\"update\"},\"identity\":{\"fetch\":[\"ECID\"]}},\"xdm\":{\"implementationDetails\":{\"name\":\"https://ns.adobe.com/experience/mobilesdk/kepler\",\"version\":\"1.0.0\",\"environment\":\"app\"}},\"meta\":{\"state\":{\"entries\":[{\"key\":\"kndctr_1234_AdobeOrg_cluster\",\"value\":\"or2\",\"maxAge\":1800},{\"key\":\"kndctr_1234_AdobeOrg_identity\",\"value\":\"123456789abcdef\",\"maxAge\":1800}]}}}"
+        );
+        expect(actualMethod).toEqual("POST");
+        expect(actualTimeout).toEqual(5000);
     });
 });

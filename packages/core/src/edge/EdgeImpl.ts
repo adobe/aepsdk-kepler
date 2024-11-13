@@ -21,7 +21,9 @@ import { EdgeHit, EdgeHitType } from "./EdgeHit";
 import { EdgeHitProcessor } from "./EdgeHitProcessor";
 import { EdgeResponseManager } from "./EdgeResponseManager";
 import { LocationHintManager } from "./LocationHintManager";
+import { StateStoreManager } from "./StateStoreManager";
 import { DataObject, DataType } from "../core/eventhub/EventData";
+import { uuid } from "../core/utils/uuid";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: Record<string, DataType>, event: Event | null) => void;
@@ -38,6 +40,8 @@ export class EdgeImpl implements Edge {
   private consentManager: ConsentManager | null = null;
   private identityManager: IdentityManager | null = null;
   private locationHintManager: LocationHintManager | null = null;
+  private stateStoreManager: StateStoreManager | null = null;
+  private edgeResponseManager: EdgeResponseManager | null = null;
   private dispatchFn: DispatchFn | null = null;
   private createXDMSharedState: createXDMSharedState | null = null;
   private hitProcessor: EdgeHitProcessor | null = null;
@@ -56,12 +60,20 @@ export class EdgeImpl implements Edge {
     this.consentManager = new ConsentManager(this.dataStore);
     this.identityManager = new IdentityManager(this.dataStore);
     this.locationHintManager = new LocationHintManager(this.dataStore);
+    this.stateStoreManager = new StateStoreManager(this.dataStore);
 
+    this.edgeResponseManager = new EdgeResponseManager(
+      this.identityManager,
+      this.consentManager,
+      this.locationHintManager,
+      this.stateStoreManager
+    );
     this.hitProcessor = new EdgeHitProcessor(
-      new EdgeResponseManager(this.identityManager, this.consentManager, this.locationHintManager),
+      this.edgeResponseManager,
       this.consentManager,
       this.identityManager,
-      this.locationHintManager
+      this.locationHintManager,
+      this.stateStoreManager
     );
     this.isActive = true;
 
@@ -97,7 +109,11 @@ export class EdgeImpl implements Edge {
       xdm["timestamp"] = hitTimestamp;
     }
 
-    const edgeHit = EdgeHit.builder().setData(data).setTimestamp(hitTimestamp).build();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId(uuid())
+      .setData(data)
+      .setTimestamp(hitTimestamp)
+      .build();
 
     this.hitProcessor?.queueHit(edgeHit);
     this.hitProcessor?.process();

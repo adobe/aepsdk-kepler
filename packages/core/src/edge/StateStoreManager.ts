@@ -12,13 +12,199 @@ import { DataStore } from "../core/services";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
-import { DataObject, DataArray } from "../core/eventhub/EventData";
+import { DataArray, DataObject } from "../core/eventhub/EventData";
+import {
+  getAsDataArray,
+  getAsDataObject,
+  isNullOrEmptyObject,
+  getAsString,
+  getAsNumber,
+  isPositiveWholeNumber,
+} from "../core/utils/DataTypeUtil";
+
+const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
+const LOG_TAG = "StateStoreManager";
+const KEY = "key";
+const MAX_AGE = "maxAge";
+const PAYLOAD_KEY = "payload";
+const EXPIRY_TS_KEY = "expiryTS";
 
 export class StateStoreManager {
-  private dataStore: DataStore;
   private expiryTS: number | null = null;
+  private stateStoreObj: DataObject;
 
-  constructor(dataStore: DataStore) {
-    this.dataStore = dataStore;
+  constructor(private dataStore: DataStore) {
+    this.stateStoreObj = {};
+  }
+
+  /**
+   * Processes the edge response and updates the state store.
+   * @param responseHandle The response handle containing the state store payload.
+   */
+  public processEdgeResponse(responseHandle: DataObject): void {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `StateStoreManager: processEdgeResponse called with responseHandle:  ${JSON.stringify(
+        responseHandle
+      )}`
+    );
+    const payloadArray = getAsDataArray(responseHandle[PAYLOAD_KEY]) ?? [];
+
+    for (const payload of payloadArray) {
+      const payloadObj = getAsDataObject(payload) ?? {};
+      this.addToStateStore(payloadObj);
+    }
+    this.persistStateStore();
+  }
+
+  /**
+   * Returns the state store object with active state entries.
+   * @param startTimeMillis The start time in milliseconds.
+   * @returns The state store object.
+   */
+  public async getStateStore(startTimeMillis: number = Date.now()): Promise<DataArray | null> {
+    const activeStateStoreEntries: DataArray = [];
+    if (isNullOrEmptyObject(this.stateStoreObj)) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        "getStateStore() - state store not found in cache, getting state store from persistence."
+      );
+      this.stateStoreObj = (await this.getStateStoreFromPersistence()) ?? {};
+    }
+
+    for (const [key, value] of Object.entries(this.stateStoreObj)) {
+      const entry = getAsDataObject(value) ?? {};
+      const expiryTS = getAsNumber(entry[EXPIRY_TS_KEY]) ?? 0;
+
+      if (this.isExpired(expiryTS, startTimeMillis)) {
+        Log.debug(
+          LOG_SOURCE,
+          LOG_TAG,
+          `getStateStore() - Entry with key:(${key}) is expired at TS:(${expiryTS}). Deleting the entry.`
+        );
+
+        delete this.stateStoreObj[key];
+        continue;
+      }
+
+      activeStateStoreEntries.push(entry[PAYLOAD_KEY]);
+    }
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `getStateStoreObj() - Returning active stateStores: (${JSON.stringify(
+        activeStateStoreEntries
+      )})`
+    );
+
+    return Promise.resolve(activeStateStoreEntries);
+  }
+
+  /**
+   * Adds the payload to the state store.
+   * @param payload The payload to be added to the state store.
+   * @param startTimeMillis The start time in milliseconds.
+   */
+  private addToStateStore(payload: DataObject, startTimeMillis: number = Date.now()): void {
+    if (isNullOrEmptyObject(payload)) {
+      return;
+    }
+
+    const key = getAsString(payload[KEY]) ?? "";
+    if (isNullOrEmptyString(key)) {
+      return;
+    }
+
+    const maxAgeSeconds = getAsNumber(payload[MAX_AGE]) ?? 0;
+    if (!isPositiveWholeNumber(maxAgeSeconds)) {
+      Log.debug(
+        LOG_SOURCE,
+        LOG_TAG,
+        `addToStateStore() payload.maxAge value:(${maxAgeSeconds}). Deleting the state store entry.`
+      );
+
+      delete this.stateStoreObj?.[key];
+      return;
+    }
+
+    const expiryTS = startTimeMillis + maxAgeSeconds * 1000;
+    this.stateStoreObj[key] = {
+      [PAYLOAD_KEY]: payload,
+      [EXPIRY_TS_KEY]: expiryTS,
+    };
+  }
+
+  /**
+   * Persists the state store object to the data store.
+   * @returns A promise that resolves when the state store object is persisted.
+   */
+  private async persistStateStore(): Promise<void> {
+    if (isNullOrEmptyObject(this.stateStoreObj)) {
+      Log.error(LOG_SOURCE, LOG_TAG, "persistStateStore() - StateStore object is null or empty.");
+      return;
+    }
+
+    try {
+      const stateStoreJson = JSON.stringify(this.stateStoreObj);
+
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `persistStateStore() - Persisting StateStore object: ${stateStoreJson}`
+      );
+      return this.dataStore.set("stateStore", stateStoreJson);
+    } catch (exception) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `persistStateStore() - Failed to persist stateStoreJson, error: ${
+          (exception as Error).message
+        }`
+      );
+    }
+  }
+
+  /**
+   * Gets the state store object from the data store.
+   * @returns A promise that resolves with the state store object.
+   */
+  private async getStateStoreFromPersistence(): Promise<DataObject | null> {
+    const stateStoreJson = getAsString(await this.dataStore.get("stateStore")) ?? "";
+
+    if (isNullOrEmptyString(stateStoreJson)) {
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        "getStateStoreFromPersistence() - StateStore object is null or empty."
+      );
+      return Promise.resolve(null);
+    }
+
+    try {
+      const stateStoreObj = JSON.parse(stateStoreJson);
+      return Promise.resolve(stateStoreObj);
+    } catch (error) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `getStateStoreFromPersistence() - Failed to parse stateStoreJson, error: ${
+          (error as Error).message
+        }`
+      );
+    }
+    return Promise.resolve(null);
+  }
+
+  /**
+   * Checks if the state store entry is expired.
+   * @param expiryTS The expiry timestamp.
+   * @param startTimeMillis The start time in milliseconds.
+   * @returns True if the state store entry is expired, false otherwise.
+   */
+  private isExpired(expiryTS: number, startTimeMillis: number): boolean {
+    return expiryTS < startTimeMillis;
   }
 }

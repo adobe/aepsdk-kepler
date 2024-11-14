@@ -12,13 +12,16 @@ governing permissions and limitations under the License.
 
 import { Log } from "../utils/Log";
 import { LOG_SOURCE } from "../CoreConstants";
-import {
-  isFunction,
-  isMap,
-  isSymbol,
-} from "../utils/TypeCheck";
+import { isFunction, isMap, isSymbol } from "../utils/TypeCheck";
 
-import { getDataObject, getNumber, getString, getBoolean, getNull, getArray } from "../utils/DataObjectUtil";
+import {
+  getDataObject,
+  getNumber,
+  getString,
+  getBoolean,
+  getNull,
+  getArray,
+} from "../utils/DataObjectUtil";
 
 const LOG_TAG = "EventData";
 
@@ -38,13 +41,12 @@ export interface DataObject {
  * The DataArray type presents an array of DataType.
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-export interface DataArray extends Array<DataType> { }
+export interface DataArray extends Array<DataType> {}
 /**
  * The EventData class is a wrapper class that stores the data in a recursive structure.
  */
 export class EventData {
-
-  private constructor(private data: DataObject) { }
+  private constructor(private data: DataObject) {}
 
   /**
    * This method creates an EventData object from a JSON object that conforms to the "Record<string, any>" type.
@@ -71,7 +73,8 @@ export class EventData {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${(error as Error).message
+        `Failed to create an EventData object with a JSON object (${jsonObj}), error: ${
+          (error as Error).message
         }`
       );
       return null;
@@ -191,7 +194,8 @@ export class EventData {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `Failed to convert the EventData object to a JSON string, error: ${(error as Error).message
+        `Failed to convert the EventData object to a JSON string, error: ${
+          (error as Error).message
         }`
       );
       return "";

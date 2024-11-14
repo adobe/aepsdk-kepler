@@ -13,10 +13,12 @@ import { ConsentManager } from "./consent/ConsentManager";
 import { IdentityManager } from "./identity/IdentityManager";
 import { LocationHintManager } from "./LocationHintManager";
 import { StateStoreManager } from "./StateStoreManager";
-import { DataArray, DataObject } from "../core/eventhub/EventData";
+import { DataArray, DataObject, EventData } from "../core/eventhub/EventData";
 import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
 import { getAsDataObject, getAsString, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
+import { Event } from "../core/eventhub/Event";
+import { EventType } from "../core/eventhub/EventType";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeResponseManager";
@@ -25,6 +27,7 @@ const HANDLE = EdgeConstants.Response.Data.Handle;
 
 export class EdgeResponseManager {
   constructor(
+    private dispatchFn: (event: Event) => void,
     private identityManager: IdentityManager,
     private consentManager: ConsentManager,
     private locationHintManager: LocationHintManager,
@@ -63,6 +66,15 @@ export class EdgeResponseManager {
       } else if (type === HANDLE.STATE_STORE) {
         this.stateStoreManager.processEdgeResponse(handle);
       }
+
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `handleEdgeResponse() - dispatching edge response to eventhub with type: (${EventType.EDGE}) source: (${type}).`
+      );
+      this.dispatchFn(
+        new Event("AEP Response Event Handle", EventType.EDGE, type, EventData.buildFrom(handle))
+      );
     }
   }
 }

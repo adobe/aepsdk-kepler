@@ -12,12 +12,14 @@ governing permissions and limitations under the License.
 import { IdentityManager } from '../../../src/edge/identity/IdentityManager';
 import { DataStore } from '../../../src/core/services/DataStore';
 import { EdgeConstants } from '../../../src/edge/EdgeConstants';
+import { EventData } from '../../../src/core/eventhub/EventData';
 
 // Mock the DataStore module
 jest.mock('../../../src/core/services/DataStore');
 
 describe('IdentityManager tests', () => {
     let mockDataStore: jest.Mocked<DataStore>;
+    const mockDispatchFn = jest.fn();
 
     beforeEach(() => {
         // Create a mocked instance of DataStore
@@ -33,12 +35,12 @@ describe('IdentityManager tests', () => {
     });
 
     test('IdentityManager should be defined', () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         expect(identityManager).toBeDefined();
     });
 
     test('getECID returns ECID when set in memory', async () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         identityManager._updateECID('mockECID');
 
         const ecid = await identityManager.getECID();
@@ -47,7 +49,7 @@ describe('IdentityManager tests', () => {
 
     test('getECID returns persisted ECID when not set in memory', async () => {
         mockDataStore.get.mockResolvedValue('persistedECID');
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
         const ecid = await identityManager.getECID();
         expect(ecid).toBe('persistedECID');
@@ -56,14 +58,14 @@ describe('IdentityManager tests', () => {
 
     test('getECID returns null when ECID is not set or persisted', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
         const ecid = await identityManager.getECID();
         expect(ecid).toBeNull();
     });
 
     test('getIdentityMap returns identity map when ECID is set', async () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         identityManager._updateECID('mockECID');
 
         const identityMap = await identityManager.getIdentityMap();
@@ -72,14 +74,14 @@ describe('IdentityManager tests', () => {
 
     test('getIdentityMap returns null when ECID is not set', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
         const identityMap = await identityManager.getIdentityMap();
         expect(identityMap).toBeNull();
     });
 
     test('_updateECID updates ECID and persists it', async () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
         identityManager._updateECID('newECID');
         expect(identityManager.getECID()).resolves.toBe('newECID');
@@ -87,7 +89,7 @@ describe('IdentityManager tests', () => {
     });
 
     test('_updateECID deletes ECID when null is passed', async () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
         identityManager._updateECID('mockECID');
         expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'mockECID');
@@ -97,7 +99,7 @@ describe('IdentityManager tests', () => {
     });
 
     test('processEdgeResponse updates ECID when set in response handle', async () => {
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [
                 {
@@ -111,11 +113,24 @@ describe('IdentityManager tests', () => {
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe('newECID');
+
+        const expectedEventData = EventData.buildFrom({
+            ecid: "newECID"
+        });
+        expect(mockDispatchFn).toBeCalledWith({
+            name: "Edge Identity Response",
+            type: "com.adobe.eventType.edgeIdentity",
+            source: "com.adobe.eventSource.responseIdentity",
+            data: expectedEventData,
+            sequentialId: expect.any(Number),
+            timestamp: expect.any(Date),
+            uuid: expect.any(String)
+        });
     });
 
     test('processEdgeResponse does not update ECID when not set in response handle', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [
                 {
@@ -129,33 +144,36 @@ describe('IdentityManager tests', () => {
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 
     test('processEdgeResponse does not update ECID when payload is null', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: null,
         };
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 
     test('processEdgeResponse does not update ECID when payload is empty', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [],
         };
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 
     test('processEdgeResponse does not update ECID when namespace is null', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [
                 {
@@ -166,11 +184,12 @@ describe('IdentityManager tests', () => {
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 
     test('processEdgeResponse does not update ECID when namespace is empty', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [
                 {
@@ -182,11 +201,12 @@ describe('IdentityManager tests', () => {
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 
     test('processEdgeResponse does not update ECID when namespace code is empty', async () => {
         mockDataStore.get.mockResolvedValue(null);
-        const identityManager = new IdentityManager(mockDataStore);
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
         const responseHandle = {
             payload: [
                 {
@@ -200,5 +220,6 @@ describe('IdentityManager tests', () => {
 
         identityManager.processEdgeResponse(responseHandle);
         expect(identityManager.getECID()).resolves.toBe(null);
+        expect(mockDispatchFn).not.toBeCalled();
     });
 });

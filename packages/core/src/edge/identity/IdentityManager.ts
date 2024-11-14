@@ -12,8 +12,10 @@ governing permissions and limitations under the License.
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { DataArray, DataObject, DataType } from "../../core/eventhub/EventData";
+import { DataArray, DataObject, DataType, EventData } from "../../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../../core/utils/StringUtil";
+import { Event } from "../../core/eventhub/Event";
+import { EventType, EventSource } from "../../core/eventhub";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "IdentityManager";
@@ -25,12 +27,9 @@ const LOG_TAG = "IdentityManager";
 export class IdentityManager {
   private ECID_KEY = EdgeConstants.DataStoreKey.ECID;
   private ECID_NAMESPACE = EdgeConstants.IdentityMap.NameSpace.ECID;
-  private dataStore: DataStore;
   private ecid: string | null = null;
 
-  constructor(dataStore: DataStore) {
-    this.dataStore = dataStore;
-  }
+  constructor(private dataStore: DataStore, private dispatchFn: (event: Event) => void) {}
 
   processEdgeResponse(responseHandle: DataObject) {
     Log.verbose(
@@ -41,9 +40,9 @@ export class IdentityManager {
       )}).`
     );
 
-    const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
+    const payloadArray = (responseHandle["payload"] as DataArray) ?? [];
 
-    for (const payload of payloadArr) {
+    for (const payload of payloadArray) {
       const payloadObj = (payload as DataObject) ?? {};
       const namespace = (payloadObj?.["namespace"] as DataObject) ?? {};
       const code = (namespace?.["code"] as string) ?? "";
@@ -52,8 +51,34 @@ export class IdentityManager {
         const ecid = payloadObj["id"] as string;
         if (!isNullOrEmptyString(ecid)) {
           this._updateECID(ecid);
+          // TODO: createSharedState update instead of dispatching event
+          this.dispatchECID(ecid);
         }
       }
+    }
+  }
+
+  /**
+   * Dispatches the ECID to the event hub
+   */
+  dispatchECID(ecid: string) {
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `dispatchECID() -  Dispatching Identity Response Event with ecid:(${ecid})`
+    );
+
+    if (!isNullOrEmptyString(ecid)) {
+      const eventData = EventData.buildFrom({
+        [EdgeConstants.EventData.keys.ECID]: ecid,
+      });
+      const event = new Event(
+        "Edge Identity Response",
+        EventType.EDGE_IDENTITY,
+        EventSource.RESPONSE_IDENTITY,
+        eventData
+      );
+      this.dispatchFn(event);
     }
   }
 

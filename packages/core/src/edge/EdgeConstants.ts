@@ -37,6 +37,12 @@ export const EdgeConstants = {
     },
   },
 
+  EventData: {
+    keys: {
+      ECID: "ecid",
+    },
+  },
+
   Response: {
     Data: {
       Handle: {

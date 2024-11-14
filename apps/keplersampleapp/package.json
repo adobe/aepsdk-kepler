@@ -11,8 +11,6 @@
   "scripts": {
     "clean": "rm -rf node_modules buildinfo.json dist bvm",
     "start": "react-native start",
-    "test": "jest --colors ",
-    "test:snapshot": "jest --colors --updateSnapshot",
     "lint": "eslint src tst --ext .ts,.tsx",
     "lint:fix": "eslint src tst --ext .ts,.tsx --fix",
     "compile": "tsc -p tsconfig.json",

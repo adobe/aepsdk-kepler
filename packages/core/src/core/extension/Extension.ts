@@ -18,11 +18,16 @@ export interface Extension {
   /**
    * Called when the extension is registered.
    *
+   * [Note] This method should not include time consuming operations, otherwise it will block the SDK initialization process.
+   *
    * @param extensionContainer The container for this extension
    * @param serviceLookup The function to retrieve services
+   * 
+   * @returns A promise that resolves when the extension is registered.
    */
-  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void;
+  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void>;
 }
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isExtension(extension: any): extension is Extension {
   return (

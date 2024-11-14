@@ -23,6 +23,16 @@
 				}
 			},
 			{
+				"label": "unit tests (all)",
+				"type": "shell",
+				"command": "yarn unit_test",
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": false
+				}
+			},
+			{
 				"label": "fix format",
 				"type": "shell",
 				"command": "yarn fix_format",

@@ -68,7 +68,7 @@ export const AEPSDK = {
   },
 };
 
-function _start(params?: SDKParams): void {
+async function _start(params?: SDKParams): Promise<void> {
   Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering platform services.");
   registerPlatformService();
 
@@ -81,19 +81,23 @@ function _start(params?: SDKParams): void {
   // };
   // eventHub.registerEventProcessor(processor);
 
+  const onRegisterPromises: Promise<void>[] = [];
+
   if (isExtension(configuration)) {
     Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering the Configuration extension.");
-    configuration.onRegister(
-      createExtensionContainer(eventHub, configuration.name, sharedStateManager),
-      serviceLookup
-    );
+    onRegisterPromises.push(
+      configuration.onRegister(
+        createExtensionContainer(eventHub, configuration.name, sharedStateManager),
+        serviceLookup
+      ));
   }
   if (isExtension(edge)) {
     Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering the Edge extension.");
-    edge.onRegister(
-      createExtensionContainer(eventHub, edge.name, sharedStateManager),
-      serviceLookup
-    );
+    onRegisterPromises.push(
+      edge.onRegister(
+        createExtensionContainer(eventHub, edge.name, sharedStateManager),
+        serviceLookup
+      ));
   }
 
   // TODO: enalbe this in the future for registering other optional extensions.
@@ -101,6 +105,11 @@ function _start(params?: SDKParams): void {
   //     extension.onRegister(new ExtensionContainerImpl(eventHub, extension.name, sharedStateManager), serviceLookup);
   //     Log.debug("Extension registered: " + extension.name);
   // });
+
+
+  // Wait for multiple promises to resolve concurrently.
+  // TODO: we can consider adding timeouts if onRegister() runs too long.
+  await Promise.all(onRegisterPromises);
 
   eventHub.start();
 

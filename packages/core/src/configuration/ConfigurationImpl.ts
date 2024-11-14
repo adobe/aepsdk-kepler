@@ -63,7 +63,7 @@ export class ConfigurationImpl implements Configuration, Extension {
     );
   }
 
-  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void {
+  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
     this.container = extensionContainer;
     this.serviceLookup = serviceLookup;
 
@@ -82,5 +82,6 @@ export class ConfigurationImpl implements Configuration, Extension {
         this.container?.createXDMSharedState(state, event);
       }
     );
+    return Promise.resolve();
   }
 }

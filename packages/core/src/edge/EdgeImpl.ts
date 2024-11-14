@@ -49,7 +49,7 @@ export class EdgeImpl implements Edge {
   public version: string = EdgeConstants.EXTENSION_VERSION;
   public name: string = EdgeConstants.EXTENSION_NAME;
 
-  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): void {
+  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
     this.container = extensionContainer;
     this.dispatchFn = this.container.dispatch;
     //this.createXDMSharedState = this.container.createXDMSharedState;
@@ -78,6 +78,8 @@ export class EdgeImpl implements Edge {
     this.isActive = true;
 
     this._registerListeners();
+    // TODO: add get ECID from the local storage logic here.
+    return Promise.resolve();
   }
 
   getExperienceCloudId(): Promise<string | null> {

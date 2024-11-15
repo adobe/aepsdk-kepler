@@ -41,16 +41,16 @@ describe('EdgeResponseManager tests', () => {
         } as jest.Mocked<DataStore>;
 
         mockConsentManager = new ConsentManager(mockDataStore, mockDispatchFn) as jest.Mocked<ConsentManager>;
-        jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.YES);
+        jest.spyOn(mockConsentManager, 'getCollectConsent').mockReturnValue(ConsentValue.YES);
 
         mockIdentityManager = new IdentityManager(mockDataStore, mockDispatchFn) as jest.Mocked<IdentityManager>;
-        jest.spyOn(mockIdentityManager, 'getIdentityMap').mockResolvedValue(null);
+        jest.spyOn(mockIdentityManager, 'getIdentityMap').mockReturnValue(null);
 
         mockLocationHintManager = new LocationHintManager(mockDataStore) as jest.Mocked<LocationHintManager>;
-        jest.spyOn(mockLocationHintManager, 'getLocationHint').mockResolvedValue(null);
+        jest.spyOn(mockLocationHintManager, 'getLocationHint').mockReturnValue(null);
 
         mockStateStoreManager = new StateStoreManager(mockDataStore) as jest.Mocked<StateStoreManager>;
-        jest.spyOn(mockStateStoreManager, 'getStateStore').mockResolvedValue(null);
+        jest.spyOn(mockStateStoreManager, 'getStateStore').mockReturnValue(null);
     });
 
     afterEach(() => {

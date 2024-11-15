@@ -48,10 +48,10 @@ describe('EdgeHitProcessor tests', () => {
 
 
         mockConsentManager = new ConsentManager(mockDataStore, mockDispatchFn) as jest.Mocked<ConsentManager>;
-        jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.YES);
+        jest.spyOn(mockConsentManager, 'getCollectConsent').mockReturnValue(ConsentValue.YES);
 
         mockIdentityManager = new IdentityManager(mockDataStore, mockDispatchFn) as jest.Mocked<IdentityManager>;
-        jest.spyOn(mockIdentityManager, 'getIdentityMap').mockResolvedValue(null);
+        jest.spyOn(mockIdentityManager, 'getIdentityMap').mockReturnValue(null);
 
         mockLocationHintManager = new LocationHintManager(mockDataStore) as jest.Mocked<LocationHintManager>;
 
@@ -232,7 +232,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n', async () => {
-        jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.NO);
+        jest.spyOn(mockConsentManager, 'getCollectConsent').mockReturnValue(ConsentValue.NO);
 
         const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
@@ -300,7 +300,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should not send edge hit but should send consent hit to edge network when consent is p', async () => {
-        jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.PENDING);
+        jest.spyOn(mockConsentManager, 'getCollectConsent').mockReturnValue(ConsentValue.PENDING);
 
         const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
@@ -432,7 +432,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(edgeHit);
 
-        mockLocationHintManager.getLocationHint.mockResolvedValue('mockLocationHint');
+        mockLocationHintManager.getLocationHint.mockReturnValue('mockLocationHint');
 
         mockAsyncRequest.mockResolvedValue({
             responseCode: 200,
@@ -492,7 +492,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(consentHit);
 
-        mockLocationHintManager.getLocationHint.mockResolvedValue('mockLocationHint');
+        mockLocationHintManager.getLocationHint.mockReturnValue('mockLocationHint');
 
         mockAsyncRequest.mockResolvedValue({
             responseCode: 200,
@@ -535,7 +535,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(edgeHit);
 
-        mockIdentityManager.getIdentityMap.mockResolvedValue(
+        mockIdentityManager.getIdentityMap.mockReturnValue(
             {
                 "ECID": [
                     {
@@ -604,7 +604,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(consentHit);
 
-        mockIdentityManager.getIdentityMap.mockResolvedValue(
+        mockIdentityManager.getIdentityMap.mockReturnValue(
             {
                 "ECID": [
                     {
@@ -656,7 +656,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(edgeHit);
 
-        mockStateStoreManager.getStateStore.mockResolvedValue(
+        mockStateStoreManager.getStateStore.mockReturnValue(
             [
                 {
                     key: "kndctr_1234_AdobeOrg_cluster",
@@ -728,7 +728,7 @@ describe('EdgeHitProcessor tests', () => {
 
         edgeHitProcessor.queueHit(consentHit);
 
-        mockStateStoreManager.getStateStore.mockResolvedValue(
+        mockStateStoreManager.getStateStore.mockReturnValue(
             [
                 {
                     key: "kndctr_1234_AdobeOrg_cluster",

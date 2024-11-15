@@ -1,7 +1,7 @@
 {
   "name": "integration-tests",
   "version": "1.0.0",
-  "description": "Adobe Experience Platform support for kepler apps.",
+  "description": "The integration tests for the Adobe Experience Platform Kepler SDK",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",
   "private": true,
@@ -11,14 +11,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/adobe/aepsdk-kepler",
-    "directory": "packages/core"
+    "url": "https://github.com/adobe/aepsdk-kepler"
   },
   "keywords": [
     "kepler",
     "adobe",
-    "adobe experience platform",
-    "core"
+    "adobe experience platform"
   ],
   "devDependencies": {
     "@adobe/kepler-aepcore": "^1.0.0"

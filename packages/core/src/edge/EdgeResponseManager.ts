@@ -23,7 +23,7 @@ import { EventType } from "../core/eventhub/EventType";
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeResponseManager";
 
-const HANDLE = EdgeConstants.Response.Data.Handle;
+const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 export class EdgeResponseManager {
   constructor(
@@ -42,7 +42,7 @@ export class EdgeResponseManager {
       return;
     }
 
-    const handles = response[HANDLE.KEY] as DataArray;
+    const handles = response[RESPONSE_DATA_KEYS.HANDLE] as DataArray;
 
     if (!handles) {
       Log.verbose(
@@ -55,15 +55,15 @@ export class EdgeResponseManager {
 
     for (let i = 0; i < handles.length; i++) {
       const handle = getAsDataObject(handles[i]) ?? {};
-      const type = getAsString(handle?.[HANDLE.TYPE]) ?? "";
+      const type = getAsString(handle?.[RESPONSE_DATA_KEYS.TYPE]) ?? "";
 
-      if (type === HANDLE.IDENTITY_RESULT) {
+      if (type === RESPONSE_DATA_KEYS.IDENTITY_RESULT) {
         this.identityManager.processEdgeResponse(handle);
-      } else if (type === HANDLE.CONSENT_PREFERENCES) {
+      } else if (type === RESPONSE_DATA_KEYS.CONSENT_PREFERENCES) {
         this.consentManager.processEdgeResponse(handle);
-      } else if (type === HANDLE.LOCATION_HINT_RESULT) {
+      } else if (type === RESPONSE_DATA_KEYS.LOCATION_HINT_RESULT) {
         this.locationHintManager.processEdgeResponse(handle);
-      } else if (type === HANDLE.STATE_STORE) {
+      } else if (type === RESPONSE_DATA_KEYS.STATE_STORE) {
         this.stateStoreManager.processEdgeResponse(handle);
       }
 

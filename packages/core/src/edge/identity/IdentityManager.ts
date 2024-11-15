@@ -12,13 +12,16 @@ governing permissions and limitations under the License.
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { DataArray, DataObject, DataType, EventData } from "../../core/eventhub/EventData";
+import { DataObject, DataType, EventData } from "../../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../../core/utils/StringUtil";
 import { Event } from "../../core/eventhub/Event";
 import { EventType, EventSource } from "../../core/eventhub";
+import { getArray, getString } from "../../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "IdentityManager";
+
+const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 /**
  * IdentityManager is responsible for managing the ECID and other identity related information.
@@ -54,15 +57,17 @@ export class IdentityManager {
       )}).`
     );
 
-    const payloadArray = (responseHandle["payload"] as DataArray) ?? [];
+    const payloadArray = getArray(responseHandle, RESPONSE_DATA_KEYS.PAYLOAD) ?? [];
 
     for (const payload of payloadArray) {
-      const payloadObj = (payload as DataObject) ?? {};
-      const namespace = (payloadObj?.["namespace"] as DataObject) ?? {};
-      const code = (namespace?.["code"] as string) ?? "";
+      const code =
+        getString(payload as DataObject, RESPONSE_DATA_KEYS.NAMESPACE, RESPONSE_DATA_KEYS.CODE) ??
+        "";
+      //const code = (namespace?.["code"] as string) ?? "";
 
       if (code === this.ECID_NAMESPACE) {
-        const ecid = payloadObj["id"] as string;
+        const ecid = getString(payload as DataObject, RESPONSE_DATA_KEYS.ID) ?? "";
+        //const ecid = payloadObj["id"] as string;
         if (!isNullOrEmptyString(ecid)) {
           this.updateECID(ecid);
           // TODO: createSharedState update instead of dispatching event
@@ -84,7 +89,7 @@ export class IdentityManager {
 
     if (!isNullOrEmptyString(ecid)) {
       const eventData = EventData.buildFrom({
-        [EdgeConstants.EventData.keys.ECID]: ecid,
+        [EdgeConstants.EventData.Keys.ECID]: ecid,
       });
       const event = new Event(
         "Edge Identity Response",

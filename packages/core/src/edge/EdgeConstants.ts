@@ -38,21 +38,29 @@ export const EdgeConstants = {
   },
 
   EventData: {
-    keys: {
+    Keys: {
       ECID: "ecid",
     },
   },
 
-  Response: {
-    Data: {
-      Handle: {
-        KEY: "handle",
-        TYPE: "type",
-        IDENTITY_RESULT: "identity:result",
-        CONSENT_PREFERENCES: "consent:preferences",
-        LOCATION_HINT_RESULT: "locationHint:result",
-        STATE_STORE: "state:store",
-      },
+  ResponseData: {
+    Keys: {
+      HANDLE: "handle",
+      PAYLOAD: "payload",
+      KEY: "key",
+      TYPE: "type",
+      MAX_AGE: "maxAge",
+      HINT: "hint",
+      TTL_SECONDS: "ttlSeconds",
+      NAMESPACE: "namespace",
+      CODE: "code",
+      COLLECT: "collect",
+      VAL: "val",
+      ID: "id",
+      IDENTITY_RESULT: "identity:result",
+      CONSENT_PREFERENCES: "consent:preferences",
+      LOCATION_HINT_RESULT: "locationHint:result",
+      STATE_STORE: "state:store",
       SCOPE: "scope",
     },
   },

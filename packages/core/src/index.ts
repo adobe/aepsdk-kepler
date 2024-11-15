@@ -40,9 +40,9 @@ export const AEPSDK = {
   version: "1.0.0" as const,
 
   /**
-   * Initializes the SDK with the given parameters. 
+   * Initializes the SDK with the given parameters.
    * This function needs to be called prior to calling any other SDK functions.
-   * 
+   *
    * @param params the parameters passed to the SDK.
    */
   start(params?: SDKParams): void {
@@ -55,7 +55,7 @@ export const AEPSDK = {
 
   /**
    * Sets the log level for the SDK logs.
-   * 
+   *
    * @param logLevel the log level to be set.
    */
   setLogLevel(logLevel: LogLevel): void {
@@ -64,7 +64,7 @@ export const AEPSDK = {
 
   /**
    * Updates the SDK configuration.
-   * 
+   *
    * @param configuration the configuration object to be passed to the SDK.
    */
   updateConfiguration(configuration: Record<string, any>): void {

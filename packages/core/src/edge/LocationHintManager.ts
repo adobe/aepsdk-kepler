@@ -14,6 +14,7 @@ import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
 import { DataObject, DataArray } from "../core/eventhub/EventData";
+import { getArray, getDataObject, getNumber, getString } from "../core/utils/DataObjectUtil";
 
 const LOCATION_HINT_KEY = "locationHint";
 const LOCATION_HINT_VALUE = "value";
@@ -23,6 +24,8 @@ const LOCATION_HINT_SCOPE = "EdgeNetwork";
 
 const LOG_TAG = "LocationHintManager";
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
+
+const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 /**
  * Manages the location hint for the Edge Network.
@@ -51,14 +54,24 @@ export class LocationHintManager {
   }
 
   public processEdgeResponse(responseHandle: DataObject): void {
-    const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
-    for (const payload of payloadArr) {
-      const payloadObj = (payload as DataObject) ?? {};
-      const scope = (payloadObj["scope"] as string) ?? "";
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `processEdgeResponse() -  Processing Edge Response handle:(${JSON.stringify(
+        responseHandle
+      )}).`
+    );
+
+    const payloadArray = getArray(responseHandle, RESPONSE_DATA_KEYS.PAYLOAD) ?? [];
+
+    for (const payload of payloadArray) {
+      const payloadObj = getDataObject((payload as DataObject) ?? {}) ?? {};
+      const scope = getString(payloadObj, RESPONSE_DATA_KEYS.SCOPE) ?? "";
 
       if (scope.toLowerCase() === LOCATION_HINT_SCOPE.toLowerCase()) {
-        const locationHint = (payloadObj["hint"] as string) ?? null;
-        const ttlSeconds = (payloadObj["ttlSeconds"] as number) ?? DEFAULT_TTL_SECONDS;
+        const locationHint = getString(payloadObj, RESPONSE_DATA_KEYS.HINT) ?? "";
+        const ttlSeconds =
+          getNumber(payloadObj, RESPONSE_DATA_KEYS.TTL_SECONDS) ?? DEFAULT_TTL_SECONDS;
 
         if (isNullOrEmptyString(locationHint)) {
           Log.debug(

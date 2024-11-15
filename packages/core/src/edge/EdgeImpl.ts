@@ -304,7 +304,7 @@ export class EdgeImpl implements Edge {
         return;
       }
 
-      const ecid = event.data?.getString(EdgeConstants.EventData.keys.ECID) ?? null;
+      const ecid = event.data?.getString(EdgeConstants.EventData.Keys.ECID) ?? null;
       if (!isNullOrEmptyString(ecid)) {
         waitingPromise.resolve(ecid);
       } else {

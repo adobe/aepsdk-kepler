@@ -14,20 +14,18 @@ import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
 import { DataArray, DataObject } from "../core/eventhub/EventData";
 import {
-  getAsDataArray,
-  getAsDataObject,
   isNullOrEmptyObject,
   getAsString,
-  getAsNumber,
   isPositiveWholeNumber,
 } from "../core/utils/DataTypeUtil";
+import { getArray, getDataObject, getNumber, getString } from "../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "StateStoreManager";
-const KEY = "key";
-const MAX_AGE = "maxAge";
 const PAYLOAD_KEY = "payload";
 const EXPIRY_TS_KEY = "expiryTS";
+
+const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 export class StateStoreManager {
   private expiryTS: number | null = null;
@@ -60,10 +58,10 @@ export class StateStoreManager {
         responseHandle
       )}`
     );
-    const payloadArray = getAsDataArray(responseHandle[PAYLOAD_KEY]) ?? [];
+    const payloadArray = getArray(responseHandle, RESPONSE_DATA_KEYS.PAYLOAD) ?? [];
 
     for (const payload of payloadArray) {
-      const payloadObj = getAsDataObject(payload) ?? {};
+      const payloadObj = getDataObject((payload as DataObject) ?? {}) ?? {};
       this.addToStateStore(payloadObj);
     }
     this.persistStateStore();
@@ -78,8 +76,8 @@ export class StateStoreManager {
     const activeStateStoreEntries: DataArray = [];
 
     for (const [key, value] of Object.entries(this.stateStoreObj)) {
-      const entry = getAsDataObject(value) ?? {};
-      const expiryTS = getAsNumber(entry[EXPIRY_TS_KEY]) ?? 0;
+      const entry = getDataObject((value as DataObject) ?? {}) ?? {};
+      const expiryTS = getNumber(entry, EXPIRY_TS_KEY) ?? 0;
 
       if (this.isExpired(expiryTS, startTimeMillis)) {
         Log.debug(
@@ -116,12 +114,12 @@ export class StateStoreManager {
       return;
     }
 
-    const key = getAsString(payload[KEY]) ?? "";
+    const key = getString(payload, RESPONSE_DATA_KEYS.KEY) ?? "";
     if (isNullOrEmptyString(key)) {
       return;
     }
 
-    const maxAgeSeconds = getAsNumber(payload[MAX_AGE]) ?? 0;
+    const maxAgeSeconds = getNumber(payload, RESPONSE_DATA_KEYS.MAX_AGE) ?? 0;
     if (!isPositiveWholeNumber(maxAgeSeconds)) {
       Log.debug(
         LOG_SOURCE,

@@ -13,7 +13,8 @@ import { Event } from "../../core/eventhub";
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { DataObject, EventData, DataArray } from "../../core/eventhub/EventData";
+import { DataObject, EventData } from "../../core/eventhub/EventData";
+import { getArray, getString } from "../../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "ConsentManager";
@@ -22,6 +23,8 @@ const DefaultConsentConstants = {
   COLLECT: "collect",
   VAL: "val",
 };
+
+const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 export enum ConsentValue {
   YES = "y",
@@ -74,25 +77,28 @@ export class ConsentManager {
       )}).`
     );
 
-    const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
+    const payloadArray = getArray(responseHandle, RESPONSE_DATA_KEYS.PAYLOAD) ?? [];
 
-    for (const payload of payloadArr) {
-      const payloadObj = (payload as DataObject) ?? {};
-      const collect = (payloadObj["collect"] as DataObject) ?? {};
-      const val = (collect["val"] as ConsentValue) ?? null;
+    for (const payload of payloadArray) {
+      const collectVal =
+        (getString(
+          (payload as DataObject) ?? {},
+          RESPONSE_DATA_KEYS.COLLECT,
+          RESPONSE_DATA_KEYS.VAL
+        ) as ConsentValue) ?? null;
 
-      if (Object.values(ConsentValue).includes(val)) {
+      if (Object.values(ConsentValue).includes(collectVal)) {
         Log.verbose(
           LOG_SOURCE,
           LOG_TAG,
-          `processEdgeResponse() -  Updating Collect Consent with value: (${val}).`
+          `processEdgeResponse() -  Updating Collect Consent with value: (${collectVal}).`
         );
-        this.updateCollectConsent(val);
+        this.updateCollectConsent(collectVal);
       } else {
         Log.debug(
           LOG_SOURCE,
           LOG_TAG,
-          `processEdgeResponse() -  Invalid Collect Consent value: (${collect["val"]}).`
+          `processEdgeResponse() -  Invalid Collect Consent value: (${collectVal}).`
         );
       }
     }

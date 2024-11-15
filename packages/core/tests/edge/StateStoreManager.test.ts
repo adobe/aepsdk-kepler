@@ -113,7 +113,7 @@ describe('StateStoreManager', () => {
         expect(mockDataStore.set).not.toHaveBeenCalled();
     });
 
-    test('getStateStore returns persisted state store', async () => {
+    test('bootup initializes state store from persistence', async () => {
         const mockStateStoreJson = JSON.stringify({
             "kndctr_1234_AdobeOrg_cluster": {
                 payload: {
@@ -121,15 +121,16 @@ describe('StateStoreManager', () => {
                     value: "or2",
                     maxAge: 1800
                 },
-                expiryTS: 101
+                expiryTS: Date.now() + 1000 //set expiry in future
             }
         });
         mockDataStore.get.mockResolvedValue(mockStateStoreJson);
 
         const stateStoreManager = new StateStoreManager(mockDataStore);
 
-        const stateStore = await stateStoreManager.getStateStore(100);
-        expect(stateStore).toEqual(
+        await stateStoreManager.bootup();
+        expect(mockDataStore.get).toHaveBeenCalledWith('stateStore');
+        expect(stateStoreManager.getStateStore()).toEqual(
             [
                 {
                     key: "kndctr_1234_AdobeOrg_cluster",
@@ -138,7 +139,14 @@ describe('StateStoreManager', () => {
                 }
             ]
         );
-        expect(mockDataStore.get).toHaveBeenCalledWith('stateStore');
+    });
+
+    test('getStateStore without bootup will return empty even when state store is persisted', async () => {
+        const stateStoreManager = new StateStoreManager(mockDataStore);
+
+        const stateStore = stateStoreManager.getStateStore(100);
+        expect(stateStore).toEqual([]);
+        expect(mockDataStore.get).not.toHaveBeenCalled();
     });
 
     test('getStateStore returns only active state store entries', async () => {
@@ -171,6 +179,7 @@ describe('StateStoreManager', () => {
         mockDataStore.get.mockResolvedValue(mockStateStoreJson);
 
         const stateStoreManager = new StateStoreManager(mockDataStore);
+        await stateStoreManager.bootup(); // bootup to load state store from persistence
 
         const stateStore = await stateStoreManager.getStateStore(100);
         expect(stateStore).toEqual(

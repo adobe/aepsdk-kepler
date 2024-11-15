@@ -22,7 +22,7 @@ export interface Extension {
    *
    * @param extensionContainer The container for this extension
    * @param serviceLookup The function to retrieve services
-   * 
+   *
    * @returns A promise that resolves when the extension is registered.
    */
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void>;

@@ -34,6 +34,8 @@ describe('EdgeHitProcessor tests', () => {
     let mockIdentityManager: jest.Mocked<IdentityManager>;
     let mockLocationHintManager: jest.Mocked<LocationHintManager>;
     let mockStateStoreManager: jest.Mocked<StateStoreManager>;
+    const mockDispatchFn: jest.Mock = jest.fn();
+
 
     beforeEach(() => {
         mockAsyncRequest = asyncRequest as jest.MockedFunction<typeof asyncRequest>;
@@ -45,10 +47,10 @@ describe('EdgeHitProcessor tests', () => {
         } as jest.Mocked<DataStore>;
 
 
-        mockConsentManager = new ConsentManager(mockDataStore) as jest.Mocked<ConsentManager>;
+        mockConsentManager = new ConsentManager(mockDataStore, mockDispatchFn) as jest.Mocked<ConsentManager>;
         jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.YES);
 
-        mockIdentityManager = new IdentityManager(mockDataStore) as jest.Mocked<IdentityManager>;
+        mockIdentityManager = new IdentityManager(mockDataStore, mockDispatchFn) as jest.Mocked<IdentityManager>;
         jest.spyOn(mockIdentityManager, 'getIdentityMap').mockResolvedValue(null);
 
         mockLocationHintManager = new LocationHintManager(mockDataStore) as jest.Mocked<LocationHintManager>;
@@ -60,20 +62,20 @@ describe('EdgeHitProcessor tests', () => {
         jest.clearAllMocks();
     });
     test('EdgeHitProcessor should be defined', () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
         expect(edgeHitProcessor).toBeDefined();
     });
 
     test('process should do nothing when queue is empty', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         await edgeHitProcessor.process();
     });
 
     test('should queue edge and consent hits correctly', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const edgeHit = EdgeHit.builder().setType(EdgeHitType.EDGE).build();
@@ -87,7 +89,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send edge hit to edge network and remove it from queue', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -129,7 +131,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send all the queued hits', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -173,7 +175,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send consent hit to edge network and remove it from queue', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -232,7 +234,7 @@ describe('EdgeHitProcessor tests', () => {
     test('process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n', async () => {
         jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.NO);
 
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -300,7 +302,7 @@ describe('EdgeHitProcessor tests', () => {
     test('process should not send edge hit but should send consent hit to edge network when consent is p', async () => {
         jest.spyOn(mockConsentManager, 'getCollectConsent').mockResolvedValue(ConsentValue.PENDING);
 
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -366,7 +368,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('test queueHit when max queue size is reached', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         jest.spyOn(edgeHitProcessor, 'queueHit');
@@ -391,7 +393,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('test queueHit when max queue size is reached for consent queue', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         jest.spyOn(edgeHitProcessor, 'queueHit');
@@ -418,7 +420,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send edge hit with location hint when location hint is present', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -462,7 +464,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send consent hit with location hint when location hint is present', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -521,7 +523,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send edge hit with identity map when identity map is present and not add fetch ecid query', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -574,7 +576,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send consent hit with identity map when identity map is present and not add fetch ecid query', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -642,7 +644,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send edge hit with state store when state store is present', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();
@@ -698,7 +700,7 @@ describe('EdgeHitProcessor tests', () => {
     });
 
     test('process should send consent hit with state store when state store is present', async () => {
-        const responseManager = new EdgeResponseManager(mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
+        const responseManager = new EdgeResponseManager(mockDispatchFn, mockIdentityManager, mockConsentManager, mockLocationHintManager, mockStateStoreManager);
         const edgeHitProcessor = new EdgeHitProcessor( responseManager, mockConsentManager, mockIdentityManager, mockLocationHintManager, mockStateStoreManager);
 
         const testTS = Date.now();

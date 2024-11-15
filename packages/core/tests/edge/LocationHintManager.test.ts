@@ -42,28 +42,42 @@ test('LocationHintManager should be defined', () => {
         const locationHintManager = new LocationHintManager(mockDataStore);
         locationHintManager.setLocationHint('mockLocationHint', 1800);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe('mockLocationHint');
     });
 
-    test('getLocationHint returns persisted location hint when not set in memory', async () => {
+    test('bootup loads persisted location hint', async () => {
+        const mockLocationHintJson = JSON.stringify({ value: 'persistedLocationHint', expiryTS: (Date.now() + 1800) });
+        mockDataStore.get.mockResolvedValue(mockLocationHintJson);
+
+        const locationHintManager = new LocationHintManager(mockDataStore);
+        await locationHintManager.bootup();
+
+        const locationHint = locationHintManager.getLocationHint();
+        expect(locationHint).toBe('persistedLocationHint');
+        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
+    });
+
+    test('bootup sets location hint to null when persisted location hint is not present in persistence', async () => {
+        mockDataStore.get.mockResolvedValue(null);
+
+        const locationHintManager = new LocationHintManager(mockDataStore);
+        await locationHintManager.bootup();
+
+        const locationHint = locationHintManager.getLocationHint();
+        expect(locationHint).toBe(null);
+        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
+    });
+
+    test('getLocationHint without bootup will return null even when locationHint is persisted on the DataStore', async () => {
         const mockLocationHintJson = JSON.stringify({ value: 'persistedLocationHint', expiryTS: (Date.now() + 1800) });
         mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
         const locationHintManager = new LocationHintManager(mockDataStore);
 
-        const locationHint = await locationHintManager.getLocationHint();
-        expect(locationHint).toBe('persistedLocationHint');
-        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
-    });
-
-    test('getLocationHint returns null when location hint is not set or persisted', async () => {
-        mockDataStore.get.mockResolvedValue(null);
-        const locationHintManager = new LocationHintManager(mockDataStore);
-
-        const locationHint = await locationHintManager.getLocationHint();
-        expect(locationHint).toBe(null);
-        expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
+        const locationHint = locationHintManager.getLocationHint();
+        expect(locationHint).toBeNull();
+        expect(mockDataStore.get).not.toHaveBeenCalled();
     });
 
     test('getLocationHint returns null when location hint is expired', async () => {
@@ -71,8 +85,9 @@ test('LocationHintManager should be defined', () => {
         mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
         const locationHintManager = new LocationHintManager(mockDataStore);
+        await locationHintManager.bootup(); // load persisted location hint
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
         expect(mockDataStore.get).toHaveBeenCalledWith('locationHint');
     });
@@ -104,7 +119,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe('mockLocationHint');
         expect(locationHintManager.setLocationHint).toHaveBeenCalledWith('mockLocationHint', 100);
     });
@@ -127,7 +142,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
         expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
     });
@@ -148,7 +163,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
         expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
     });
@@ -170,7 +185,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe('mockLocationHint');
         expect(locationHintManager.setLocationHint).toHaveBeenCalledWith('mockLocationHint', 1800);
     });
@@ -191,7 +206,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
         expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
     });
@@ -213,7 +228,7 @@ test('LocationHintManager should be defined', () => {
 
             locationHintManager.processEdgeResponse(responseHandle);
 
-            const locationHint = await locationHintManager.getLocationHint();
+            const locationHint = locationHintManager.getLocationHint();
             expect(locationHint).toBe(null);
             expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
         }
@@ -236,7 +251,7 @@ test('LocationHintManager should be defined', () => {
 
         locationHintManager.processEdgeResponse(responseHandle);
 
-        const locationHint = await locationHintManager.getLocationHint();
+        const locationHint = locationHintManager.getLocationHint();
         expect(locationHint).toBe(null);
         expect(locationHintManager.setLocationHint).not.toHaveBeenCalled();
     });

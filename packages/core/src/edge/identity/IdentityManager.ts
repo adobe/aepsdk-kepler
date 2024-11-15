@@ -31,6 +31,20 @@ export class IdentityManager {
 
   constructor(private dataStore: DataStore, private dispatchFn: (event: Event) => void) {}
 
+  /**
+   * Boots up the IdentityManager and loads the ECID from the DataStore.
+   * @returns Promise<void>
+   */
+  async bootup(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() -  Booting up IdentityManager.`);
+    this.ecid = await this.getECIDFromPersistence();
+    Promise.resolve();
+  }
+
+  /**
+   * Processes the Edge response and updates the ECID if available.
+   * @param responseHandle The response handle containing the identity payload.
+   */
   processEdgeResponse(responseHandle: DataObject) {
     Log.verbose(
       LOG_SOURCE,
@@ -50,7 +64,7 @@ export class IdentityManager {
       if (code === this.ECID_NAMESPACE) {
         const ecid = payloadObj["id"] as string;
         if (!isNullOrEmptyString(ecid)) {
-          this._updateECID(ecid);
+          this.updateECID(ecid);
           // TODO: createSharedState update instead of dispatching event
           this.dispatchECID(ecid);
         }
@@ -83,40 +97,39 @@ export class IdentityManager {
   }
 
   /**
-   * Returns the ECID if available
-   * @returns Promise<string | null>
+   * Returns the ECID if available, else returns null.
+   * @returns string | null
    */
-  async getECID(): Promise<string | null> {
-    Log.debug(LOG_SOURCE, LOG_TAG, `getECID() -  Getting ECID.`);
-    if (this.ecid) {
-      return Promise.resolve(this.ecid);
-    }
-
-    return this._getECIDFromPersistence();
+  getECID(): string | null {
+    Log.debug(LOG_SOURCE, LOG_TAG, `getECID() -  Returning ECID from cache: (${this.ecid})`);
+    return this.ecid;
   }
 
   /**
    * Creates and returns the identity map
    * @returns Promise<Record<string, DataType> | null>
    */
-  async getIdentityMap(): Promise<Record<string, DataType> | null> {
+  getIdentityMap(): DataObject | null {
     Log.debug(LOG_SOURCE, LOG_TAG, `getIdentityMap() -  Getting Identity Map.`);
-    return this.getECID().then((ecid) => {
-      if (ecid === null) {
-        return Promise.resolve(null);
-      }
 
+    if (!isNullOrEmptyString(this.ecid)) {
       const identityMap: Record<string, DataType> = {};
       identityMap[this.ECID_NAMESPACE] = [
         {
-          id: ecid,
+          id: this.ecid,
           primary: true,
           authenticatedState: "ambiguous",
         },
       ];
 
-      return Promise.resolve(identityMap);
-    });
+      Log.verbose(
+        LOG_SOURCE,
+        LOG_TAG,
+        `getIdentityMap() -  Returning Identity Map: (${identityMap})`
+      );
+      return identityMap;
+    }
+    return null;
   }
 
   /**
@@ -125,7 +138,7 @@ export class IdentityManager {
    * @param ecid string | null
    * @returns void
    */
-  _updateECID(ecid: string | null) {
+  updateECID(ecid: string | null) {
     Log.debug(LOG_SOURCE, LOG_TAG, `_updateECID() -  Updating ECID: (${ecid})`);
 
     if (isNullOrEmptyString(ecid)) {
@@ -135,11 +148,11 @@ export class IdentityManager {
         `_updateECID() -  Deleting ECID, since the value:(${ecid}) is null or empty.`
       );
       this.ecid = null;
-      this._deleteECID();
+      this.deleteECID();
     } else {
       Log.verbose(LOG_SOURCE, LOG_TAG, `_updateECID() -  Updating ECID with value: (${ecid})`);
       this.ecid = ecid;
-      this._persistECID(ecid!);
+      this.persistECID(ecid!);
     }
   }
 
@@ -147,8 +160,8 @@ export class IdentityManager {
    * Persists the ECID in the DataStore
    * @returns void
    */
-  _persistECID(ecid: string) {
-    Log.verbose(LOG_SOURCE, LOG_TAG, `_persistECID() -  Persisting ECID: (${ecid})`);
+  private persistECID(ecid: string) {
+    Log.verbose(LOG_SOURCE, LOG_TAG, `persistECID() -  Persisting ECID: (${ecid})`);
     this.dataStore.set(this.ECID_KEY, ecid);
   }
 
@@ -156,8 +169,8 @@ export class IdentityManager {
    * Deletes the ECID from the DataStore
    * @returns void
    */
-  _deleteECID() {
-    Log.verbose(LOG_SOURCE, LOG_TAG, `_deleteECID() -  Deleting ECID.`);
+  private deleteECID() {
+    Log.verbose(LOG_SOURCE, LOG_TAG, `deleteECID() -  Deleting ECID.`);
     this.dataStore.delete(this.ECID_KEY);
   }
 
@@ -165,8 +178,15 @@ export class IdentityManager {
    * Loads the ECID from the DataStore
    * @returns Promise<string | null>
    */
-  _getECIDFromPersistence(): Promise<string | null> {
-    Log.verbose(LOG_SOURCE, LOG_TAG, `_getECIDFromPersistence() -  Loading ECID from persistence.`);
-    return this.dataStore.get(this.ECID_KEY);
+  private async getECIDFromPersistence(): Promise<string | null> {
+    Log.verbose(LOG_SOURCE, LOG_TAG, `getECIDFromPersistence() -  Loading ECID from persistence.`);
+    const ecid = await this.dataStore.get(this.ECID_KEY);
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `getECIDFromPersistence() -  ECID loaded from persistence ECID:(${ecid}).`
+    );
+    return Promise.resolve(ecid);
   }
 }

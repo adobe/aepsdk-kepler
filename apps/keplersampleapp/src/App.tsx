@@ -4,10 +4,25 @@
  * PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
  */
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
 import {Link} from './components/Link';
 import {AEPSDK} from '@adobe/kepler-aepcore';
+import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
+
+const keplerDataStore = new KeplerDataStore();
+const clearDatastore = async () => {
+  console.log('##AEPSample - Clearing Datastore');
+  const sdk_keys = [
+    'ecid',
+    'locationHint'
+  ]
+
+  for (const key of sdk_keys) {
+    console.log(`##AEPSample - Deleting key: ${key}`);
+    await keplerDataStore.delete(key);
+  }
+}
 
 const images = {
   aep: require('./assets/aepsdk-black.png'),
@@ -17,10 +32,36 @@ export const App = () => {
   const [ecid, setECID] = useState('not set');
 
   const styles = getStyles();
-  AEPSDK.setLogLevel(3);
-  AEPSDK.start();
+
+  useEffect(() => {
+    const init = async () => {
+      initSDK();
+    };
+
+    const clear = async () => {
+      clearDatastore();
+    }
+
+    const ecid = async () => {
+      const ecid = await AEPSDK.getExperienceCloudId();
+      if (ecid) {
+        setECID(ecid);
+      }
+
+    };
+    clear();
+    init();
+    ecid();
+  }, []); // Runs once when the component mounts.
+
+  const initSDK = () => {
+    console.log('##AEPSample - Initializing AEPSDK');
+    AEPSDK.setLogLevel(3);
+    AEPSDK.start();
+  }
 
   const setConsent = (consentValue: string = 'y') => {
+    console.log('##AEPSample - Setting Consent: ', consentValue);
     const consentData = {
       "consent": [
           {
@@ -41,14 +82,15 @@ export const App = () => {
   }
 
   const getECID = async () => {
+    console.log('##AEPSample - Getting ECID');
     AEPSDK.getExperienceCloudId().then((ecid) => {
+      console.log('##AEPSample - Got ECID: ', ecid);
       if (ecid) {
+        console.log('##AEPSample - Setting ECID: ', ecid);
         setECID(ecid);
       }
     });
   };
-
-  getECID();
 
   return (
     <ImageBackground
@@ -82,6 +124,7 @@ export const App = () => {
             linkText={'Get ECID'}
             onPress={() => {
               {
+                console.log('##Getting ECID');
                 getECID();
               }
             }}

@@ -30,12 +30,20 @@ export enum ConsentValue {
 }
 
 export class ConsentManager {
-  private dataStore: DataStore;
   private collectConsent: ConsentValue | null = null;
   private defaultConsent: DataObject | null = null;
 
-  constructor(dataStore: DataStore) {
-    this.dataStore = dataStore;
+  constructor(private dataStore: DataStore, private dispatchFn: (event: Event) => void) {}
+
+  /**
+   * Bootup the ConsentManager and
+   * load the Collect consent value from persistence.
+   * @returns Promise<void>
+   */
+  async bootup(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() -  Booting up ConsentManager.`);
+    this.collectConsent = await this.getCollectConsentFromPersistence();
+    Promise.resolve();
   }
 
   /**
@@ -96,39 +104,14 @@ export class ConsentManager {
    * available in any of the sources.
    * @returns Promise<ConsentValue | null>
    */
-  async getCollectConsent(): Promise<ConsentValue | null> {
+  public getCollectConsent(): ConsentValue | null {
     Log.debug(LOG_SOURCE, LOG_TAG, `getCollectConsent() -  Getting collect consent value.`);
 
-    if (this.collectConsent) {
-      Log.verbose(
-        LOG_SOURCE,
-        LOG_TAG,
-        `getCollectConsent() -  Returning collect consent value from cache: (${this.collectConsent})`
-      );
+    const consent = this.collectConsent
+      ? this.collectConsent
+      : this.getCollectConsentFromConfiguration();
 
-      return Promise.resolve(this.collectConsent);
-    }
-
-    return this._getCollectConsentFromPersistence().then((consent) => {
-      // If the consent is available in the persistence, return it
-      const consentValue = consent as ConsentValue | null;
-      if (consent) {
-        Log.verbose(
-          LOG_SOURCE,
-          LOG_TAG,
-          `getCollectConsent() -  Returning collect consent value from persistence: (${consentValue})`
-        );
-        return Promise.resolve(consentValue);
-      } else {
-        // If the consent is not available in the persistence, get it from the configuration
-        Log.verbose(
-          LOG_SOURCE,
-          LOG_TAG,
-          `getCollectConsent() -  Returning collect consent value from configuration.`
-        );
-        return Promise.resolve(this._getCollectConsentFromConfiguration());
-      }
-    });
+    return consent;
   }
 
   /**
@@ -145,9 +128,9 @@ export class ConsentManager {
     );
     this.collectConsent = consent;
     if (consent) {
-      this._saveCollectConsentToPersistence(consent);
+      this.saveCollectConsentToPersistence(consent);
     } else {
-      this._deleteCollectConsentFromPersistence();
+      this.deleteCollectConsentFromPersistence();
     }
   }
 
@@ -155,7 +138,7 @@ export class ConsentManager {
    * Saves the Collect consent value to the persistence.
    * @param consent ConsentValue
    */
-  private _saveCollectConsentToPersistence(consent: ConsentValue) {
+  private saveCollectConsentToPersistence(consent: ConsentValue) {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
@@ -167,7 +150,7 @@ export class ConsentManager {
   /**
    * Deletes the Collect consent value from the persistence.
    */
-  private _deleteCollectConsentFromPersistence() {
+  private deleteCollectConsentFromPersistence() {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
@@ -180,7 +163,7 @@ export class ConsentManager {
    * Returns the Collect consent value from the persistence.
    * @returns Promise<ConsentValue | null>
    */
-  private _getCollectConsentFromPersistence(): Promise<ConsentValue | null> {
+  private getCollectConsentFromPersistence(): Promise<ConsentValue | null> {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
@@ -199,7 +182,7 @@ export class ConsentManager {
    * @returns ConsentValue | null
    *
    */
-  private _getCollectConsentFromConfiguration(): ConsentValue | null {
+  private getCollectConsentFromConfiguration(): ConsentValue | null {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,

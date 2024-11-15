@@ -136,10 +136,9 @@ export class EdgeHitProcessor {
         }
 
         let meta = hit.meta;
-        const identity = await this.identityManager.getIdentityMap();
-        const locationHint =
-          (await this.locationHintManager.getLocationHint()) as LocationHintValue;
-        const stateStore = await this.stateStoreManager.getStateStore();
+        const identity = this.identityManager.getIdentityMap();
+        const locationHint = this.locationHintManager.getLocationHint() as LocationHintValue;
+        const stateStore = this.stateStoreManager.getStateStore();
 
         meta = this.appendStateToMeta(meta, stateStore);
 
@@ -331,8 +330,11 @@ export class EdgeHitProcessor {
       xdm: {
         implementationDetails: this.getImplentationDetails(),
       },
-      events: [hit.data],
+      events: [],
     };
+
+    // TODO Add xdm and data individually to the request object
+    requestObj.events = [hit.data ?? {}];
 
     if (identityMap) {
       (requestObj[DATA.XDM] as DataObject)[DATA.IDENTITY_MAP] = identityMap;
@@ -369,9 +371,9 @@ export class EdgeHitProcessor {
    */
   private getURLForHit(hit: EdgeHit, locationHint: LocationHintValue | null = null): string {
     let url = URL.DEFAULT + PATH.PREFIX;
-    const requestId = hit.requestId;
+    //const requestId = hit.requestId;
     // TODO get the configId from configuration
-    const query = `?configId=${"<YOUR_EDGE_DATASTREAM_ID>"}&requestId=${requestId}`;
+    const query = `?configId=${"<YOUR_EDGE_DATASTREAM_ID>"}`;
 
     url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
 

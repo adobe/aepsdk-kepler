@@ -19,9 +19,6 @@ export interface Edge extends Extension {
   sendEvent(xdm: DataObject): void;
   getExperienceCloudId(): Promise<string | null>;
   setConsent(consent: DataObject): void;
-  // sendEventWithPromise(xdm: Map<string, object>, data: Map<string, object>): Promise<any>;
-  // getECID(): string | null;
-  //setConsent(consent: Map<string, object>): void;
 }
 
 export const edge: Edge = new EdgeImpl();

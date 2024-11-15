@@ -38,6 +38,17 @@ export class StateStoreManager {
   }
 
   /**
+   * Bootup the StateStoreManager and load the
+   * state store object from persistence.
+   * @returns Promise<void>
+   */
+  async bootup(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() - Booting up StateStoreManager.`);
+    this.stateStoreObj = (await this.getStateStoreFromPersistence()) ?? {};
+    return Promise.resolve();
+  }
+
+  /**
    * Processes the edge response and updates the state store.
    * @param responseHandle The response handle containing the state store payload.
    */
@@ -63,16 +74,8 @@ export class StateStoreManager {
    * @param startTimeMillis The start time in milliseconds.
    * @returns The state store object.
    */
-  public async getStateStore(startTimeMillis: number = Date.now()): Promise<DataArray | null> {
+  public getStateStore(startTimeMillis: number = Date.now()): DataArray | null {
     const activeStateStoreEntries: DataArray = [];
-    if (isNullOrEmptyObject(this.stateStoreObj)) {
-      Log.verbose(
-        LOG_SOURCE,
-        LOG_TAG,
-        "getStateStore() - state store not found in cache, getting state store from persistence."
-      );
-      this.stateStoreObj = (await this.getStateStoreFromPersistence()) ?? {};
-    }
 
     for (const [key, value] of Object.entries(this.stateStoreObj)) {
       const entry = getAsDataObject(value) ?? {};
@@ -100,7 +103,7 @@ export class StateStoreManager {
       )})`
     );
 
-    return Promise.resolve(activeStateStoreEntries);
+    return activeStateStoreEntries;
   }
 
   /**
@@ -108,7 +111,7 @@ export class StateStoreManager {
    * @param payload The payload to be added to the state store.
    * @param startTimeMillis The start time in milliseconds.
    */
-  private addToStateStore(payload: DataObject, startTimeMillis: number = Date.now()): void {
+  private addToStateStore(payload: DataObject, startTimeMillis: number = Date.now()) {
     if (isNullOrEmptyObject(payload)) {
       return;
     }

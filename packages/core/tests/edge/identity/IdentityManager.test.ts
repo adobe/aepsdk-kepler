@@ -39,36 +39,36 @@ describe('IdentityManager tests', () => {
         expect(identityManager).toBeDefined();
     });
 
-    test('getECID returns ECID when set in memory', async () => {
-        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
-        identityManager._updateECID('mockECID');
-
-        const ecid = await identityManager.getECID();
-        expect(ecid).toBe('mockECID');
-    });
-
-    test('getECID returns persisted ECID when not set in memory', async () => {
+    test('bootup should set ECID in memory', async () => {
         mockDataStore.get.mockResolvedValue('persistedECID');
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
-        const ecid = await identityManager.getECID();
-        expect(ecid).toBe('persistedECID');
-        expect(mockDataStore.get).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
+        await identityManager.bootup();
+        expect(identityManager.getECID()).toBe('persistedECID');
     });
 
-    test('getECID returns null when ECID is not set or persisted', async () => {
+    test('bootup sets ECID to null in memory when ECID not found in persistence', async () => {
         mockDataStore.get.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
-        const ecid = await identityManager.getECID();
+        await identityManager.bootup();
+        expect(identityManager.getECID()).toBeNull();
+    });
+
+    test('getECID returns null even when ECID exists in persistence, when bootup is not called before', async () => {
+        mockDataStore.get.mockResolvedValue('persistedECID');
+        const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
+
+        const ecid = identityManager.getECID();
         expect(ecid).toBeNull();
+        expect(mockDataStore.get).not.toBeCalled();
     });
 
     test('getIdentityMap returns identity map when ECID is set', async () => {
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
-        identityManager._updateECID('mockECID');
+        identityManager.updateECID('mockECID');
 
-        const identityMap = await identityManager.getIdentityMap();
+        const identityMap = identityManager.getIdentityMap();
         expect(identityMap).toEqual({"ECID": [{"authenticatedState": "ambiguous", "id": "mockECID", "primary": true}]});
     });
 
@@ -76,25 +76,25 @@ describe('IdentityManager tests', () => {
         mockDataStore.get.mockResolvedValue(null);
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
-        const identityMap = await identityManager.getIdentityMap();
+        const identityMap = identityManager.getIdentityMap();
         expect(identityMap).toBeNull();
     });
 
-    test('_updateECID updates ECID and persists it', async () => {
+    test('updateECID updates ECID and persists it', async () => {
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
-        identityManager._updateECID('newECID');
-        expect(identityManager.getECID()).resolves.toBe('newECID');
+        identityManager.updateECID('newECID');
+        expect(identityManager.getECID()).toBe('newECID');
         expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'newECID');
     });
 
-    test('_updateECID deletes ECID when null is passed', async () => {
+    test('updateECID deletes ECID when null is passed', async () => {
         const identityManager = new IdentityManager(mockDataStore, mockDispatchFn);
 
-        identityManager._updateECID('mockECID');
+        identityManager.updateECID('mockECID');
         expect(mockDataStore.set).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID, 'mockECID');
 
-        identityManager._updateECID(null);
+        identityManager.updateECID(null);
         expect(mockDataStore.delete).toHaveBeenCalledWith(EdgeConstants.DataStoreKey.ECID);
     });
 
@@ -112,7 +112,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe('newECID');
+        expect(identityManager.getECID()).toBe('newECID');
 
         const expectedEventData = EventData.buildFrom({
             ecid: "newECID"
@@ -143,7 +143,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 
@@ -155,7 +155,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 
@@ -167,7 +167,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 
@@ -183,7 +183,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 
@@ -200,7 +200,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 
@@ -219,7 +219,7 @@ describe('IdentityManager tests', () => {
         };
 
         identityManager.processEdgeResponse(responseHandle);
-        expect(identityManager.getECID()).resolves.toBe(null);
+        expect(identityManager.getECID()).toBe(null);
         expect(mockDispatchFn).not.toBeCalled();
     });
 });

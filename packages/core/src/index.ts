@@ -105,7 +105,8 @@ async function _start(params?: SDKParams): Promise<void> {
       configuration.onRegister(
         createExtensionContainer(eventHub, configuration.name, sharedStateManager),
         serviceLookup
-      ));
+      )
+    );
   }
   if (isExtension(edge)) {
     Log.debug(LOG_SOURCE, LOG_TAG, "_start() - Registering the Edge extension.");
@@ -113,7 +114,8 @@ async function _start(params?: SDKParams): Promise<void> {
       edge.onRegister(
         createExtensionContainer(eventHub, edge.name, sharedStateManager),
         serviceLookup
-      ));
+      )
+    );
   }
 
   // TODO: enalbe this in the future for registering other optional extensions.
@@ -121,7 +123,6 @@ async function _start(params?: SDKParams): Promise<void> {
   //     extension.onRegister(new ExtensionContainerImpl(eventHub, extension.name, sharedStateManager), serviceLookup);
   //     Log.debug("Extension registered: " + extension.name);
   // });
-
 
   // Wait for multiple promises to resolve concurrently.
   // TODO: we can consider adding timeouts if onRegister() runs too long.

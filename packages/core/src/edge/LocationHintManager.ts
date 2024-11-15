@@ -36,6 +36,20 @@ export class LocationHintManager {
     this.dataStore = dataStore;
   }
 
+  /**
+   * Bootup the LocationHintManager. Load the location hint from persistence.
+   * @returns Promise<void>
+   */
+  public async bootup(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() - Booting up LocationHintManager.`);
+    const locationHintObj = await this.getLocationHintFromPersistence();
+
+    this.locationHint = (locationHintObj?.[LOCATION_HINT_VALUE] as string) || null;
+    this.expiryTS = (locationHintObj?.[LOCATION_HINT_EXPIRY_TS] as number) || null;
+
+    return Promise.resolve();
+  }
+
   public processEdgeResponse(responseHandle: DataObject): void {
     const payloadArr = (responseHandle["payload"] as DataArray) ?? [];
     for (const payload of payloadArr) {
@@ -71,15 +85,8 @@ export class LocationHintManager {
    * Gets the location hint.
    * @returns The location hint or null if it is not available or expired.
    */
-  public async getLocationHint(): Promise<string | null> {
+  public getLocationHint(): string | null {
     Log.verbose(LOG_SOURCE, LOG_TAG, "getLocationHint() - Getting location hint.");
-
-    if (isNullOrEmptyString(this.locationHint)) {
-      const locationHintObj = await this.getLocationHintFromPersistence();
-
-      this.locationHint = (locationHintObj?.[LOCATION_HINT_VALUE] as string) || null;
-      this.expiryTS = (locationHintObj?.[LOCATION_HINT_EXPIRY_TS] as number) || null;
-    }
 
     if (isNullOrEmptyString(this.locationHint) || this.isExpired()) {
       Log.debug(

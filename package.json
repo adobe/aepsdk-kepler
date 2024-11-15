@@ -13,7 +13,8 @@
     "lint": "npx eslint ./packages/**/src/**/**.ts",
     "build_all": "npx lerna run build",
     "unit_test": "npx lerna run test",
-    "integration_test": "cd integration && npx jest",
+    "unit_test_report": "npx lerna run testReport",
+    "integration_test": "cd integrationTests && npx jest",
     "archive_all": "rm -rf ./out; mkdir out; npx lerna run archive"
   },
   "devDependencies": {

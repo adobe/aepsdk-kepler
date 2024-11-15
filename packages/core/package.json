@@ -9,6 +9,7 @@
   "scripts": {
     "build": "rm -rf dist; npx tsc",
     "test": "jest",
+    "testReport": "jest --coverage",
     "archive": "yarn pack --out ../../out/%s-%v.tgz"
   },
   "repository": {

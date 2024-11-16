@@ -9,41 +9,33 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { ConfigurationImpl } from "../../src/configuration/ConfigurationImpl";
+import { ConfigurationExtension } from "../../src/configuration/ConfigurationExtension";
 import { Configuration } from "../../src/configuration";
 import { Event, createEventHub, EventType, EventSource } from "../../src/core/eventhub";
 import { SharedStateManager, SharedStateStatus } from "../../src/core/sharedstate";
-import { createExtensionContainer, isExtension, ExtensionContainer } from "../../src/core/extension";
+import { createExtensionContainer, ExtensionContainer } from "../../src/core/extension";
 import { serviceLookup } from "../../src/core/services";
 import { EXTENSION_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "../../src/configuration/Constants";
 import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/sharedstate/Constants";
 
 describe('test Configuration extension', () => {
-    let configuration: Configuration = new ConfigurationImpl();
+    let configuration: Configuration = new ConfigurationExtension();
     let eventHub = createEventHub();
     let configurationContainer: ExtensionContainer | null = null;
     beforeEach(() => {
-        configuration = new ConfigurationImpl();
+        configuration = new ConfigurationExtension();
         eventHub = createEventHub();
         const sharedStateManager = new SharedStateManager();
-        if (isExtension(configuration)) {
-            configurationContainer = createExtensionContainer(eventHub, configuration.name, sharedStateManager);
-            configuration.onRegister(
-                configurationContainer,
-                serviceLookup
-            );
-        } else {
-            throw new Error("Configuration is not an extension");
-        }
+        configurationContainer = createExtensionContainer(eventHub, configuration.EXTENSION.name, sharedStateManager);
+        configuration.EXTENSION.onRegister(
+            configurationContainer,
+            serviceLookup
+        );
     });
 
     it('should return correct extension name & extension version', () => {
-        if (isExtension(configuration)) {
-            expect(configuration.name).toEqual(EXTENSION_NAME);
-            expect(configuration.version).toEqual(EXTENSION_VERSION);
-        } else {
-            throw new Error("Configuration is not an extension");
-        }
+        expect(configuration.EXTENSION.name).toEqual(EXTENSION_NAME);
+        expect(configuration.EXTENSION.version).toEqual(EXTENSION_VERSION);
     });
 
     it('updateConfiguration() - should update the configuration state and dispatch shared state event', () => {
@@ -73,7 +65,5 @@ describe('test Configuration extension', () => {
         expect(result?.value?.getDataObject()).toEqual({ key: 'value' });
         expect(result?.status).toEqual(SharedStateStatus.SET);
     });
-
-
 
 });

@@ -10,34 +10,12 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { EventListener, EventData, Event } from "../../../src/core/eventhub";
-import { isExtension, Extension, ExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
+import { Extension, ExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
 import { ServiceLookup } from "../../../src/core/services";
 import { SharedStateResult } from "../../../src/core/sharedstate";
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
 describe('test Extension', () => {
-    test('isExtension()() - should identify Extension objects', () => {
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        const extension: Extension = {
-            name: "extension",
-            version: "1.0.0",
-            onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => { }
-        };
-
-        expect(isExtension(extension)).toBeTruthy();
-
-        const notAnExtension1 = {
-            name: "not an extension",
-            version: "1.0.0"
-        };
-
-        const notAnExtension2 = {
-            name: "not an extension",
-            version: "1.0.0",
-            onRegister: "not a function"
-        };
-
-        expect(isExtension(notAnExtension1)).toBeFalsy();
-        expect(isExtension(notAnExtension2)).toBeFalsy();
-    });
 
     test('onRegister() - should be able to do some aync operations', async () => {
         const extensionContainer: ExtensionContainer = {

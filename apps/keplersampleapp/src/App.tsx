@@ -57,7 +57,7 @@ export const App = () => {
   const initSDK = () => {
     console.log('##AEPSample - Initializing AEPSDK');
     AEPSDK.setLogLevel(3);
-    AEPSDK.start();
+    AEPSDK.initialize();
   }
 
   const setConsent = (consentValue: string = 'y') => {

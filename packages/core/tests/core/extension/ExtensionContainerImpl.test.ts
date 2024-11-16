@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { createExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
 import { Event, EventHub, EventListener, EventSource, EventType, EventData } from "../../../src/core/eventhub";
 import { SharedStateManager, SharedStateStatus } from "../../../src/core/sharedstate";
-describe('test ExtensionContainerImpl class', () => {
+describe('test ConfigurationExtension class', () => {
 
     beforeEach(() => { });
 

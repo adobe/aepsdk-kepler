@@ -22,10 +22,12 @@ import {
 } from "./Constants";
 
 const LOG_EXTENSION = EXTENSION_NAME;
-const LOG_TAG = "ConfigurationImpl";
+const LOG_TAG = "ConfigurationExtension";
 
 // Implementation
-export class ConfigurationImpl implements Configuration, Extension {
+export class ConfigurationExtension implements Configuration, Extension {
+  readonly EXTENSION: Extension = this;
+
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
   private isRegistered: boolean = false;

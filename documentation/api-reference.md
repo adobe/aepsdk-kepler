@@ -3,25 +3,26 @@
 This document lists the APIs provided by AEP Kepler SDK, along with code samples for API usage.
 
 - Core APIs
-  - [start](#start)
+  - [initialize](#initialize)
   - [updateConfiguration](#updateConfiguration)
   - [setLogLevel](#setLogLevel)
 
 ## Core APIs
 
-### start
+### initialize
 
 This function initializes the SDK, it needs to be called prior to calling any other SDK functions.
 
 #### Syntax
 
 ```typescript
-function start(params?: SDKParams): void
+function initialize(params?: InitOptions): void
 ```
 
 ```typescript
-interface SDKParams {
-  config?: Map<string, any>;
+interface InitOptions {
+  config?: Record<string, any>;
+  logLevel?: LogLevel;
 }
 ```
 
@@ -30,7 +31,7 @@ interface SDKParams {
 ```typescript
 import {AEPSDK} from '@adobe/kepler-aepcore';
 
-AEPSDK.start({
+AEPSDK.initialize({
     config: {
         "edge.configId": "xxx-xxx-xxx"
     }

@@ -15,7 +15,6 @@ import { EventHub } from "../eventhub";
 import { SharedStateManager } from "../sharedstate";
 
 export type { Extension } from "./Extension";
-export { isExtension } from "./Extension";
 export type { ExtensionContainer, SharedStateResolver } from "./ExtensionContainer";
 
 export function createExtensionContainer(

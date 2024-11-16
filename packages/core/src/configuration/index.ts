@@ -9,7 +9,8 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { ConfigurationImpl } from "./ConfigurationImpl";
+import { ConfigurationExtension } from "./ConfigurationExtension";
+import { Extension } from "../core/extension";
 
 export interface Configuration {
   /**
@@ -19,6 +20,8 @@ export interface Configuration {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   updateConfiguration(configuration: Record<string, any>): void;
+
+  readonly EXTENSION: Extension;
 }
 
-export const configuration: Configuration = new ConfigurationImpl();
+export const configuration: Configuration = new ConfigurationExtension();

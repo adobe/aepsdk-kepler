@@ -2,10 +2,14 @@
 
 This document lists the APIs provided by AEP Kepler SDK, along with code samples for API usage.
 
-- Core APIs
+- [Core APIs](#core-apis)
   - [initialize](#initialize)
   - [updateConfiguration](#updateConfiguration)
   - [setLogLevel](#setLogLevel)
+- [Edge APIs](#edge-apis)
+  - [getExperienceCloudId](#getExperienceCloudId)
+  - [sendEvent](#sendEvent)
+  - [setConsent](#setConsent)
 
 ## Core APIs
 
@@ -86,3 +90,76 @@ AEPSDK.setLogLevel(LogLevel.VERBOSE);
 ```
 
 ---
+
+## Edge APIs
+
+### getExperienceCloudId
+
+#### Syntax
+```typescript
+getExperienceCloudId(): Promise<String | null>
+```
+
+#### Example
+```typescript
+// Option 1: handle it using then
+AEPSDK.getExperienceCloudId().then((ecid) => {
+  if (ecid) {
+    // handle ecid
+  }
+});
+
+// Option 2: wait for the promise to resolve
+const ecid = await AEPSDK.getExperienceCloudId()
+```
+
+### sendEvent
+
+#### Syntax
+```typescript
+sendEvent(data: Record<string, any>): void
+```
+
+#### Example
+```typescript
+const data = {
+  xdm : {
+    xdmKey: 'xdmVal'
+    },
+  data: {
+    freeformKey: 'freeformVal'
+    }
+}
+
+AEPSDK.sendEvent(data);
+```
+
+### setConsent
+
+#### Syntax
+```typescript
+setConsent(data: Record<string, any>): void
+```
+
+#### Example
+
+```typescript
+const consentData = {
+"consent": [
+  {
+    "standard": "Adobe",
+    "version": "2.0",
+    "value": {
+      "collect": {
+        "val": "y",
+      },
+      "metadata": {
+        "time": Date.now(),
+      }
+    }
+  }
+]
+};
+
+AEPSDK.setConsent(consentData);
+```

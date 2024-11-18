@@ -1,0 +1,33 @@
+module.exports = {
+    "transform": {
+        "^.+\\.tsx?$": "ts-jest"
+    },
+    "testRegex": "/tests/.*\\.(test|spec)\\.(ts|tsx|js)$",
+    "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
+    "moduleNameMapper": {
+        "^~/(.*)$": "<rootDir>/src/$1"
+    },
+    "modulePaths": ["<rootDir>/src"],
+    "roots": [
+        "<rootDir>/src/",
+        "<rootDir>/tests/"
+    ],
+    "collectCoverage": false,
+    "coverageReporters": ["json", "json-summary", "lcov", "text"],
+    "collectCoverageFrom": [
+        "src/**/*",
+        "!**/index.{ts,js,tsx}",
+        "!**/types.ts",
+        "!src/**/*.d.ts"
+    ],
+    "transformIgnorePatterns": [
+        "node_modules/(?![\\w\\-_]+)/node_modules/(?!react-native|@react-native)/"
+    ],
+    "coverageDirectory": ".tmp/coverage",
+    "globals": {
+        "ts-jest": {
+            "babelConfig": true,
+            "diagnostics": true
+        }
+    }
+}

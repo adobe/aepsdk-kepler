@@ -1,0 +1,101 @@
+/*
+Copyright 2024 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
+
+export const EdgeConstants = {
+  EXTENSION_NAME: "com.adobe.marketing.edge",
+  FRIENDLY_NAME: "Edge",
+  EXTENSION_VERSION: "1.0.0",
+
+  ConfigurationKey: {
+    DEFAULT_CONSENT: "consent.default",
+  },
+
+  DataStoreKey: {
+    ECID: "ecid",
+    COLLECT_CONSENT: "consent.collect",
+  },
+
+  IdentityMap: {
+    NameSpace: {
+      ECID: "ECID",
+    },
+  },
+
+  SharedState: {
+    STATE_OWNER: "stateowner",
+
+    Edge: {
+      STATE_OWNER_NAME: "com.adobe.edge",
+    },
+  },
+
+  EventData: {
+    Keys: {
+      ECID: "ecid",
+    },
+  },
+
+  ResponseData: {
+    Keys: {
+      HANDLE: "handle",
+      PAYLOAD: "payload",
+      KEY: "key",
+      TYPE: "type",
+      MAX_AGE: "maxAge",
+      HINT: "hint",
+      TTL_SECONDS: "ttlSeconds",
+      NAMESPACE: "namespace",
+      CODE: "code",
+      COLLECT: "collect",
+      VAL: "val",
+      ID: "id",
+      IDENTITY_RESULT: "identity:result",
+      CONSENT_PREFERENCES: "consent:preferences",
+      LOCATION_HINT_RESULT: "locationHint:result",
+      STATE_STORE: "state:store",
+      SCOPE: "scope",
+    },
+  },
+
+  Request: {
+    Data: {
+      IDENTITY_MAP: "identityMap",
+      XDM: "xdm",
+      Meta: {
+        KEY: "meta",
+        ENTRIES: "entries",
+        STATE: "state",
+      },
+      Query: {
+        KEY: "query",
+        IDENTITY: "identity",
+        CONSENT: "consent",
+        UPDATE: "update",
+      },
+    },
+    ImplementationDetails: {
+      NAME: "https://ns.adobe.com/experience/mobilesdk/kepler",
+      ENVIRONMENT: "app",
+    },
+    Path: {
+      PREFIX: "/ee",
+      INTERACT: "/v1/interact",
+      CONSENT: "/v1/privacy/set-consent",
+    },
+    Url: {
+      DEFAULT: "https://edge.adobedc.net",
+    },
+    Retry: {
+      TIMEOUT: 5000,
+    },
+    RecoverableStatusCodes: [408, 500, 503],
+  },
+} as const;

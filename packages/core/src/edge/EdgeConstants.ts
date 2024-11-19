@@ -15,6 +15,8 @@ export const EdgeConstants = {
   EXTENSION_VERSION: "1.0.0",
 
   ConfigurationKey: {
+    EDGE_DOMAIN: "edge.domain",
+    DATASTREAM_ID: "edge.configId",
     DEFAULT_CONSENT: "consent.default",
   },
 
@@ -32,8 +34,14 @@ export const EdgeConstants = {
   SharedState: {
     STATE_OWNER: "stateowner",
 
-    Edge: {
-      STATE_OWNER_NAME: "com.adobe.edge",
+    Owner: {
+      EDGE: "com.adobe.marketing.edge",
+      CONFIGURATION: "com.adobe.marketing.configuration",
+    },
+
+    Keys: {
+      ECID: "ecid",
+      CONSENT_COLLECT: "consent.collect",
     },
   },
 

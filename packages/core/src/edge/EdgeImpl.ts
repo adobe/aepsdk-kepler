@@ -22,12 +22,13 @@ import { EdgeHitProcessor } from "./EdgeHitProcessor";
 import { EdgeResponseManager } from "./EdgeResponseManager";
 import { LocationHintManager } from "./LocationHintManager";
 import { StateStoreManager } from "./StateStoreManager";
+import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, DataType, EventData } from "../core/eventhub/EventData";
 import { uuid } from "../core/utils/uuid";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 
 export type DispatchFn = (event: Event) => void;
-export type createXDMSharedState = (state: Record<string, DataType>, event: Event | null) => void;
+export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeImpl";
@@ -43,12 +44,15 @@ export class EdgeImpl implements Edge {
   private locationHintManager: LocationHintManager | null = null;
   private stateStoreManager: StateStoreManager | null = null;
   private edgeResponseManager: EdgeResponseManager | null = null;
+  private edgeStateManager: EdgeStateManager | null = null;
   private dispatchFn: DispatchFn | null = null;
+  private createSharedState: createXDMSharedState | null = null;
   private hitProcessor: EdgeHitProcessor | null = null;
   private pendingIdentityResponses: {
     resolve: (value: string | null) => void;
     reject: (reason?: string | null) => void;
   }[] = [];
+  private hitProcessingTimer: NodeJS.Timeout | null = null;
 
   public version: string = EdgeConstants.EXTENSION_VERSION;
   public name: string = EdgeConstants.EXTENSION_NAME;
@@ -61,7 +65,7 @@ export class EdgeImpl implements Edge {
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
     this.container = extensionContainer;
     this.dispatchFn = this.dispatchEvent.bind(this);
-    //this.createSharedState = this.container.createXDMSharedState;
+    this.createSharedState = this.createXDMSharedState.bind(this);
 
     this.serviceLookup = serviceLookup;
     this.dataStore = serviceLookup.getService("dataStore");
@@ -71,34 +75,30 @@ export class EdgeImpl implements Edge {
     this.locationHintManager = new LocationHintManager(this.dataStore);
     this.stateStoreManager = new StateStoreManager(this.dataStore);
 
-    // TODO replace with EdgeStateManager
+    this.edgeStateManager = new EdgeStateManager(
+      this.dispatchFn,
+      this.createSharedState,
+      this.dataStore,
+      this.identityManager,
+      this.consentManager
+    );
+
     this.edgeResponseManager = new EdgeResponseManager(
       this.dispatchFn,
+      this.edgeStateManager,
       this.identityManager,
       this.consentManager,
       this.locationHintManager,
       this.stateStoreManager
     );
 
-    // TODO replace all the dependencies with EdgeStateManager
-    this.hitProcessor = new EdgeHitProcessor(
-      this.edgeResponseManager,
-      this.consentManager,
-      this.identityManager,
-      this.locationHintManager,
-      this.stateStoreManager
-    );
+    this.hitProcessor = new EdgeHitProcessor(this.edgeResponseManager, this.edgeStateManager);
     this.isActive = true;
 
     this.registerListeners();
+    this.startHitProcessingTimer();
 
-    // TODO replace with EdgeStateManager
-    return Promise.all([
-      this.identityManager.bootup(),
-      this.consentManager.bootup(),
-      this.stateStoreManager.bootup(),
-      this.locationHintManager.bootup(),
-    ])
+    return Promise.all([this.edgeStateManager.bootup(), this.edgeResponseManager.bootup()])
       .then(() => {
         Log.debug(LOG_SOURCE, LOG_TAG, "Edge extension bootup complete");
         Promise.resolve();
@@ -113,10 +113,13 @@ export class EdgeImpl implements Edge {
    * Creates the shared state with the provided data for the Edge extension.
    * @param data Data
    */
-  createSharedState(data: DataObject, event: Event | null = null): void {
-    Log.debug(LOG_SOURCE, LOG_TAG, "createSharedState() - Creating shared state.");
+  createXDMSharedState(data: DataObject, event: Event | null = null): void {
+    Log.debug(LOG_SOURCE, LOG_TAG, "createSharedState() - Creating shared state with data: ()");
 
+    Log.verbose(LOG_SOURCE, LOG_TAG, `createSharedState() - Data: (${data.toString()})`);
     const state = EventData.buildFrom(data) as EventData;
+
+    Log.verbose(LOG_SOURCE, LOG_TAG, `createSharedState() - State: (${state.toString()})`);
     this.container?.createXDMSharedState(state, event);
   }
 
@@ -145,7 +148,7 @@ export class EdgeImpl implements Edge {
    */
   async getExperienceCloudId(): Promise<string | null> {
     Log.debug(LOG_SOURCE, LOG_TAG, "getExperienceCloudId() - Getting ECID.");
-    const ecid = this.identityManager?.getECID() ?? null;
+    const ecid = this.edgeStateManager?.getEcid() ?? null;
 
     if (!isNullOrEmptyString(ecid)) {
       Log.verbose(LOG_SOURCE, LOG_TAG, `getExperienceCloudId() - Returning ECID: (${ecid}).`);
@@ -223,6 +226,18 @@ export class EdgeImpl implements Edge {
     this.isActive = false;
     this.container = null;
     this.serviceLookup = null;
+    this.dataStore = null;
+    this.consentManager = null;
+    this.identityManager = null;
+    this.locationHintManager = null;
+    this.stateStoreManager = null;
+    this.edgeStateManager = null;
+    this.edgeResponseManager = null;
+    this.dispatchFn = null;
+    this.createSharedState = null;
+    this.hitProcessor = null;
+    this.pendingIdentityResponses = [];
+    this.cancelHitProcessingTimer();
   }
 
   /**
@@ -271,6 +286,22 @@ export class EdgeImpl implements Edge {
         }
       }
     });
+
+    this.container.registerEventListener(EventType.HUB, EventSource.SHARED_STATE, (event) => {
+      Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
+      if (this.isActive) {
+        const eventData = event.data;
+        const stateOwner = eventData?.getString(EdgeConstants.SharedState.STATE_OWNER);
+
+        if (stateOwner === EdgeConstants.SharedState.Owner.CONFIGURATION) {
+          Log.verbose(LOG_SOURCE, LOG_TAG, "Received configuration shared state event.");
+          const state = this.container?.getXDMSharedState(stateOwner, event);
+          if (state) {
+            this.edgeStateManager?.handleConfigurationUpdate(state.value);
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -313,20 +344,26 @@ export class EdgeImpl implements Edge {
     }
   }
 
-  // TODO
-  async _createXDMSharedState(): Promise<void> {
-    const state: Record<string, DataType> = {};
-    // identity Map
-    const identityMap = await this.identityManager?.getIdentityMap();
-    if (identityMap) {
-      state[EdgeConstants.Request.Data.IDENTITY_MAP] = identityMap;
-    }
-
-    // TODO: Add consents data to the state
-
-    //this.createXDMSharedState?.(state, null);
+  /**
+   * Starts the hit processing timer.
+   * This timer will process the hits every 500ms.
+   * This method is called when the Edge extension is registered.
+   */
+  private startHitProcessingTimer() {
+    Log.debug(LOG_SOURCE, LOG_TAG, "startHitProcessingTimer() - Starting hit processing timer.");
+    this.hitProcessingTimer = setInterval(() => {
+      this.hitProcessor?.process();
+    }, 500);
   }
 
-  // TODO Add repeated timer to process the hits
-  // This method will be called every 5 seconds
+  /**
+   * Cancels the hit processing timer.
+   * The timer is cleared when the Edge extension is unregistered.
+   */
+  private cancelHitProcessingTimer() {
+    Log.debug(LOG_SOURCE, LOG_TAG, "cancelHitProcessingTimer() - Cancelling hit processing timer.");
+    if (this.hitProcessingTimer) {
+      clearInterval(this.hitProcessingTimer);
+    }
+  }
 }

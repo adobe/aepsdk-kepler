@@ -43,6 +43,7 @@ export const App = () => {
     }
 
     const ecid = async () => {
+      console.log('##AEPSample - Getting ECID');
       const ecid = await AEPSDK.getExperienceCloudId();
       if (ecid) {
         setECID(ecid);
@@ -52,12 +53,18 @@ export const App = () => {
     clear();
     init();
     ecid();
+
   }, []); // Runs once when the component mounts.
 
   const initSDK = () => {
     console.log('##AEPSample - Initializing AEPSDK');
     AEPSDK.setLogLevel(3);
     AEPSDK.initialize();
+    AEPSDK.updateConfiguration({
+      "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
+      //"edge.domain": "edgeDomain",
+      //"consent.default": {"collect": "y"}
+    });
   }
 
   const setConsent = (consentValue: string = 'y') => {

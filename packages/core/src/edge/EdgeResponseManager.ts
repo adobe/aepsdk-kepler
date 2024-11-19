@@ -19,6 +19,7 @@ import { EdgeConstants } from "./EdgeConstants";
 import { getAsDataObject, getAsString, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
 import { Event } from "../core/eventhub/Event";
 import { EventType } from "../core/eventhub/EventType";
+import { EdgeStateManager } from "./EdgeStateManager";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeResponseManager";
@@ -28,12 +29,49 @@ const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 export class EdgeResponseManager {
   constructor(
     private dispatchFn: (event: Event) => void,
+    private edgeStateManager: EdgeStateManager,
     private identityManager: IdentityManager,
     private consentManager: ConsentManager,
     private locationHintManager: LocationHintManager,
     private stateStoreManager: StateStoreManager
   ) {}
 
+  /**
+   * Boots up the EdgeResponseManager and loads the location hint and state store.
+   * @returns Promise<void>
+   */
+  async bootup(): Promise<void> {
+    return Promise.all([this.locationHintManager.bootup(), this.stateStoreManager.bootup()])
+      .then(() => {
+        console.log("EdgeResponseManager bootup complete");
+        Promise.resolve();
+      })
+      .catch((error) => {
+        console.error("EdgeStateManager bootup failed", error);
+        Promise.reject(error);
+      });
+  }
+  /**
+   * Returns the location hint from the location hint manager.
+   * @returns string | null
+   */
+  getLocationHint(): string | null {
+    return this.locationHintManager.getLocationHint();
+  }
+
+  /**
+   * Returns the state store from the state store manager.
+   * @returns DataArray | null
+   */
+  getStateStore(): DataArray | null {
+    return this.stateStoreManager.getStateStore();
+  }
+
+  /**
+   * Handles the response for the edge request and
+   * dispatches the response to the appropriate manager and eventhub.
+   * @param response The response object for the edge request.
+   */
   handleEdgeResponse(response: DataObject) {
     Log.debug(LOG_SOURCE, LOG_TAG, `handleEdgeResponse() -  ${JSON.stringify(response)}`);
 
@@ -72,9 +110,15 @@ export class EdgeResponseManager {
         LOG_TAG,
         `handleEdgeResponse() - dispatching edge response to eventhub with type: (${EventType.EDGE}) source: (${type}).`
       );
+
+      // Dispatch the response to the event hub.
       this.dispatchFn(
         new Event("AEP Response Event Handle", EventType.EDGE, type, EventData.buildFrom(handle))
       );
     }
+
+    // After all the responses are processed,
+    // update the shared state if it has changed.
+    this.edgeStateManager.updatesharedStateIfChanged();
   }
 }

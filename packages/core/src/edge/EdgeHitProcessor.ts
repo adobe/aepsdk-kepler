@@ -11,18 +11,16 @@ governing permissions and limitations under the License.
 */
 
 import { EdgeHitQueue } from "./EdgeHitQueue";
-import { ConsentManager, ConsentValue } from "./consent/ConsentManager";
-import { IdentityManager } from "./identity/IdentityManager";
+import { ConsentValue } from "./consent/ConsentManager";
 import { EdgeResponseManager } from "./EdgeResponseManager";
 import { EdgeHit, EdgeHitType } from "./EdgeHit";
 import { EdgeConstants } from "./EdgeConstants";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
-import { LocationHintManager } from "./LocationHintManager";
 import { Log } from "../core/utils/Log";
 import { asyncRequest, HttpConnection, HttpMethod } from "../core/utils/networking";
 import { DataObject, DataArray } from "../core/eventhub/EventData";
-import { StateStoreManager } from "./StateStoreManager";
 import { getAsDataArray, getAsDataObject, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
+import { EdgeStateManager } from "./EdgeStateManager";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeHitProcessor";
@@ -47,10 +45,7 @@ export class EdgeHitProcessor {
 
   constructor(
     private edgeResponseManager: EdgeResponseManager,
-    private consentManager: ConsentManager,
-    private identityManager: IdentityManager,
-    private locationHintManager: LocationHintManager,
-    private stateStoreManager: StateStoreManager
+    private edgeStateMananger: EdgeStateManager
   ) {
     this.hitQueue = new EdgeHitQueue();
     this.consentHitQueue = new EdgeHitQueue();
@@ -115,7 +110,16 @@ export class EdgeHitProcessor {
 
     try {
       while (!this.hitQueue.isEmpty() || !this.consentHitQueue.isEmpty()) {
-        const consent = await this.consentManager.getCollectConsent();
+        if (isNullOrEmptyString(this.edgeStateMananger.getDatastreamId())) {
+          Log.error(
+            LOG_SOURCE,
+            LOG_TAG,
+            "process() - Datastream ID (edge.configId) is not set in configuration. Cannot process the hits."
+          );
+          return Promise.resolve(false);
+        }
+
+        const consent = this.edgeStateMananger.getCollectConsent();
         const hit = this.getNextHit(consent);
 
         if (!hit) {
@@ -136,9 +140,9 @@ export class EdgeHitProcessor {
         }
 
         let meta = hit.meta;
-        const identity = this.identityManager.getIdentityMap();
-        const locationHint = this.locationHintManager.getLocationHint() as LocationHintValue;
-        const stateStore = this.stateStoreManager.getStateStore();
+        const identity = this.edgeStateMananger.getIdentityMap();
+        const locationHint = this.edgeResponseManager.getLocationHint();
+        const stateStore = this.edgeResponseManager.getStateStore();
 
         meta = this.appendStateToMeta(meta, stateStore);
 
@@ -369,11 +373,20 @@ export class EdgeHitProcessor {
    * @param locationHint LocationHintValue
    * @returns string The URL for the hit.
    */
-  private getURLForHit(hit: EdgeHit, locationHint: LocationHintValue | null = null): string {
-    let url = URL.DEFAULT + PATH.PREFIX;
+  private getURLForHit(hit: EdgeHit, locationHint: string | null = null): string {
+    const customDomain = this.edgeStateMananger.getEdgeDomain();
+    const domain = isNullOrEmptyString(customDomain) ? URL.DEFAULT : customDomain;
+
+    let url = domain + PATH.PREFIX;
     //const requestId = hit.requestId;
-    // TODO get the configId from configuration
-    const query = `?configId=${"<YOUR_EDGE_DATASTREAM_ID>"}`;
+
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `getURLForHit() - configID: ${this.edgeStateMananger.getDatastreamId()}`
+    );
+
+    const query = `?configId=${this.edgeStateMananger.getDatastreamId()}`;
 
     url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
 

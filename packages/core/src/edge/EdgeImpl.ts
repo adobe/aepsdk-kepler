@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 
 import { Edge } from ".";
 import { Event, EventType, EventSource } from "../core/eventhub";
-import { ExtensionContainer } from "../core/extension";
+import { ExtensionContainer, Extension } from "../core/extension";
 import { DataStore, ServiceLookup } from "../core/services";
 import { ConsentManager } from "./consent/ConsentManager";
 import { EdgeConstants } from "./EdgeConstants";
@@ -34,7 +34,9 @@ const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeImpl";
 
 // Implementation
-export class EdgeImpl implements Edge {
+export class EdgeImpl implements Edge, Extension {
+  readonly EXTENSION: Extension = this;
+
   private isActive: boolean = false;
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;

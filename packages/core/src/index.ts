@@ -17,7 +17,8 @@ import { edge } from "./edge";
 import { DataObject } from "./core/eventhub/EventData";
 import { CoreConstants } from "./core/CoreConstants";
 import { Extension } from "./core/extension";
-import { initializeSDK } from "./initializeSDK";
+import { registerPlatformService } from "./platform-kepler";
+import { initializeSDK } from "./Core";
 
 const LOG_TAG = "Index";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
@@ -40,6 +41,7 @@ export const AEPSDK = {
    */
   initialize(options?: InitOptions): Promise<void> {
     try {
+      registerPlatformService();
       return initializeSDK(options);
     } catch (e) {
       Log.error(LOG_SOURCE, LOG_TAG, "start() - Failed to initialize the SDK: " + e);

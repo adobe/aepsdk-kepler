@@ -80,8 +80,10 @@ export class ConfigurationExtension implements Configuration, Extension {
           Log.error(LOG_EXTENSION, LOG_TAG, "Configuration data is not found.");
           return;
         }
-        const state = EventData.buildFrom(configObj) as EventData;
-        this.container?.createXDMSharedState(state, event);
+        const state = EventData.buildFrom(configObj);
+        if (state) {
+          this.container?.createXDMSharedState(state, event);
+        }
       }
     );
     return Promise.resolve();

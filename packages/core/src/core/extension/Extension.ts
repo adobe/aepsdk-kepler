@@ -13,8 +13,8 @@ import type { ExtensionContainer } from "./ExtensionContainer";
 import { ServiceLookup } from "../services";
 
 export interface Extension {
-  version: string;
-  name: string;
+  readonly version: string;
+  readonly name: string;
   /**
    * Called when the extension is registered.
    *

@@ -10,11 +10,13 @@ governing permissions and limitations under the License.
 */
 
 import { DataObject } from "../core/eventhub/EventData";
-import { Extension } from "../core/extension";
 import { EdgeImpl } from "./EdgeImpl";
+import { Extension } from "../core/extension";
 
 // Interface
-export interface Edge extends Extension {
+export interface Edge {
+  readonly EXTENSION: Extension;
+
   // public APIs
   sendEvent(xdm: DataObject): void;
   getExperienceCloudId(): Promise<string | null>;

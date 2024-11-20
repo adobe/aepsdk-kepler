@@ -15,4 +15,14 @@ export const CoreConstants = {
   EXTENSION_VERSION: "1.0.0",
 } as const;
 
+export const eventHubPlaceHolderExtensionConstants = {
+  EXTENSION_NAME: "com.adobe.module.eventhub",
+  VERSION: "1.0.0",
+} as const;
+
+export const WRAPPER_NONE = {
+  TYPE: "NONE",
+  FRIENDLY_NAME: "None",
+} as const;
+
 export const LOG_SOURCE = CoreConstants.EXTENSION_NAME;

@@ -15,8 +15,10 @@ jest.mock('../src/platform-kepler');
 import { AEPSDK } from "../src";
 import { registerPlatformService } from "../src/platform-kepler";
 import { configuration } from "../src/configuration";
-import { _resetSDK } from '../src/initializeSDK';
+import { _resetSDK } from '../src/Core';
 import { serviceLookup } from '../src/core/services';
+import { Extension, ExtensionContainer } from '../src/core/extension';
+import { EventData } from '../src/core/eventhub';
 
 describe('test public APIs', () => {
 
@@ -27,43 +29,85 @@ describe('test public APIs', () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
-    test('test start() should register Edge and Configuration extensions.', () => {
-        // TODO: EventHub should send a shared state event includs info of the Edge and Configuration extensions.
-    });
 
     test('test start() should call registerPlatformService().', () => {
         AEPSDK.initialize();
         expect(registerPlatformService).toBeCalled();
     });
 
-    test('test start() should register extensions correctly.', async () => {
-        const extension = {
-            name: 'testExtension',
-            onRegister: jest.fn(),
-            version: "1.1.0",
-            doSomething: jest.fn()
-        }
+    test('test start() should always register Edge and Configuration extensions.', async () => {
+
         await AEPSDK.initialize({
-            extensions: [extension]
+            extensions: [testExtension]
         });
-        expect(extension.onRegister).toBeCalled();
-        extension.doSomething();
-        expect(extension.doSomething).toBeCalled();
+        const sharedState = testExtension.getEventHubSharedState();
+
+        expect(sharedState).not.toBeNull();
+        expect(sharedState).toEqual({
+            data: {
+                version: "1.0.0",
+                wrapper: {
+                    type: "NONE",
+                    friendlyName: "None",
+                },
+                extensions: [
+                    {
+                        name: "com.adobe.marketing.configuration",
+                        version: "1.0.0",
+                    },
+                    {
+                        name: "com.adobe.marketing.edge",
+                        version: "1.0.0",
+                    },
+                    {
+                        name: "testExtension",
+                        version: "1.0",
+                    },
+                ],
+            },
+        });
     });
 
     test('test start() should not crash if extension registration throw error', async () => {
         const extension = {
-            name: 'testExtension',
+            name: 'errorExtension',
             onRegister: jest.fn(() => { throw new Error('error') }),
             version: "1.1.0",
             doSomething: jest.fn()
         }
         await AEPSDK.initialize({
-            extensions: [extension]
+            extensions: [extension, testExtension]
         });
         expect(extension.onRegister).toBeCalled();
         extension.doSomething();
         expect(extension.doSomething).toBeCalled();
+
+        const sharedState = testExtension.getEventHubSharedState();
+        expect(sharedState).not.toBeNull();
+
+        expect(sharedState).toEqual({
+            data: {
+                version: "1.0.0",
+                wrapper: {
+                    type: "NONE",
+                    friendlyName: "None",
+                },
+                extensions: [
+                    {
+                        name: "com.adobe.marketing.configuration",
+                        version: "1.0.0",
+                    },
+                    {
+                        name: "com.adobe.marketing.edge",
+                        version: "1.0.0",
+                    },
+                    {
+                        name: "testExtension",
+                        version: "1.0",
+                    },
+                ],
+            },
+        });
     });
 
     test('test start() should pass configuration correctly.', async () => {
@@ -105,3 +149,22 @@ describe('test public APIs', () => {
     });
 
 });
+
+
+const testExtension = new (class implements Extension {
+    readonly version = "1.0";
+    readonly name = "testExtension";
+    private container: ExtensionContainer | null = null;
+
+    onRegister(extensionContainer: ExtensionContainer): Promise<void> {
+        this.container = extensionContainer;
+        return Promise.resolve();
+    }
+    getEventHubSharedState(): EventData | null {
+        const data = this.container?.getXDMSharedState("com.adobe.module.eventhub", null)?.value;
+        if (data) {
+            return data;
+        }
+        return null;
+    }
+})();

@@ -24,8 +24,7 @@ const LOG_TAG = "Index";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 export interface InitOptions {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
   logLevel?: LogLevel;
   extensions?: Array<Extension>;
 }
@@ -71,8 +70,7 @@ export const AEPSDK = {
    *
    * @param configuration the configuration object to be passed to the SDK.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateConfiguration(configuration: Record<string, any>): void {
+  updateConfiguration(configuration: Record<string, unknown>): void {
     configurationExtension.updateConfiguration(configuration);
   },
 

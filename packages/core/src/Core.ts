@@ -16,7 +16,11 @@ import { ServiceLookup, serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
 import { configuration } from "./configuration";
 import { edge } from "./edge";
-import { CoreConstants, eventHubPlaceHolderExtensionConstants, WRAPPER_NONE } from "./core/CoreConstants";
+import {
+  CoreConstants,
+  eventHubPlaceHolderExtensionConstants,
+  WRAPPER_NONE,
+} from "./core/CoreConstants";
 import { InitOptions } from ".";
 
 const LOG_TAG = "Core";
@@ -25,102 +29,115 @@ const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 let isStarted = false;
 
 const eventHubPlaceHolderExtension = new (class implements Extension {
-    readonly version = eventHubPlaceHolderExtensionConstants.VERSION;
-    readonly name = eventHubPlaceHolderExtensionConstants.EXTENSION_NAME;
+  readonly version = eventHubPlaceHolderExtensionConstants.VERSION;
+  readonly name = eventHubPlaceHolderExtensionConstants.EXTENSION_NAME;
 
-    private container: ExtensionContainer | null = null;
-    private serviceLookup: ServiceLookup | null = null;
+  private container: ExtensionContainer | null = null;
+  private serviceLookup: ServiceLookup | null = null;
 
-    onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
-        this.container = extensionContainer;
-        this.serviceLookup = serviceLookup;
-        return Promise.resolve();
+  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
+    this.container = extensionContainer;
+    this.serviceLookup = serviceLookup;
+    return Promise.resolve();
+  }
+
+  createSharedStateForRegisteredExtensions(
+    extensionInfoList: {
+      name: string;
+      version: string;
+    }[]
+  ): void {
+    const state = EventData.buildFrom({
+      version: eventHubPlaceHolderExtensionConstants.VERSION,
+      wrapper: {
+        type: WRAPPER_NONE.TYPE,
+        friendlyName: WRAPPER_NONE.FRIENDLY_NAME,
+      },
+      extensions: extensionInfoList,
+    });
+    if (state) {
+      this.container?.createXDMSharedState(state, null);
     }
-
-    createSharedStateForRegisteredExtensions(extensionInfoList: {
-        name: string;
-        version: string;
-    }[]): void {
-        const state = EventData.buildFrom({
-            version: eventHubPlaceHolderExtensionConstants.VERSION,
-            wrapper: {
-                type: WRAPPER_NONE.TYPE,
-                friendlyName: WRAPPER_NONE.FRIENDLY_NAME
-            },
-            extensions: extensionInfoList
-        });
-        if (state) {
-            this.container?.createXDMSharedState(state, null);
-        }
-    }
+  }
 })();
 
 export async function initializeSDK(options?: InitOptions): Promise<void> {
+  if (isStarted) {
+    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK has already been initialized.");
+    return Promise.resolve();
+  } else {
+    isStarted = true;
+  }
 
-    if (isStarted) {
-        Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK has already been initialized.");
-        return Promise.resolve();
-    } else {
-        isStarted = true;
+  Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Registering platform services.");
+
+  const eventHub = createEventHub();
+  const sharedStateManager = new SharedStateManager();
+
+  const onRegisterPromises: Promise<void>[] = [];
+
+  const extensions: Extension[] = [
+    eventHubPlaceHolderExtension,
+    configuration.EXTENSION,
+    edge.EXTENSION,
+  ];
+
+  if (options?.extensions) {
+    extensions.push(...options.extensions);
+  }
+  const registeredExtensionInfoList: {
+    name: string;
+    version: string;
+  }[] = [];
+
+  extensions.forEach((extension) => {
+    Log.debug(LOG_SOURCE, LOG_TAG, `initializeSDK() - Registering extension: ${extension.name}`);
+    try {
+      onRegisterPromises.push(
+        extension.onRegister(
+          createExtensionContainer(eventHub, extension.name, sharedStateManager),
+          serviceLookup
+        )
+      );
+      if (extension.name !== eventHubPlaceHolderExtensionConstants.EXTENSION_NAME) {
+        registeredExtensionInfoList.push({
+          name: extension.name,
+          version: extension.version,
+        });
+      }
+    } catch (error) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `initializeSDK() - Failed to register extension: ${extension.name}, error: ${
+          (error as Error).message
+        }`
+      );
     }
+  });
 
-    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Registering platform services.");
+  await Promise.all(onRegisterPromises);
 
-    const eventHub = createEventHub();
-    const sharedStateManager = new SharedStateManager();
+  eventHub.start();
 
-    const onRegisterPromises: Promise<void>[] = [];
+  eventHubPlaceHolderExtension.createSharedStateForRegisteredExtensions(
+    registeredExtensionInfoList
+  );
 
-    const extensions: Extension[] = [eventHubPlaceHolderExtension, configuration.EXTENSION, edge.EXTENSION];
+  if (options?.config) {
+    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK configuration.");
+    configuration.updateConfiguration(options.config);
+  }
 
-    if (options?.extensions) {
-        extensions.push(...options.extensions);
-    }
-    const registeredExtensionInfoList: {
-        name: string;
-        version: string;
-    }[] = [];
+  if (options?.logLevel) {
+    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK log level.");
+    serviceLookup.getService("logging").setLogLevel(options.logLevel);
+  }
 
-    extensions.forEach((extension) => {
-        Log.debug(LOG_SOURCE, LOG_TAG, `initializeSDK() - Registering extension: ${extension.name}`);
-        try {
-            onRegisterPromises.push(
-                extension.onRegister(
-                    createExtensionContainer(eventHub, extension.name, sharedStateManager),
-                    serviceLookup
-                )
-            );
-            if (extension.name !== eventHubPlaceHolderExtensionConstants.EXTENSION_NAME) {
-                registeredExtensionInfoList.push({
-                    name: extension.name,
-                    version: extension.version
-                });
-            }
-        } catch (error) {
-            Log.error(LOG_SOURCE, LOG_TAG, `initializeSDK() - Failed to register extension: ${extension.name}, error: ${(error as Error).message}`);
-        }
-    });
-
-    await Promise.all(onRegisterPromises);
-
-    eventHub.start();
-
-    eventHubPlaceHolderExtension.createSharedStateForRegisteredExtensions(registeredExtensionInfoList);
-
-    if (options?.config) {
-        Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK configuration.");
-        configuration.updateConfiguration(options.config);
-    }
-
-    if (options?.logLevel) {
-        Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK log level.");
-        serviceLookup.getService("logging").setLogLevel(options.logLevel);
-    }
-
-    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK initialized succesfully!");
+  Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK initialized succesfully!");
 }
 
 // It's only used in the test file
 export function _resetSDK() {
-    isStarted = false;
+  isStarted = false;
 }

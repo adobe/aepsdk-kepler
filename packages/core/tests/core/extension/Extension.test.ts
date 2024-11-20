@@ -15,61 +15,66 @@ import { ServiceLookup } from "../../../src/core/services";
 import { SharedStateResult } from "../../../src/core/sharedstate";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-describe('test Extension', () => {
+describe("test Extension", () => {
+  test("onRegister() - should be able to do some aync operations", async () => {
+    const extensionContainer: ExtensionContainer = {
+      registerEventListener: function (
+        eventType: string,
+        eventSource: string,
+        listener: EventListener
+      ): void {
+        throw new Error("Function not implemented.");
+      },
+      createXDMSharedState: function (state: EventData, event: Event | null): void {
+        throw new Error("Function not implemented.");
+      },
+      createPendingXDMSharedState: function (event: Event | null): Promise<SharedStateResolver> {
+        throw new Error("Function not implemented.");
+      },
+      getXDMSharedState: function (
+        extensionName: string,
+        event: Event | null
+      ): SharedStateResult | null {
+        throw new Error("Function not implemented.");
+      },
+      dispatch: function (event: Event): void {
+        throw new Error("Function not implemented.");
+      },
+    };
+    const serviceLookup: ServiceLookup = {
+      getService: function (name: string) {
+        throw new Error("Function not implemented.");
+      },
+    };
+    const flags: string[] = [];
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    const extension1: Extension = {
+      name: "extension1",
+      version: "1.0.0",
+      onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
+        return new Promise<void>((resolve) => {
+          setTimeout(() => {
+            flags.push("extension1");
+            resolve();
+          }, 100);
+        });
+      },
+    };
+    const extension2: Extension = {
+      name: "extension2",
+      version: "1.0.0",
+      onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
+        return new Promise<void>((resolve) => {
+          setTimeout(() => {
+            flags.push("extension2");
+            resolve();
+          }, 100);
+        });
+      },
+    };
 
-    test('onRegister() - should be able to do some aync operations', async () => {
-        const extensionContainer: ExtensionContainer = {
-            registerEventListener: function (eventType: string, eventSource: string, listener: EventListener): void {
-                throw new Error("Function not implemented.");
-            },
-            createXDMSharedState: function (state: EventData, event: Event | null): void {
-                throw new Error("Function not implemented.");
-            },
-            createPendingXDMSharedState: function (event: Event | null): Promise<SharedStateResolver> {
-                throw new Error("Function not implemented.");
-            },
-            getXDMSharedState: function (extensionName: string, event: Event | null): SharedStateResult | null {
-                throw new Error("Function not implemented.");
-            },
-            dispatch: function (event: Event): void {
-                throw new Error("Function not implemented.");
-            }
-        }
-        const serviceLookup: ServiceLookup = {
-            getService: function (name: string) {
-                throw new Error("Function not implemented.");
-            }
-        }
-        const flags: string[] = [];
-        /* eslint-disable @typescript-eslint/no-unused-vars */
-        const extension1: Extension = {
-            name: "extension1",
-            version: "1.0.0",
-            onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
-                return new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        flags.push("extension1");
-                        resolve();
-                    }, 100);
-                });
-            }
-        };
-        const extension2: Extension = {
-            name: "extension2",
-            version: "1.0.0",
-            onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
-                return new Promise<void>((resolve) => {
-                    setTimeout(() => {
-                        flags.push("extension2");
-                        resolve();
-                    }, 100);
-                });
-            }
-        };
-
-        await extension1.onRegister(extensionContainer, serviceLookup);
-        await extension2.onRegister(extensionContainer, serviceLookup);
-        expect(flags).toEqual(["extension1", "extension2"]);
-    });
-
+    await extension1.onRegister(extensionContainer, serviceLookup);
+    await extension2.onRegister(extensionContainer, serviceLookup);
+    expect(flags).toEqual(["extension1", "extension2"]);
+  });
 });

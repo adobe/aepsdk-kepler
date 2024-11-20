@@ -13,15 +13,14 @@ import { ConfigurationExtension } from "./ConfigurationExtension";
 import { Extension } from "../core/extension";
 
 export interface Configuration {
+  readonly EXTENSION: Extension;
+
   /**
    * Update the SDK configuration
    *
    * @param configuration Configuration key/value pairs to be updated or added.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateConfiguration(configuration: Record<string, any>): void;
-
-  readonly EXTENSION: Extension;
+  updateConfiguration(configuration: Record<string, unknown>): void;
 }
 
 export const configuration: Configuration = new ConfigurationExtension();

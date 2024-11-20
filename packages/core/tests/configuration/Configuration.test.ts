@@ -15,55 +15,62 @@ import { Event, createEventHub, EventType, EventSource } from "../../src/core/ev
 import { SharedStateManager, SharedStateStatus } from "../../src/core/sharedstate";
 import { createExtensionContainer, ExtensionContainer } from "../../src/core/extension";
 import { serviceLookup } from "../../src/core/services";
-import { EXTENSION_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY, UPDATE_CONFIGURATION_EVENT_NAME } from "../../src/configuration/Constants";
+import {
+  EXTENSION_NAME,
+  EXTENSION_VERSION,
+  UPDATE_CONFIGURATION_EVENT_KEY,
+  UPDATE_CONFIGURATION_EVENT_NAME,
+} from "../../src/configuration/Constants";
 import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/sharedstate/Constants";
 
-describe('test Configuration extension', () => {
-    let configuration: Configuration = new ConfigurationExtension();
-    let eventHub = createEventHub();
-    let configurationContainer: ExtensionContainer | null = null;
-    beforeEach(() => {
-        configuration = new ConfigurationExtension();
-        eventHub = createEventHub();
-        const sharedStateManager = new SharedStateManager();
-        configurationContainer = createExtensionContainer(eventHub, configuration.EXTENSION.name, sharedStateManager);
-        configuration.EXTENSION.onRegister(
-            configurationContainer,
-            serviceLookup
-        );
+describe("test Configuration extension", () => {
+  let configuration: Configuration = new ConfigurationExtension();
+  let eventHub = createEventHub();
+  let configurationContainer: ExtensionContainer | null = null;
+  beforeEach(() => {
+    configuration = new ConfigurationExtension();
+    eventHub = createEventHub();
+    const sharedStateManager = new SharedStateManager();
+    configurationContainer = createExtensionContainer(
+      eventHub,
+      configuration.EXTENSION.name,
+      sharedStateManager
+    );
+    configuration.EXTENSION.onRegister(configurationContainer, serviceLookup);
+  });
+
+  it("should return correct extension name & extension version", () => {
+    expect(configuration.EXTENSION.name).toEqual(EXTENSION_NAME);
+    expect(configuration.EXTENSION.version).toEqual(EXTENSION_VERSION);
+  });
+
+  it("updateConfiguration() - should update the configuration state and dispatch shared state event", () => {
+    const dispatchedEvents: Event[] = [];
+    eventHub.registerEventProcessor((event: Event) => {
+      dispatchedEvents.push(event);
+      return event;
+    });
+    eventHub.start();
+
+    configuration.updateConfiguration({ key: "value" });
+    expect(dispatchedEvents.length).toBe(2);
+
+    // update configuration event
+    expect(dispatchedEvents[0].name).toEqual(UPDATE_CONFIGURATION_EVENT_NAME);
+    expect(dispatchedEvents[0].type).toEqual(EventType.CONFIGURATION);
+    expect(dispatchedEvents[0].source).toEqual(EventSource.REQUEST_CONTENT);
+    expect(dispatchedEvents[0].data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({
+      key: "value",
     });
 
-    it('should return correct extension name & extension version', () => {
-        expect(configuration.EXTENSION.name).toEqual(EXTENSION_NAME);
-        expect(configuration.EXTENSION.version).toEqual(EXTENSION_VERSION);
-    });
+    // configuration shared state
+    expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
+    expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
+    expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
+    expect(dispatchedEvents[1].data?.getString(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
 
-    it('updateConfiguration() - should update the configuration state and dispatch shared state event', () => {
-        const dispatchedEvents: Event[] = [];
-        eventHub.registerEventProcessor((event: Event) => {
-            dispatchedEvents.push(event);
-            return event;
-        });
-        eventHub.start();
-
-        configuration.updateConfiguration({ key: 'value' });
-        expect(dispatchedEvents.length).toBe(2);
-
-        // update configuration event
-        expect(dispatchedEvents[0].name).toEqual(UPDATE_CONFIGURATION_EVENT_NAME);
-        expect(dispatchedEvents[0].type).toEqual(EventType.CONFIGURATION);
-        expect(dispatchedEvents[0].source).toEqual(EventSource.REQUEST_CONTENT);
-        expect(dispatchedEvents[0].data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({ key: 'value' });
-
-        // configuration shared state
-        expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
-        expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
-        expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
-        expect(dispatchedEvents[1].data?.getString(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
-
-        const result = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
-        expect(result?.value?.getDataObject()).toEqual({ key: 'value' });
-        expect(result?.status).toEqual(SharedStateStatus.SET);
-    });
-
+    const result = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
+    expect(result?.value?.getDataObject()).toEqual({ key: "value" });
+    expect(result?.status).toEqual(SharedStateStatus.SET);
+  });
 });

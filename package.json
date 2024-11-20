@@ -8,8 +8,8 @@
     "integrationTests"
   ],
   "scripts": {
-    "fix_format": "npx prettier ./packages/**/src/**/**.ts --write --config ./.prettierrc.json",
-    "format": "npx prettier ./packages/**/src/**/**.ts --check --config ./.prettierrc.json",
+    "fix_format": "npx prettier ./packages/**/**.ts --write --config ./.prettierrc.json",
+    "format": "npx prettier ./packages/**/**.ts --check --config ./.prettierrc.json",
     "lint": "npx eslint ./packages/**/src/**/**.ts",
     "build_all": "npx lerna run build",
     "unit_test": "npx lerna run test",

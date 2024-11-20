@@ -10,28 +10,26 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { LogLevel, DefaultLogging } from "../../../src/core/services/Logging";
-describe('test Logging service', () => {
+describe("test Logging service", () => {
+  beforeEach(() => {});
 
-    beforeEach(() => { });
+  afterEach(() => {});
 
-    afterEach(() => { });
+  test("test log level", () => {
+    const loggingService = new DefaultLogging();
+    const defaultLogLevel = loggingService.getLogLevel();
+    expect(defaultLogLevel).toEqual(LogLevel.ERROR);
 
-    test('test log level', () => {
-        const loggingService = new DefaultLogging();
-        const defaultLogLevel = loggingService.getLogLevel();
-        expect(defaultLogLevel).toEqual(LogLevel.ERROR);
+    loggingService.setLogLevel(LogLevel.WARNING);
+    expect(loggingService.getLogLevel()).toEqual(LogLevel.WARNING);
 
-        loggingService.setLogLevel(LogLevel.WARNING);
-        expect(loggingService.getLogLevel()).toEqual(LogLevel.WARNING);
+    loggingService.setLogLevel(LogLevel.DEBUG);
+    expect(loggingService.getLogLevel()).toEqual(LogLevel.DEBUG);
 
-        loggingService.setLogLevel(LogLevel.DEBUG);
-        expect(loggingService.getLogLevel()).toEqual(LogLevel.DEBUG);
+    loggingService.setLogLevel(LogLevel.ERROR);
+    expect(loggingService.getLogLevel()).toEqual(LogLevel.ERROR);
 
-        loggingService.setLogLevel(LogLevel.ERROR);
-        expect(loggingService.getLogLevel()).toEqual(LogLevel.ERROR);
-
-        loggingService.setLogLevel(LogLevel.VERBOSE);
-        expect(loggingService.getLogLevel()).toEqual(LogLevel.VERBOSE);
-    });
-
+    loggingService.setLogLevel(LogLevel.VERBOSE);
+    expect(loggingService.getLogLevel()).toEqual(LogLevel.VERBOSE);
+  });
 });

@@ -10,27 +10,25 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { serviceLookup, registerService, DataStore } from "../../../src/core/services";
-describe('test Services', () => {
+describe("test Services", () => {
+  beforeEach(() => {});
 
-    beforeEach(() => { });
+  afterEach(() => {});
 
-    afterEach(() => { });
+  test("test ServiceLookup", () => {
+    expect(serviceLookup.getService("dataStore")).toBeDefined();
+    expect(serviceLookup.getService("logging")).toBeDefined();
+  });
 
-    test('test ServiceLookup', () => {
-        expect(serviceLookup.getService('dataStore')).toBeDefined();
-        expect(serviceLookup.getService('logging')).toBeDefined();
-    });
-
-    test('test registerService()', () => {
-        const dataStore: DataStore = {
-            get: (key: string) => Promise.resolve(`key: ${key}`),
-            set: jest.fn(),
-            delete: jest.fn()
-        };
-        registerService('dataStore', dataStore);
-        const retrievedDataStore = serviceLookup.getService('dataStore');
-        expect(retrievedDataStore).toBeDefined();
-        expect(retrievedDataStore.get('test')).resolves.toBe('key: test');
-    });
-
+  test("test registerService()", () => {
+    const dataStore: DataStore = {
+      get: (key: string) => Promise.resolve(`key: ${key}`),
+      set: jest.fn(),
+      delete: jest.fn(),
+    };
+    registerService("dataStore", dataStore);
+    const retrievedDataStore = serviceLookup.getService("dataStore");
+    expect(retrievedDataStore).toBeDefined();
+    expect(retrievedDataStore.get("test")).resolves.toBe("key: test");
+  });
 });

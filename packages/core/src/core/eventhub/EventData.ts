@@ -54,8 +54,7 @@ export class EventData {
    * @param jsonObj The "Record<string, any>" object that conforms to JSON object.
    * @returns An EventData object if the input is a valid JSON object, otherwise null.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public static buildFrom(jsonObj: Record<string, any>): EventData | null {
+  public static buildFrom(jsonObj: Record<string, unknown>): EventData | null {
     try {
       const data: DataObject = JSON.parse(
         JSON.stringify(jsonObj, (k, v) => {

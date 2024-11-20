@@ -11,136 +11,135 @@ governing permissions and limitations under the License.
 */
 
 import { asyncRequest, HttpMethod, NetworkRequest } from "../../../../src/core/utils/networking";
-describe('test asyncRequest', () => {
+describe("test asyncRequest", () => {
+  Object.defineProperty(global, "performance", {
+    writable: true,
+  });
 
-    Object.defineProperty(global, 'performance', {
-        writable: true,
+  beforeAll(() => {
+    jest.spyOn(global, "fetch");
+    jest.useFakeTimers();
+    jest.spyOn(global, "setTimeout");
+    jest.spyOn(global, "clearTimeout");
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should return ERROR_CONNECTION for non-HTTPS URL", async () => {
+    const request: NetworkRequest = {
+      url: "http://example.com",
+      method: HttpMethod.GET,
+      headers: {},
+      body: null,
+      timeout: 1000,
+    };
+
+    const result = await asyncRequest(request);
+
+    expect(result).toEqual({
+      responseCode: -1,
     });
+  });
 
-    beforeAll(() => {
-        jest.spyOn(global, 'fetch');
-        jest.useFakeTimers();
-        jest.spyOn(global, 'setTimeout');
-        jest.spyOn(global, 'clearTimeout');
+  it("should merge headers correctly", async () => {
+    const request: NetworkRequest = {
+      url: "https://example.com",
+      method: HttpMethod.GET,
+      headers: { "Custom-Header": "value" },
+      timeout: 1000,
+    };
+
+    const mockResponse = {
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      text: jest.fn().mockResolvedValue('{"key":"value"}'),
+    };
+
+    (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await asyncRequest(request);
+
+    expect(fetch).toHaveBeenCalledWith("https://example.com", {
+      method: HttpMethod.GET,
+      headers: {
+        "Accept-Language": "en-US",
+        "Custom-Header": "value",
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+      body: undefined,
+      signal: expect.any(Object),
     });
+    expect(result.responseCode).toBe(200);
+    expect(result.headers!["content-type"]).toBe("application/json");
+    expect(result.bodyAsText).toBe('{"key":"value"}');
+  });
 
-    afterEach(() => {
-        jest.clearAllMocks();
+  it("should send a request and return a successful response", async () => {
+    const request: NetworkRequest = {
+      url: "https://example.com",
+      method: HttpMethod.GET,
+      timeout: 1000,
+    };
+
+    const mockResponse = {
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      text: jest.fn().mockResolvedValue('{"key":"value"}'),
+    };
+
+    (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
+
+    const result = await asyncRequest(request);
+
+    expect(fetch).toHaveBeenCalledWith("https://example.com", {
+      method: HttpMethod.GET,
+      headers: {
+        "Accept-Language": "en-US",
+        "Content-Type": "application/json",
+        accept: "application/json",
+      },
+      body: undefined,
+      signal: expect.any(Object),
     });
+    expect(result.responseCode).toBe(200);
+    expect(result.headers!["content-type"]).toBe("application/json");
+    expect(result.bodyAsText).toBe('{"key":"value"}');
+  });
 
-    it('should return ERROR_CONNECTION for non-HTTPS URL', async () => {
-        const request: NetworkRequest = {
-            url: 'http://example.com',
-            method: HttpMethod.GET,
-            headers: {},
-            body: null,
-            timeout: 1000,
-        };
+  it("should handle fetch errors gracefully", async () => {
+    const request: NetworkRequest = {
+      url: "https://example.com",
+      method: HttpMethod.GET,
+      headers: {},
+      body: null,
+      timeout: 1000,
+    };
 
-        const result = await asyncRequest(request);
+    (global.fetch as jest.Mock).mockRejectedValue(new Error("Network error"));
 
-        expect(result).toEqual({
-            responseCode: -1,
-        });
+    const result = await asyncRequest(request);
+
+    expect(result).toEqual({
+      responseCode: -1,
     });
+  });
 
-    it('should merge headers correctly', async () => {
-        const request: NetworkRequest = {
-            url: 'https://example.com',
-            method: HttpMethod.GET,
-            headers: { 'Custom-Header': 'value' },
-            timeout: 1000,
-        };
+  it("should set timeout number correctly", async () => {
+    const request: NetworkRequest = {
+      url: "https://example.com",
+      method: HttpMethod.GET,
+      headers: {},
+      body: null,
+      timeout: 100,
+    };
 
-        const mockResponse = {
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            text: jest.fn().mockResolvedValue('{"key":"value"}'),
-        };
+    await asyncRequest(request);
 
-        (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-
-        const result = await asyncRequest(request);
-
-        expect(fetch).toHaveBeenCalledWith('https://example.com', {
-            method: HttpMethod.GET,
-            headers: {
-                "Accept-Language": "en-US",
-                'Custom-Header': 'value',
-                'Content-Type': 'application/json',
-                "accept": "application/json",
-            },
-            body: undefined,
-            signal: expect.any(Object),
-        });
-        expect(result.responseCode).toBe(200);
-        expect(result.headers!['content-type']).toBe('application/json');
-        expect(result.bodyAsText).toBe('{"key":"value"}');
-    });
-
-    it('should send a request and return a successful response', async () => {
-        const request: NetworkRequest = {
-            url: 'https://example.com',
-            method: HttpMethod.GET,
-            timeout: 1000,
-        };
-
-        const mockResponse = {
-            status: 200,
-            headers: new Headers({ 'content-type': 'application/json' }),
-            text: jest.fn().mockResolvedValue('{"key":"value"}'),
-        };
-
-        (global.fetch as jest.Mock).mockResolvedValue(mockResponse);
-
-        const result = await asyncRequest(request);
-
-        expect(fetch).toHaveBeenCalledWith('https://example.com', {
-            method: HttpMethod.GET,
-            headers: {
-                "Accept-Language": "en-US",
-                'Content-Type': 'application/json',
-                "accept": "application/json",
-            },
-            body: undefined,
-            signal: expect.any(Object),
-        });
-        expect(result.responseCode).toBe(200);
-        expect(result.headers!['content-type']).toBe('application/json');
-        expect(result.bodyAsText).toBe('{"key":"value"}');
-    });
-
-    it('should handle fetch errors gracefully', async () => {
-        const request: NetworkRequest = {
-            url: 'https://example.com',
-            method: HttpMethod.GET,
-            headers: {},
-            body: null,
-            timeout: 1000,
-        };
-
-        (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-
-        const result = await asyncRequest(request);
-
-        expect(result).toEqual({
-            responseCode: -1,
-        });
-    });
-
-    it('should set timeout number correctly', async () => {
-        const request: NetworkRequest = {
-            url: 'https://example.com',
-            method: HttpMethod.GET,
-            headers: {},
-            body: null,
-            timeout: 100,
-        };
-
-        await asyncRequest(request);
-
-        expect(setTimeout).toHaveBeenCalledTimes(1);
-        expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 100);
-        expect(clearTimeout).toHaveBeenCalledTimes(1);
-    });
+    expect(setTimeout).toHaveBeenCalledTimes(1);
+    expect(setTimeout).toHaveBeenCalledWith(expect.any(Function), 100);
+    expect(clearTimeout).toHaveBeenCalledTimes(1);
+  });
 });

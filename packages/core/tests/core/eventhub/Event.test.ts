@@ -12,85 +12,83 @@ governing permissions and limitations under the License.
 import { Event } from "../../../src/core/eventhub";
 import { EventData } from "../../../src/core/eventhub";
 
-describe('test Event class', () => {
+describe("test Event class", () => {
+  beforeEach(() => {});
 
-    beforeEach(() => { });
+  afterEach(() => {});
 
-    afterEach(() => { });
+  test("test Event: constructor()", () => {
+    const data = EventData.buildFrom({
+      key: "value",
+    });
+    const event = new Event("name", "type", "source", data);
 
-    test('test Event: constructor()', () => {
-        const data = EventData.buildFrom({
-            key: "value"
-        });
-        const event = new Event("name", "type", "source", data);
+    expect(event.uuid).toBeDefined();
+    expect(event.timestamp).toBeDefined();
+    expect(event.id).toBe(-1);
+    expect(event.name).toBe("name");
+    expect(event.type).toBe("type");
+    expect(event.source).toBe("source");
+    expect(event.data).toEqual(data);
+  });
 
-        expect(event.uuid).toBeDefined();
-        expect(event.timestamp).toBeDefined();
-        expect(event.id).toBe(-1);
-        expect(event.name).toBe("name");
-        expect(event.type).toBe("type");
-        expect(event.source).toBe("source");
-        expect(event.data).toEqual(data);
+  test("test Event: constructor() - data is null", () => {
+    const event = new Event("name", "type", "source");
+
+    expect(event.uuid).toBeDefined();
+    expect(event.timestamp).toBeDefined();
+    expect(event.id).toBe(-1);
+    expect(event.name).toBe("name");
+    expect(event.type).toBe("type");
+    expect(event.source).toBe("source");
+    expect(event.data).toBeNull();
+  });
+
+  test("test Event: id should only be set once", () => {
+    const event = new Event("name", "type", "source");
+
+    expect(event.id).toBe(-1);
+
+    event.id = 1;
+
+    expect(event.id).toBe(1);
+
+    event.id = 2;
+
+    expect(event.id).toBe(1);
+  });
+
+  test("test Event: toString()", () => {
+    const data = EventData.buildFrom({
+      key: "value",
+    });
+    const str = new Event("event_name", "event_type", "event_source", data).toString();
+    // console.log(str);
+    expect(str).toContain("name: event_name");
+    expect(str).toContain('data: {"key":"value"}');
+    expect(str).toContain("type: event_type");
+    expect(str).toContain("source: event_source");
+  });
+
+  test("test Event: cloneWithEventData()", async () => {
+    const data = EventData.buildFrom({
+      key: "value",
+    });
+    const event = new Event("event_name", "event_type", "event_source", data);
+    const newData = EventData.buildFrom({
+      key: "newValue",
     });
 
-    test('test Event: constructor() - data is null', () => {
-        const event = new Event("name", "type", "source");
+    await new Promise((r) => setTimeout(r, 10));
 
-        expect(event.uuid).toBeDefined();
-        expect(event.timestamp).toBeDefined();
-        expect(event.id).toBe(-1);
-        expect(event.name).toBe("name");
-        expect(event.type).toBe("type");
-        expect(event.source).toBe("source");
-        expect(event.data).toBeNull();
-    });
+    const clonedEvent = event.cloneWithEventData(newData);
+    expect(clonedEvent.data).toEqual(newData);
+    expect(clonedEvent.id).toEqual(event.id);
+    expect(clonedEvent.name).toEqual(event.name);
+    expect(clonedEvent.type).toEqual(event.type);
+    expect(clonedEvent.source).toEqual(event.source);
 
-    test('test Event: id should only be set once', () => {
-        const event = new Event("name", "type", "source");
-
-        expect(event.id).toBe(-1);
-
-        event.id = 1;
-
-        expect(event.id).toBe(1);
-
-        event.id = 2;
-
-        expect(event.id).toBe(1);
-    });
-
-    test('test Event: toString()', () => {
-        const data = EventData.buildFrom({
-            key: "value"
-        });
-        const str = new Event("event_name", "event_type", "event_source", data).toString();
-        // console.log(str);
-        expect(str).toContain("name: event_name");
-        expect(str).toContain("data: {\"key\":\"value\"}");
-        expect(str).toContain("type: event_type");
-        expect(str).toContain("source: event_source");
-    });
-
-    test('test Event: cloneWithEventData()', async () => {
-        const data = EventData.buildFrom({
-            key: "value"
-        });
-        const event = new Event("event_name", "event_type", "event_source", data);
-        const newData = EventData.buildFrom({
-            key: "newValue"
-        });
-
-        await new Promise((r) => setTimeout(r, 10));
-
-        const clonedEvent = event.cloneWithEventData(newData);
-        expect(clonedEvent.data).toEqual(newData);
-        expect(clonedEvent.id).toEqual(event.id);
-        expect(clonedEvent.name).toEqual(event.name);
-        expect(clonedEvent.type).toEqual(event.type);
-        expect(clonedEvent.source).toEqual(event.source);
-
-        expect(clonedEvent.uuid).not.toEqual(event.uuid);
-        expect(clonedEvent.timestamp.getMilliseconds()).not.toEqual(event.timestamp.getMilliseconds());
-    });
-
+    expect(clonedEvent.uuid).not.toEqual(event.uuid);
+    expect(clonedEvent.timestamp.getMilliseconds()).not.toEqual(event.timestamp.getMilliseconds());
+  });
 });

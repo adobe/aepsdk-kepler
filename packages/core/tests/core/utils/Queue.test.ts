@@ -10,53 +10,50 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Queue } from "../../../src/core/utils/Queue";
-/* eslint-disable @typescript-eslint/no-explicit-any */
-describe('test Queue class', () => {
+describe("test Queue class", () => {
+  beforeEach(() => {});
 
-    beforeEach(() => { });
+  afterEach(() => {});
 
-    afterEach(() => { });
+  test("test enqueue()", () => {
+    const queue = new Queue<number>();
+    queue.enqueue(1);
+    queue.enqueue(2);
+    expect(queue.size()).toBe(2);
+    expect(queue.peek()).toBe(1);
+  });
 
-    test('test enqueue()', () => {
-        const queue = new Queue<number>();
-        queue.enqueue(1);
-        queue.enqueue(2);
-        expect(queue.size()).toBe(2);
-        expect(queue.peek()).toBe(1);
-    });
+  test("test dequeue()", () => {
+    const queue = new Queue<number>();
+    queue.enqueue(1);
+    queue.enqueue(2);
+    const item = queue.dequeue();
+    expect(item).toBe(1);
+    expect(queue.size()).toBe(1);
+    expect(queue.peek()).toBe(2);
+  });
 
-    test('test dequeue()', () => {
-        const queue = new Queue<number>();
-        queue.enqueue(1);
-        queue.enqueue(2);
-        const item = queue.dequeue();
-        expect(item).toBe(1);
-        expect(queue.size()).toBe(1);
-        expect(queue.peek()).toBe(2);
-    });
+  test("test peek()", () => {
+    const queue = new Queue<number>();
+    queue.enqueue(1);
+    queue.enqueue(2);
+    const item = queue.peek();
+    expect(item).toBe(1);
+    expect(queue.size()).toBe(2);
+  });
 
-    test('test peek()', () => {
-        const queue = new Queue<number>();
-        queue.enqueue(1);
-        queue.enqueue(2);
-        const item = queue.peek();
-        expect(item).toBe(1);
-        expect(queue.size()).toBe(2);
-    });
+  test("test isEmpty()", () => {
+    const queue = new Queue<number>();
+    expect(queue.isEmpty()).toBe(true);
+    queue.enqueue(1);
+    expect(queue.isEmpty()).toBe(false);
+  });
 
-    test('test isEmpty()', () => {
-        const queue = new Queue<number>();
-        expect(queue.isEmpty()).toBe(true);
-        queue.enqueue(1);
-        expect(queue.isEmpty()).toBe(false);
-    });
-
-    test('test size()', () => {
-        const queue = new Queue<number>();
-        expect(queue.size()).toBe(0);
-        queue.enqueue(1);
-        queue.enqueue(2);
-        expect(queue.size()).toBe(2);
-    });
-
+  test("test size()", () => {
+    const queue = new Queue<number>();
+    expect(queue.size()).toBe(0);
+    queue.enqueue(1);
+    queue.enqueue(2);
+    expect(queue.size()).toBe(2);
+  });
 });

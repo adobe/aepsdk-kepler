@@ -9,18 +9,18 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { runAsync } from '../../../src/core/utils/async';
+import { runAsync } from "../../../src/core/utils/async";
 
-describe('runAsync', () => {
-    it('should execute the provided function asynchronously', (done) => {
-        let asyncExecuted = false;
+describe("runAsync", () => {
+  it("should execute the provided function asynchronously", (done) => {
+    let asyncExecuted = false;
 
-        runAsync(() => {
-            asyncExecuted = true;
-            expect(asyncExecuted).toBe(true);
-            done();
-        });
-
-        expect(asyncExecuted).toBe(false);
+    runAsync(() => {
+      asyncExecuted = true;
+      expect(asyncExecuted).toBe(true);
+      done();
     });
+
+    expect(asyncExecuted).toBe(false);
+  });
 });

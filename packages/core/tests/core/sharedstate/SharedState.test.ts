@@ -9,111 +9,113 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { buildSharedStateEvent, SharedStateManager, SharedStateStatus } from "../../../src/core/sharedstate";
+import {
+  buildSharedStateEvent,
+  SharedStateManager,
+  SharedStateStatus,
+} from "../../../src/core/sharedstate";
 import { EventData } from "../../../src/core/eventhub";
-describe('test SharedState related classes', () => {
+describe("test SharedState related classes", () => {
+  beforeEach(() => {});
 
-    beforeEach(() => { });
+  afterEach(() => {});
 
-    afterEach(() => { });
+  test("test buildSharedStateEvent()", () => {
+    const event = buildSharedStateEvent("extensionName1");
+    expect(event).toBeDefined();
+    expect(event.name).toBe("Shared state change (XDM)");
+    expect(event.type).toBe("com.adobe.eventType.hub");
+    expect(event.source).toBe("com.adobe.eventSource.sharedState");
+    const data = event.data as EventData;
+    expect(data).toBeDefined();
+    expect(data.getString("stateowner")).toBe("extensionName1");
+  });
 
-    test('test buildSharedStateEvent()', () => {
-        const event = buildSharedStateEvent('extensionName1');
-        expect(event).toBeDefined();
-        expect(event.name).toBe('Shared state change (XDM)');
-        expect(event.type).toBe('com.adobe.eventType.hub');
-        expect(event.source).toBe('com.adobe.eventSource.sharedState');
-        const data = event.data as EventData;
-        expect(data).toBeDefined();
-        expect(data.getString('stateowner')).toBe('extensionName1');
-    });
+  test("test SharedStateManager - set and get state", () => {
+    const manager = new SharedStateManager();
+    const data = EventData.buildFrom({ key: "value" });
+    manager.updateSharedState("extensionName1", 100, data, SharedStateStatus.SET);
+    const state1 = manager.getSharedState("extensionName1", 100);
+    const state2 = manager.getSharedState("extensionName1", 101);
+    const state3 = manager.getSharedState("extensionName1", 200);
+    const state4 = manager.getSharedState("extensionName1", 99);
 
-    test('test SharedStateManager - set and get state', () => {
-        const manager = new SharedStateManager();
-        const data = EventData.buildFrom({ key: 'value' });
-        manager.updateSharedState('extensionName1', 100, data, SharedStateStatus.SET);
-        const state1 = manager.getSharedState('extensionName1', 100);
-        const state2 = manager.getSharedState('extensionName1', 101);
-        const state3 = manager.getSharedState('extensionName1', 200);
-        const state4 = manager.getSharedState('extensionName1', 99);
+    expect(state1).toBeDefined();
+    expect(state2).toBeDefined();
+    expect(state3).toBeDefined();
+    expect(state4).toBeDefined();
 
-        expect(state1).toBeDefined();
-        expect(state2).toBeDefined();
-        expect(state3).toBeDefined();
-        expect(state4).toBeDefined();
+    expect(state1).toEqual(state2);
+    expect(state2).toEqual(state3);
+    expect(state3).toEqual(state4);
+  });
 
-        expect(state1).toEqual(state2);
-        expect(state2).toEqual(state3);
-        expect(state3).toEqual(state4);
-    });
+  test("test SharedStateManager - clear state", () => {
+    const manager = new SharedStateManager();
+    manager.updateSharedState("extensionName1", 100, null, SharedStateStatus.PENDING);
+    manager.removeSharedState("extensionName1", 100);
+    const state = manager.getSharedState("extensionName1", 100);
+    expect(state).toBeNull();
+  });
 
-    test('test SharedStateManager - clear state', () => {
-        const manager = new SharedStateManager();
-        manager.updateSharedState('extensionName1', 100, null, SharedStateStatus.PENDING);
-        manager.removeSharedState('extensionName1', 100);
-        const state = manager.getSharedState('extensionName1', 100);
-        expect(state).toBeNull();
-    });
+  test("test SharedStateManager - get state for non-existent extension", () => {
+    const manager = new SharedStateManager();
+    const data = EventData.buildFrom({ key: "value" });
+    manager.updateSharedState("extensionName1", 100, data, SharedStateStatus.SET);
+    const state = manager.getSharedState("extensionName2", 100);
+    expect(state).toBeNull();
+  });
 
-    test('test SharedStateManager - get state for non-existent extension', () => {
-        const manager = new SharedStateManager();
-        const data = EventData.buildFrom({ key: 'value' });
-        manager.updateSharedState('extensionName1', 100, data, SharedStateStatus.SET);
-        const state = manager.getSharedState('extensionName2', 100);
-        expect(state).toBeNull();
-    });
+  test("test SharedStateManager - always get the valid state (1)", () => {
+    const manager = new SharedStateManager();
+    const data1 = EventData.buildFrom({ key1: "value1" });
+    const data2 = EventData.buildFrom({ key2: "value2" });
+    manager.updateSharedState("extensionName1", 50, data1, SharedStateStatus.SET);
+    manager.updateSharedState("extensionName1", 100, data2, SharedStateStatus.SET);
+    manager.updateSharedState("extensionName1", 200, null, SharedStateStatus.PENDING);
 
-    test('test SharedStateManager - always get the valid state (1)', () => {
-        const manager = new SharedStateManager();
-        const data1 = EventData.buildFrom({ key1: 'value1' });
-        const data2 = EventData.buildFrom({ key2: 'value2' });
-        manager.updateSharedState('extensionName1', 50, data1, SharedStateStatus.SET);
-        manager.updateSharedState('extensionName1', 100, data2, SharedStateStatus.SET);
-        manager.updateSharedState('extensionName1', 200, null, SharedStateStatus.PENDING);
+    const state = manager.getSharedState("extensionName1", 300);
+    expect(state).toBeDefined();
+    expect(state?.status).toBe(SharedStateStatus.SET);
+    expect(state?.value).toEqual(data2);
+  });
 
-        const state = manager.getSharedState('extensionName1', 300);
-        expect(state).toBeDefined();
-        expect(state?.status).toBe(SharedStateStatus.SET);
-        expect(state?.value).toEqual(data2);
-    });
+  test("test SharedStateManager - always get the valid state (2)", () => {
+    const manager = new SharedStateManager();
+    const data1 = EventData.buildFrom({ key1: "value1" });
+    const data2 = EventData.buildFrom({ key2: "value2" });
+    manager.updateSharedState("extensionName1", 50, data1, SharedStateStatus.SET);
+    manager.updateSharedState("extensionName1", 100, data2, SharedStateStatus.SET);
+    manager.updateSharedState("extensionName1", 150, null, SharedStateStatus.PENDING);
+    manager.updateSharedState("extensionName1", 200, null, SharedStateStatus.PENDING);
 
-    test('test SharedStateManager - always get the valid state (2)', () => {
-        const manager = new SharedStateManager();
-        const data1 = EventData.buildFrom({ key1: 'value1' });
-        const data2 = EventData.buildFrom({ key2: 'value2' });
-        manager.updateSharedState('extensionName1', 50, data1, SharedStateStatus.SET);
-        manager.updateSharedState('extensionName1', 100, data2, SharedStateStatus.SET);
-        manager.updateSharedState('extensionName1', 150, null, SharedStateStatus.PENDING);
-        manager.updateSharedState('extensionName1', 200, null, SharedStateStatus.PENDING);
+    const state = manager.getSharedState("extensionName1", 300);
+    expect(state).toBeDefined();
+    expect(state?.status).toBe(SharedStateStatus.SET);
+    expect(state?.value).toEqual(data2);
+  });
 
-        const state = manager.getSharedState('extensionName1', 300);
-        expect(state).toBeDefined();
-        expect(state?.status).toBe(SharedStateStatus.SET);
-        expect(state?.value).toEqual(data2);
-    });
+  test("test SharedStateManager - always get the valid state (3)", () => {
+    const manager = new SharedStateManager();
+    const data1 = EventData.buildFrom({ key1: "value1" });
+    const data2 = EventData.buildFrom({ key2: "value2" });
+    manager.updateSharedState("extensionName1", 100, null, SharedStateStatus.PENDING);
+    manager.updateSharedState("extensionName1", 200, null, SharedStateStatus.PENDING);
+    manager.updateSharedState("extensionName1", 300, data1, SharedStateStatus.SET);
+    manager.updateSharedState("extensionName1", 400, data2, SharedStateStatus.SET);
 
-    test('test SharedStateManager - always get the valid state (3)', () => {
-        const manager = new SharedStateManager();
-        const data1 = EventData.buildFrom({ key1: 'value1' });
-        const data2 = EventData.buildFrom({ key2: 'value2' });
-        manager.updateSharedState('extensionName1', 100, null, SharedStateStatus.PENDING);
-        manager.updateSharedState('extensionName1', 200, null, SharedStateStatus.PENDING);
-        manager.updateSharedState('extensionName1', 300, data1, SharedStateStatus.SET);
-        manager.updateSharedState('extensionName1', 400, data2, SharedStateStatus.SET);
+    const state = manager.getSharedState("extensionName1", 200);
+    expect(state).toBeDefined();
+    expect(state?.status).toBe(SharedStateStatus.SET);
+    expect(state?.value).toEqual(data1);
+  });
 
-        const state = manager.getSharedState('extensionName1', 200);
-        expect(state).toBeDefined();
-        expect(state?.status).toBe(SharedStateStatus.SET);
-        expect(state?.value).toEqual(data1);
-    });
-
-    test('test SharedStateManager - get PENDING state', () => {
-        const manager = new SharedStateManager();
-        manager.updateSharedState('extensionName1', 100, null, SharedStateStatus.PENDING);
-        manager.updateSharedState('extensionName1', 200, null, SharedStateStatus.PENDING);
-        const state = manager.getSharedState('extensionName1', 300);
-        expect(state).toBeDefined();
-        expect(state?.status).toBe(SharedStateStatus.PENDING);
-    });
-
+  test("test SharedStateManager - get PENDING state", () => {
+    const manager = new SharedStateManager();
+    manager.updateSharedState("extensionName1", 100, null, SharedStateStatus.PENDING);
+    manager.updateSharedState("extensionName1", 200, null, SharedStateStatus.PENDING);
+    const state = manager.getSharedState("extensionName1", 300);
+    expect(state).toBeDefined();
+    expect(state?.status).toBe(SharedStateStatus.PENDING);
+  });
 });

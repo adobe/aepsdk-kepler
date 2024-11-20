@@ -40,8 +40,7 @@ export class ConfigurationExtension implements Configuration, Extension {
     return EXTENSION_VERSION;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateConfiguration(configuration: Record<string, any>): void {
+  updateConfiguration(configuration: Record<string, unknown>): void {
     if (!this.isRegistered) {
       Log.error(LOG_EXTENSION, LOG_TAG, "The Configuration extension is not registered.");
       return;

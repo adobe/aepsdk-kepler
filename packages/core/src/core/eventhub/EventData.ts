@@ -49,9 +49,9 @@ export class EventData {
   private constructor(private data: DataObject) {}
 
   /**
-   * This method creates an EventData object from a JSON object that conforms to the "Record<string, any>" type.
+   * This method creates an EventData object from a JSON object that conforms to the "Record<string, unknown>" type.
    *
-   * @param jsonObj The "Record<string, any>" object that conforms to JSON object.
+   * @param jsonObj The "Record<string, unknown>" object that conforms to JSON object.
    * @returns An EventData object if the input is a valid JSON object, otherwise null.
    */
   public static buildFrom(jsonObj: Record<string, unknown>): EventData | null {

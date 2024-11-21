@@ -29,6 +29,6 @@ export function safeStringify(
     return JSON.stringify(value, replacer, space);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
-    return "";
+    return "Malformatted JSON object";
   }
 }

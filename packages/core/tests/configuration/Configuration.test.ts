@@ -22,6 +22,7 @@ import {
   UPDATE_CONFIGURATION_EVENT_NAME,
 } from "../../src/configuration/Constants";
 import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/sharedstate/Constants";
+import { EventHub } from "../../src/core/eventhub";
 
 describe("test Configuration extension", () => {
   let configuration: Configuration = new ConfigurationExtension();
@@ -73,4 +74,118 @@ describe("test Configuration extension", () => {
     expect(result?.value?.getDataObject()).toEqual({ key: "value" });
     expect(result?.status).toEqual(SharedStateStatus.SET);
   });
+
+  it("updateConfiguration() - should combine the new configuration with the existing one.", () => {
+    const dispatchedEvents: Event[] = [];
+    eventHub.registerEventProcessor((event: Event) => {
+      dispatchedEvents.push(event);
+      return event;
+    });
+    eventHub.start();
+
+    // updateConfiguration() #1
+    configuration.updateConfiguration({ key1: "value" });
+    expect(dispatchedEvents.length).toBe(2);
+
+    // update configuration event
+    expect(dispatchedEvents[0].name).toEqual(UPDATE_CONFIGURATION_EVENT_NAME);
+    expect(dispatchedEvents[0].type).toEqual(EventType.CONFIGURATION);
+    expect(dispatchedEvents[0].source).toEqual(EventSource.REQUEST_CONTENT);
+    expect(dispatchedEvents[0].data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({
+      key1: "value",
+    });
+
+    // configuration shared state
+    expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
+    expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
+    expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
+    expect(dispatchedEvents[1].data?.getString(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
+
+    const result1 = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
+    expect(result1?.value?.getDataObject()).toEqual({ key1: "value" });
+    expect(result1?.status).toEqual(SharedStateStatus.SET);
+
+    // updateConfiguration() #2
+    dispatchedEvents.length = 0;
+    configuration.updateConfiguration({ key1: "newValue", key2: "value" });
+    expect(dispatchedEvents.length).toBe(2);
+
+    const result2 = configurationContainer?.getXDMSharedState(
+      EXTENSION_NAME,
+      buildLatestEvent(eventHub)
+    );
+    expect(result2?.value?.getDataObject()).toEqual({ key1: "newValue", key2: "value" });
+    expect(result2?.status).toEqual(SharedStateStatus.SET);
+
+    // updateConfiguration() #3
+    configuration.updateConfiguration({
+      key3: "value",
+      key4: {
+        key41: "value",
+      },
+    });
+    const result3 = configurationContainer?.getXDMSharedState(
+      EXTENSION_NAME,
+      buildLatestEvent(eventHub)
+    );
+    expect(result3?.value?.getDataObject()).toEqual({
+      key1: "newValue",
+      key2: "value",
+      key3: "value",
+      key4: {
+        key41: "value",
+      },
+    });
+    expect(result3?.status).toEqual(SharedStateStatus.SET);
+
+    // updateConfiguration() #4
+    configuration.updateConfiguration({
+      key4: {
+        key41: "newValue",
+        key42: "value",
+      },
+    });
+    const result4 = configurationContainer?.getXDMSharedState(
+      EXTENSION_NAME,
+      buildLatestEvent(eventHub)
+    );
+    expect(result4?.value?.getDataObject()).toEqual({
+      key1: "newValue",
+      key2: "value",
+      key3: "value",
+      key4: {
+        key41: "newValue",
+        key42: "value",
+      },
+    });
+    expect(result4?.status).toEqual(SharedStateStatus.SET);
+
+    // updateConfiguration() #5
+    configuration.updateConfiguration({
+      key4: {
+        key41: "newValue",
+        key42: null,
+      },
+    });
+    const result5 = configurationContainer?.getXDMSharedState(
+      EXTENSION_NAME,
+      buildLatestEvent(eventHub)
+    );
+    expect(result5?.value?.getDataObject()).toEqual({
+      key1: "newValue",
+      key2: "value",
+      key3: "value",
+      key4: {
+        key41: "newValue",
+        key42: null,
+      },
+    });
+    expect(result5?.status).toEqual(SharedStateStatus.SET);
+  });
 });
+
+function buildLatestEvent(eventHub: EventHub): Event {
+  const latestEvent = new Event("", "", "", null);
+  eventHub.dispatchEvent(latestEvent);
+  return latestEvent;
+}

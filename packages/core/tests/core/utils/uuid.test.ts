@@ -9,19 +9,23 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
+import { uuid } from "../../../src/core/utils/uuid";
 
-/**
- * Generate a version 4 UUID.
- *
- * @returns {string} A version 4 UUID.
- */
-export function uuid(): string {
-  // Kepler docs suggest using a separate library (@amzn/expo-crypto) to generate uuid.
-  // TODO: We can consider adding a new servier after beta release. https://git.corp.adobe.com/dms-mobile/aepsdk-kepler/pull/40
-
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-    const r = (Math.random() * 16) | 0,
-      v = c === "x" ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
+describe("test uuid()", () => {
+  test("should generate a string", () => {
+    const id = uuid();
+    expect(typeof id).toBe("string");
   });
-}
+
+  test("should generate a valid version 4 UUID", () => {
+    const id = uuid();
+    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    expect(id).toMatch(uuidV4Regex);
+  });
+
+  test("should generate different UUIDs on multiple calls", () => {
+    const id1 = uuid();
+    const id2 = uuid();
+    expect(id1).not.toBe(id2);
+  });
+});

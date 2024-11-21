@@ -74,6 +74,7 @@ export const EdgeConstants = {
   },
 
   Request: {
+    TIMEOUT: 5000,
     Data: {
       IDENTITY_MAP: "identityMap",
       XDM: "xdm",
@@ -102,7 +103,7 @@ export const EdgeConstants = {
       DEFAULT: "https://edge.adobedc.net",
     },
     Retry: {
-      TIMEOUT: 5000,
+      TIMEOUT: 30000,
     },
     RecoverableStatusCodes: [408, 500, 503],
   },

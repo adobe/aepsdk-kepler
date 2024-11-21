@@ -19,6 +19,7 @@ import { IdentityManager } from "../../src/edge/identity/IdentityManager";
 import { LocationHintManager } from "../../src/edge/LocationHintManager";
 import { StateStoreManager } from "../../src/edge/StateStoreManager";
 import { asyncRequest } from "../../src/core/utils/networking";
+import { EdgeStateManager } from "../../src/edge/EdgeStateManager";
 
 jest.mock("../../src/core/utils/networking");
 jest.mock("../../src/core/services/DataStore");
@@ -26,6 +27,8 @@ jest.mock("../../src/edge/identity/IdentityManager");
 jest.mock("../../src/edge/consent/ConsentManager");
 jest.mock("../../src/edge/LocationHintManager");
 jest.mock("../../src/edge/StateStoreManager");
+jest.mock("../../src/edge/EdgeStateManager");
+jest.mock("../../src/edge/EdgeResponseManager");
 
 describe("EdgeHitProcessor tests", () => {
   let mockAsyncRequest: jest.MockedFunction<typeof asyncRequest>;
@@ -34,7 +37,10 @@ describe("EdgeHitProcessor tests", () => {
   let mockIdentityManager: jest.Mocked<IdentityManager>;
   let mockLocationHintManager: jest.Mocked<LocationHintManager>;
   let mockStateStoreManager: jest.Mocked<StateStoreManager>;
+  let mockEdgeStateManager: jest.Mocked<EdgeStateManager>;
+  let mockEdgeResponseManager: jest.Mocked<EdgeResponseManager>;
   const mockDispatchFn: jest.Mock = jest.fn();
+  const mockCreateSharedState: jest.Mock = jest.fn();
 
   beforeEach(() => {
     mockAsyncRequest = asyncRequest as jest.MockedFunction<typeof asyncRequest>;
@@ -62,63 +68,49 @@ describe("EdgeHitProcessor tests", () => {
     ) as jest.Mocked<LocationHintManager>;
 
     mockStateStoreManager = new StateStoreManager(mockDataStore) as jest.Mocked<StateStoreManager>;
+
+    mockEdgeStateManager = new EdgeStateManager(
+      mockDispatchFn,
+      mockCreateSharedState,
+      mockDataStore,
+      mockIdentityManager,
+      mockConsentManager
+    ) as jest.Mocked<EdgeStateManager>;
+    jest.spyOn(mockEdgeStateManager, "getDatastreamId").mockReturnValue("mockConfigId");
+    jest.spyOn(mockEdgeStateManager, "getEcid").mockReturnValue("mockECID");
+    jest.spyOn(mockEdgeStateManager, "getCollectConsent").mockReturnValue(ConsentValue.YES);
+
+    mockEdgeResponseManager = new EdgeResponseManager(
+      mockDispatchFn,
+      mockEdgeStateManager,
+      mockIdentityManager,
+      mockConsentManager,
+      mockLocationHintManager,
+      mockStateStoreManager
+    ) as jest.Mocked<EdgeResponseManager>;
+
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
+
   test("EdgeHitProcessor should be defined", () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
     expect(edgeHitProcessor).toBeDefined();
   });
 
   test("process should do nothing when queue is empty", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     await edgeHitProcessor.process();
   });
 
   test("should queue edge and consent hits correctly", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const edgeHit = EdgeHit.builder().setType(EdgeHitType.EDGE).build();
     const consentHit = EdgeHit.builder().setType(EdgeHitType.CONSENT).build();
@@ -131,20 +123,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send edge hit to edge network and remove it from queue", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -163,8 +142,11 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -186,20 +168,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send all the queued hits", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -236,26 +205,15 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(3);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(3);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(3);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(3);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(3);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(3);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(3);
   });
 
   test("process should send consent hit to edge network and remove it from queue", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const consentHit = EdgeHit.builder()
@@ -290,8 +248,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -313,22 +273,9 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n", async () => {
-    jest.spyOn(mockConsentManager, "getCollectConsent").mockReturnValue(ConsentValue.NO);
+    jest.spyOn(mockEdgeStateManager, "getCollectConsent").mockReturnValue(ConsentValue.NO);
 
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -371,10 +318,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(2); // 1 for edge hit and 1 for consent hit
-
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(2); // 1 for edge hit and 1 for consent hit
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
     expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
@@ -395,22 +342,9 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should not send edge hit but should send consent hit to edge network when consent is p", async () => {
-    jest.spyOn(mockConsentManager, "getCollectConsent").mockReturnValue(ConsentValue.PENDING);
+    jest.spyOn(mockEdgeStateManager, "getCollectConsent").mockReturnValue(ConsentValue.PENDING);
 
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -453,10 +387,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(2); // 1 for edge hit and 1 for consent hit
-
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(2); // 1 for edge hit and 1 for consent hit
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1);
     expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
@@ -477,20 +411,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("test queueHit when max queue size is reached", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     jest.spyOn(edgeHitProcessor, "queueHit");
 
@@ -512,20 +433,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("test queueHit when max queue size is reached for consent queue", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     jest.spyOn(edgeHitProcessor, "queueHit");
 
@@ -551,20 +459,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send edge hit with location hint when location hint is present", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -575,7 +470,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    mockLocationHintManager.getLocationHint.mockReturnValue("mockLocationHint");
+    mockEdgeResponseManager.getLocationHint.mockReturnValue("mockLocationHint");
 
     mockAsyncRequest.mockResolvedValue({
       responseCode: 200,
@@ -585,9 +480,11 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockLocationHintManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -611,20 +508,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send consent hit with location hint when location hint is present", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const consentHit = EdgeHit.builder()
@@ -651,7 +535,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(consentHit);
 
-    mockLocationHintManager.getLocationHint.mockReturnValue("mockLocationHint");
+    mockEdgeResponseManager.getLocationHint.mockReturnValue("mockLocationHint");
 
     mockAsyncRequest.mockResolvedValue({
       responseCode: 200,
@@ -661,9 +545,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockLocationHintManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -687,20 +572,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send edge hit with identity map when identity map is present and not add fetch ecid query", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -711,7 +583,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    mockIdentityManager.getIdentityMap.mockReturnValue({
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
       ECID: [
         {
           authenticatedState: "ambiguous",
@@ -729,9 +601,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
     expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
@@ -752,20 +625,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send consent hit with identity map when identity map is present and not add fetch ecid query", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const consentHit = EdgeHit.builder()
@@ -792,7 +652,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(consentHit);
 
-    mockIdentityManager.getIdentityMap.mockReturnValue({
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
       ECID: [
         {
           authenticatedState: "ambiguous",
@@ -810,8 +670,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -833,20 +695,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send edge hit with state store when state store is present", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const edgeHit = EdgeHit.builder()
@@ -857,7 +706,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    mockStateStoreManager.getStateStore.mockReturnValue([
+    mockEdgeResponseManager.getStateStore.mockReturnValue([
       {
         key: "kndctr_1234_AdobeOrg_cluster",
         value: "or2",
@@ -878,8 +727,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockStateStoreManager.getStateStore).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -901,20 +752,7 @@ describe("EdgeHitProcessor tests", () => {
   });
 
   test("process should send consent hit with state store when state store is present", async () => {
-    const responseManager = new EdgeResponseManager(
-      mockDispatchFn,
-      mockIdentityManager,
-      mockConsentManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
-    const edgeHitProcessor = new EdgeHitProcessor(
-      responseManager,
-      mockConsentManager,
-      mockIdentityManager,
-      mockLocationHintManager,
-      mockStateStoreManager
-    );
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
     const consentHit = EdgeHit.builder()
@@ -941,7 +779,7 @@ describe("EdgeHitProcessor tests", () => {
 
     edgeHitProcessor.queueHit(consentHit);
 
-    mockStateStoreManager.getStateStore.mockReturnValue([
+    mockEdgeResponseManager.getStateStore.mockReturnValue([
       {
         key: "kndctr_1234_AdobeOrg_cluster",
         value: "or2",
@@ -962,8 +800,10 @@ describe("EdgeHitProcessor tests", () => {
     const success = await edgeHitProcessor.process();
     expect(success).toBe(true);
 
-    expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockStateStoreManager.getStateStore).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
     expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
@@ -982,5 +822,78 @@ describe("EdgeHitProcessor tests", () => {
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
+  });
+
+  test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .setTimestamp(testTS)
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockAsyncRequest
+      .mockResolvedValueOnce({
+        responseCode: 500,
+        bodyAsText: "Internal Server Error",
+      })
+      .mockResolvedValueOnce({
+        responseCode: 200,
+        bodyAsText: "{}",
+      });
+
+    await edgeHitProcessor.process();
+    // async request should not be called the second time
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1);
+
+    // Simulate the retry timeout
+    // wait for 25 seconds
+    jest.advanceTimersByTime(25000);
+    await edgeHitProcessor.process();
+
+    // async request should not be called the second time
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1); // edgeHit is still in the queue to be retried
+
+    // wait for 5 more seconds (total 30 seconds)
+    jest.advanceTimersByTime(5000);
+    await edgeHitProcessor.process();
+
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(2); // 1 for the first call and 1 for the retry
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(2);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(2);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(2);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(2);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+  });
+
+  test("Request should not be retried when it fails with non-recoverable error", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .setTimestamp(testTS)
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 400,
+      bodyAsText: "Bad Request",
+    });
+
+    await edgeHitProcessor.process();
+
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0); // edge hit should be dropped
   });
 });

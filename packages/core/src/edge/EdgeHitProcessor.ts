@@ -25,23 +25,26 @@ import { EdgeStateManager } from "./EdgeStateManager";
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeHitProcessor";
 
+const REQUEST = EdgeConstants.Request;
 const PATH = EdgeConstants.Request.Path;
 const URL = EdgeConstants.Request.Url;
 const RETRY = EdgeConstants.Request.Retry;
-const RECOVERABLE_ERRORS = EdgeConstants.Request.RecoverableStatusCodes;
 const DATA = EdgeConstants.Request.Data;
 const QUERY = EdgeConstants.Request.Data.Query;
 const META = EdgeConstants.Request.Data.Meta;
 const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
+const RECOVERABLE_ERRORS = EdgeConstants.Request.RecoverableStatusCodes;
+const SUCCESS_RESPONSE_CODE = 200;
 
 const MAX_QUEUE_SIZE = 100;
+const INVALID_TIMESTAMP = -1;
 
 export class EdgeHitProcessor {
   private hitQueue: EdgeHitQueue;
   private consentHitQueue: EdgeHitQueue;
-  private lastHitTs: number = 0;
   private retryTimeout: number = RETRY.TIMEOUT;
   private isProcessing: boolean = false;
+  private lastFailedHitTs: number = INVALID_TIMESTAMP;
 
   constructor(
     private edgeResponseManager: EdgeResponseManager,
@@ -119,6 +122,11 @@ export class EdgeHitProcessor {
           return Promise.resolve(false);
         }
 
+        if (this.shouldWaitBeforeRetry()) {
+          Log.verbose(LOG_SOURCE, LOG_TAG, "process() - Waiting before retrying the failed hit.");
+          return Promise.resolve(false);
+        }
+
         const consent = this.edgeStateMananger.getCollectConsent();
         const hit = this.getNextHit(consent);
 
@@ -146,8 +154,6 @@ export class EdgeHitProcessor {
 
         meta = this.appendStateToMeta(meta, stateStore);
 
-        this.lastHitTs = Date.now();
-
         const requestBody =
           hit.type === EdgeHitType.EDGE
             ? this.createEdgeRequestBody(hit, identity, meta)
@@ -166,10 +172,15 @@ export class EdgeHitProcessor {
     } finally {
       this.isProcessing = false;
     }
-
-    return Promise.resolve(false);
   }
 
+  /**
+   * Returns the next hit to be processed based on the collect consent value.
+   * If the collect consent is PENDING, the consent hit is returned.
+   * If the collect consent is YES or NO, oldest hit is returned.
+   * @param collectConsent ConsentValue The collect consent value.
+   * @returns EdgeHit The next hit to be processed or null if there are no hits to be processed.
+   */
   private getNextHit(collectConsent: ConsentValue | null): EdgeHit | null {
     const consentHit = this.consentHitQueue.peek();
     const edgeHit = this.hitQueue.peek();
@@ -189,6 +200,12 @@ export class EdgeHitProcessor {
     return edgeHit ?? consentHit;
   }
 
+  /**
+   * Appends the state store to the meta object.
+   * @param meta DataObject The meta object to append the state store to.
+   * @param stateStore DataArray The state store to append to the meta object.
+   * @returns DataObject The updated meta object.
+   */
   private appendStateToMeta(meta: DataObject | null, stateStore: DataArray | null): DataObject {
     const updatedMeta = getAsDataObject(meta) ?? {};
     const stateMetadata: DataObject = {};
@@ -234,6 +251,28 @@ export class EdgeHitProcessor {
   }
 
   /**
+   * Checks if the request is ready to be retried in case of a retry.
+   * Returns true if it is not a retry or if the retry timeout has elapsed.
+   * @returns boolean indicating if the wait timeout has elapsed.
+   */
+  private shouldWaitBeforeRetry(): boolean {
+    if (this.lastFailedHitTs !== INVALID_TIMESTAMP) {
+      const timeSinceLastFailedHit = Date.now() - this.lastFailedHitTs;
+
+      if (timeSinceLastFailedHit < this.retryTimeout) {
+        const diff = this.retryTimeout - timeSinceLastFailedHit;
+        Log.debug(
+          LOG_SOURCE,
+          LOG_TAG,
+          `isWaitingForRetry() - Waiting for (${diff}) ms more before retrying the failed hit.`
+        );
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Sends the hit to the Edge Network with the given URL and request body.
    * @param url string The URL to send the hit to.
    * @param requestBody string The request body to send.
@@ -244,33 +283,60 @@ export class EdgeHitProcessor {
       url: url,
       method: HttpMethod.POST,
       body: requestBody,
-      timeout: this.retryTimeout,
+      timeout: REQUEST.TIMEOUT,
     })
       .then((response: HttpConnection) => {
-        if (response.responseCode === 200) {
+        if (response.responseCode === SUCCESS_RESPONSE_CODE) {
           Log.debug(
             LOG_SOURCE,
             LOG_TAG,
-            `process() - Hit sent successfully with response code: ${response.responseCode}, body: ${response.bodyAsText}`
+            `process() - Hit sent successfully with response \n code: ${response.responseCode}, \n body: ${response.bodyAsText}`
           );
+
+          // Reset the last failed hit timestamp
+          this.lastFailedHitTs = INVALID_TIMESTAMP;
 
           const responseBody = response.bodyAsText ?? "";
           const responseObj = JSON.parse(responseBody);
           this.edgeResponseManager.handleEdgeResponse(responseObj);
-        } else {
+
+          return true;
+        } else if (this.isRecoverableError(response.responseCode)) {
+          // Set the last failed hit timestamp
+          this.lastFailedHitTs = Date.now();
+
           Log.error(
             LOG_SOURCE,
             LOG_TAG,
-            `process() - Failed to send hit: ${response.responseCode} message: ${response.bodyAsText}`
+            `process() - Request failed with recoverable response code: (${response.responseCode}) \n message: ${response.bodyAsText}. Request will be retried in ${this.retryTimeout}ms.`
           );
-        }
 
-        return true;
+          return false;
+        } else {
+          // Reset the last failed hit timestamp
+          this.lastFailedHitTs = INVALID_TIMESTAMP;
+
+          Log.error(
+            LOG_SOURCE,
+            LOG_TAG,
+            `process() - Request failed with unrecoverable error rsponse code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
+          );
+          return true; // Do not retry
+        }
       })
       .catch((error) => {
-        Log.error(LOG_SOURCE, LOG_TAG, `process() - Failed to send hit: ${error}`);
+        Log.error(LOG_SOURCE, LOG_TAG, `process() - Failed to send hit with error: \n (${error})`);
         return false;
       });
+  }
+
+  /**
+   * Checks if the error code is recoverable.
+   * @param code number The error code to check.
+   * @returns boolean indicating if the error is recoverable.
+   */
+  private isRecoverableError(errorCode: number): boolean {
+    return RECOVERABLE_ERRORS.includes(errorCode as 408 | 500 | 503);
   }
 
   /**

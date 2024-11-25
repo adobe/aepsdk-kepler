@@ -10,7 +10,6 @@ governing permissions and limitations under the License.
 */
 
 import { IdentityManager } from "./identity/IdentityManager";
-import { DataStore } from "../core/services";
 import { ConsentManager, ConsentValue } from "./consent/ConsentManager";
 import { EdgeConstants } from "./EdgeConstants";
 import { DataObject, EventData } from "../core/eventhub/EventData";
@@ -31,9 +30,7 @@ export class EdgeStateManager {
   private lastSharedState: DataObject = {};
 
   constructor(
-    private notifyStateChange: (event: Event) => void,
     private createSharedState: (data: DataObject, event: Event | null) => void,
-    private dataStore: DataStore,
     private identityManager: IdentityManager,
     private consentManager: ConsentManager
   ) {}

@@ -10,7 +10,7 @@ governing permissions and limitations under the License.
 */
 
 import { DataObject } from "../core/eventhub/EventData";
-import { EdgeImpl } from "./EdgeImpl";
+import { EdgeExtension } from "./EdgeExtension";
 import { Extension } from "../core/extension";
 
 // Interface
@@ -23,4 +23,4 @@ export interface Edge {
   setConsent(consent: DataObject): void;
 }
 
-export const edge: Edge = new EdgeImpl();
+export const edge: Edge = new EdgeExtension();

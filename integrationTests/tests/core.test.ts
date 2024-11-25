@@ -13,6 +13,6 @@ import { AEPSDK } from '@adobe/kepler-aepcore';
 
 describe('Core module tests', () => {
     it('start() - TODO', () => {
-        expect(AEPSDK.start).toBeDefined();
+        expect(AEPSDK.initialize).toBeDefined();
     });
 });

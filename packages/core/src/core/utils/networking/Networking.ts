@@ -15,7 +15,7 @@ governing permissions and limitations under the License.
 import { Log } from "../Log";
 import { NetworkRequest, HttpConnection } from "./";
 import { DEFAULT_HEADER, DEFAULT_TIMEOUT, ERROR_CONNECTION } from "./Constants";
-import { safeStringify } from "../Common";
+import { safeStringify } from "../common";
 import { EXTENSION_NAME } from "../Constants";
 
 const LOG_TAG = "Networking";

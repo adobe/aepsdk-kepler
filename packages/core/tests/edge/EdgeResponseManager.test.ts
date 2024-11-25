@@ -11,18 +11,20 @@ governing permissions and limitations under the License.
 */
 
 import { EdgeResponseManager } from "../../src/edge/EdgeResponseManager";
+import { EdgeStateManager } from "../../src/edge/EdgeStateManager";
 import { DataStore } from "../../src/core/services/DataStore";
 import { IdentityManager } from "../../src/edge/identity/IdentityManager";
 import { LocationHintManager } from "../../src/edge/LocationHintManager";
 import { StateStoreManager } from "../../src/edge/StateStoreManager";
 import { ConsentManager, ConsentValue } from "../../src/edge/consent/ConsentManager";
-import { EventData } from "../../src/core/eventhub";
+import { Event, EventData } from "../../src/core/eventhub";
 
 jest.mock("../../src/core/services/DataStore");
 jest.mock("../../src/edge/identity/IdentityManager");
 jest.mock("../../src/edge/consent/ConsentManager");
 jest.mock("../../src/edge/LocationHintManager");
 jest.mock("../../src/edge/StateStoreManager");
+jest.mock("../../src/edge/EdgeStateManager");
 
 describe("EdgeResponseManager tests", () => {
   let mockDataStore: jest.Mocked<DataStore>;
@@ -30,8 +32,10 @@ describe("EdgeResponseManager tests", () => {
   let mockIdentityManager: jest.Mocked<IdentityManager>;
   let mockLocationHintManager: jest.Mocked<LocationHintManager>;
   let mockStateStoreManager: jest.Mocked<StateStoreManager>;
+  let mockEdgeStateManager: jest.Mocked<EdgeStateManager>;
 
   const mockDispatchFn = jest.fn();
+  const mockCreateSharedState = jest.fn();
 
   beforeEach(() => {
     mockDataStore = {
@@ -59,6 +63,12 @@ describe("EdgeResponseManager tests", () => {
 
     mockStateStoreManager = new StateStoreManager(mockDataStore) as jest.Mocked<StateStoreManager>;
     jest.spyOn(mockStateStoreManager, "getStateStore").mockReturnValue(null);
+
+    mockEdgeStateManager = new EdgeStateManager(
+      mockCreateSharedState,
+      mockIdentityManager,
+      mockConsentManager
+    ) as jest.Mocked<EdgeStateManager>;
   });
 
   afterEach(() => {
@@ -68,6 +78,7 @@ describe("EdgeResponseManager tests", () => {
   test("EdgeResponseManager should be defined", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -79,6 +90,7 @@ describe("EdgeResponseManager tests", () => {
   test("EdgeResponseManager handleEdgeResponse with identity handle calls identity processEdgeRespons with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -115,6 +127,7 @@ describe("EdgeResponseManager tests", () => {
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
+    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEventData = EventData.buildFrom({
       type: "identity:result",
@@ -128,20 +141,29 @@ describe("EdgeResponseManager tests", () => {
       ],
     });
 
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "AEP Response Event Handle",
-      type: "com.adobe.eventType.edge",
-      source: "identity:result",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+    const expectedEvent = new Event(
+      "AEP Response Event Handle",
+      "com.adobe.eventType.edge",
+      "identity:result",
+      expectedEventData
+    );
+
+    // get the event data from the dispatch call
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toEqual(expectedEvent.name);
+    expect(dispatchedEvent.type).toEqual(expectedEvent.type);
+    expect(dispatchedEvent.source).toEqual(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
   test("EdgeResponseManager handleEdgeResponse with consent handle calls consent processEdgeRespons with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -187,21 +209,31 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
+    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "AEP Response Event Handle",
-      type: "com.adobe.eventType.edge",
-      source: "consent:preferences",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+    const expectedEvent = new Event(
+      "AEP Response Event Handle",
+      "com.adobe.eventType.edge",
+      "consent:preferences",
+      expectedEventData
+    );
+
+    // get the event data from the dispatch call
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toEqual(expectedEvent.name);
+    expect(dispatchedEvent.type).toEqual(expectedEvent.type);
+    expect(dispatchedEvent.source).toEqual(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
   test("EdgeResponseManager handleEdgeResponse with location hint handle calls location hint processEdgeRespons with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -247,21 +279,31 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
+    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "AEP Response Event Handle",
-      type: "com.adobe.eventType.edge",
-      source: "locationHint:result",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+    const expectedEvent = new Event(
+      "AEP Response Event Handle",
+      "com.adobe.eventType.edge",
+      "locationHint:result",
+      expectedEventData
+    );
+
+    // get the event data from the dispatch call
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toEqual(expectedEvent.name);
+    expect(dispatchedEvent.type).toEqual(expectedEvent.type);
+    expect(dispatchedEvent.source).toEqual(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
   test("EdgeResponseManager handleEdgeResponse with state store handle calls state store processEdgeRespons with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -307,21 +349,31 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
+    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "AEP Response Event Handle",
-      type: "com.adobe.eventType.edge",
-      source: "state:store",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+    const expectedEvent = new Event(
+      "AEP Response Event Handle",
+      "com.adobe.eventType.edge",
+      "state:store",
+      expectedEventData
+    );
+
+    // get the event data from the dispatch call
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toEqual(expectedEvent.name);
+    expect(dispatchedEvent.type).toEqual(expectedEvent.type);
+    expect(dispatchedEvent.source).toEqual(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
   test("EdgeResponseManager handleEdgeResponse with other handle types dispatches events", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
+      mockEdgeStateManager,
       mockIdentityManager,
       mockConsentManager,
       mockLocationHintManager,
@@ -344,6 +396,7 @@ describe("EdgeResponseManager tests", () => {
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
+    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEventData = EventData.buildFrom({
       type: "media-analytics:new-session",
@@ -354,14 +407,22 @@ describe("EdgeResponseManager tests", () => {
       ],
     });
 
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "AEP Response Event Handle",
-      type: "com.adobe.eventType.edge",
-      source: "media-analytics:new-session",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+    const expectedEvent = new Event(
+      "AEP Response Event Handle",
+      "com.adobe.eventType.edge",
+      "media-analytics:new-session",
+      expectedEventData
+    );
+
+    // get the event data from the dispatch call
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toEqual(expectedEvent.name);
+    expect(dispatchedEvent.type).toEqual(expectedEvent.type);
+    expect(dispatchedEvent.source).toEqual(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 });

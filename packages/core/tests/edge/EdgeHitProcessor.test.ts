@@ -70,9 +70,7 @@ describe("EdgeHitProcessor tests", () => {
     mockStateStoreManager = new StateStoreManager(mockDataStore) as jest.Mocked<StateStoreManager>;
 
     mockEdgeStateManager = new EdgeStateManager(
-      mockDispatchFn,
       mockCreateSharedState,
-      mockDataStore,
       mockIdentityManager,
       mockConsentManager
     ) as jest.Mocked<EdgeStateManager>;

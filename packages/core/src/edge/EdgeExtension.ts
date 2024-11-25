@@ -23,7 +23,7 @@ import { EdgeResponseManager } from "./EdgeResponseManager";
 import { LocationHintManager } from "./LocationHintManager";
 import { StateStoreManager } from "./StateStoreManager";
 import { EdgeStateManager } from "./EdgeStateManager";
-import { DataObject, DataType, EventData } from "../core/eventhub/EventData";
+import { DataObject, EventData } from "../core/eventhub/EventData";
 import { uuid } from "../core/utils/uuid";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 
@@ -31,10 +31,10 @@ export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
-const LOG_TAG = "EdgeImpl";
+const LOG_TAG = "EdgeExtension";
 
 // Implementation
-export class EdgeImpl implements Edge, Extension {
+export class EdgeExtension implements Edge, Extension {
   readonly EXTENSION: Extension = this;
 
   private isActive: boolean = false;
@@ -78,9 +78,7 @@ export class EdgeImpl implements Edge, Extension {
     this.stateStoreManager = new StateStoreManager(this.dataStore);
 
     this.edgeStateManager = new EdgeStateManager(
-      this.dispatchFn,
       this.createSharedState,
-      this.dataStore,
       this.identityManager,
       this.consentManager
     );

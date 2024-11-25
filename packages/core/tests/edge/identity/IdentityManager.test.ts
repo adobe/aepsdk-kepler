@@ -13,6 +13,7 @@ import { IdentityManager } from "../../../src/edge/identity/IdentityManager";
 import { DataStore } from "../../../src/core/services/DataStore";
 import { EdgeConstants } from "../../../src/edge/EdgeConstants";
 import { EventData } from "../../../src/core/eventhub/EventData";
+import { Event } from "../../../src/core/eventhub";
 
 // Mock the DataStore module
 jest.mock("../../../src/core/services/DataStore");
@@ -119,15 +120,23 @@ describe("IdentityManager tests", () => {
     const expectedEventData = EventData.buildFrom({
       ecid: "newECID",
     });
-    expect(mockDispatchFn).toBeCalledWith({
-      name: "Edge Identity Response",
-      type: "com.adobe.eventType.edgeIdentity",
-      source: "com.adobe.eventSource.responseIdentity",
-      data: expectedEventData,
-      sequentialId: expect.any(Number),
-      timestamp: expect.any(Date),
-      uuid: expect.any(String),
-    });
+
+    const expectedEvent = new Event(
+      "Edge Identity Response",
+      "com.adobe.eventType.edgeIdentity",
+      "com.adobe.eventSource.responseIdentity",
+      expectedEventData
+    );
+
+    const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
+
+    expect(dispatchedEvent.name).toBe(expectedEvent.name);
+    expect(dispatchedEvent.type).toBe(expectedEvent.type);
+    expect(dispatchedEvent.source).toBe(expectedEvent.source);
+    expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
   test("processEdgeResponse does not update ECID when not set in response handle", async () => {

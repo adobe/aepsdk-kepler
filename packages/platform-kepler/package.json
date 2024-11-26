@@ -1,0 +1,46 @@
+{
+  "name": "@adobe/platform-kepler",
+  "version": "1.0.0",
+  "description": "Adobe Experience Platform support for kepler apps.",
+  "homepage": "https://developer.adobe.com/client-sdks/documentation/",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist; npx tsc",
+    "test": "jest",
+    "archive": "yarn pack --out ../../out/%s-%v.tgz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/adobe/aepsdk-kepler",
+    "directory": "packages/core"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "kepler",
+    "adobe",
+    "adobe experience platform",
+    "core"
+  ],
+  "author": {
+    "name": "Adobe Experience Platform SDK Team"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "installConfig": {
+    "hoistingLimits": "dependencies"
+  },
+  "dependencies": {
+    "@adobe/js-aepcore": "^1.0.0",
+    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0"
+  },
+  "overrides": {
+    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0"
+  }
+}

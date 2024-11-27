@@ -141,12 +141,12 @@ describe("EdgeResponseManager tests", () => {
       ],
     });
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "identity:result",
       expectedEventData
-    );
+    ).build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -211,12 +211,12 @@ describe("EdgeResponseManager tests", () => {
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "consent:preferences",
       expectedEventData
-    );
+    ).build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -281,12 +281,12 @@ describe("EdgeResponseManager tests", () => {
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "locationHint:result",
       expectedEventData
-    );
+    ).build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -351,12 +351,12 @@ describe("EdgeResponseManager tests", () => {
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "state:store",
       expectedEventData
-    );
+    ).build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -407,12 +407,12 @@ describe("EdgeResponseManager tests", () => {
       ],
     });
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "media-analytics:new-session",
       expectedEventData
-    );
+    ).build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];

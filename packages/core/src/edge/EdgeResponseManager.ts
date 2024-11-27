@@ -113,7 +113,12 @@ export class EdgeResponseManager {
 
       // Dispatch the response to the event hub.
       this.dispatchFn(
-        new Event("AEP Response Event Handle", EventType.EDGE, type, EventData.buildFrom(handle))
+        Event.builder(
+          "AEP Response Event Handle",
+          EventType.EDGE,
+          type,
+          EventData.buildFrom(handle)
+        ).build()
       );
     }
 

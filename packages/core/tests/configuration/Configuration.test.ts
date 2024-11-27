@@ -159,12 +159,12 @@ describe("test Configuration extension", () => {
       ["xx"]: {},
     });
     eventHub.dispatchEvent(
-      new Event(
+      Event.builder(
         UPDATE_CONFIGURATION_EVENT_NAME,
         EventType.CONFIGURATION,
         EventSource.REQUEST_CONTENT,
         data
-      )
+      ).build()
     );
     expect(dispatchedEvents.length).toBe(1);
     expect(Log.verbose).not.toHaveBeenCalled();
@@ -285,7 +285,7 @@ describe("test Configuration extension", () => {
 });
 
 function buildLatestEvent(eventHub: EventHub): Event {
-  const latestEvent = new Event("", "", "", null);
+  const latestEvent = Event.builder("", "", "", null).build();
   eventHub.dispatchEvent(latestEvent);
   return latestEvent;
 }

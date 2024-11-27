@@ -27,7 +27,7 @@ describe("test ConfigurationExtension class", () => {
       registerOneTimeEventListener: jest.fn(),
     };
 
-    const event = new Event("name", "type", "source");
+    const event = Event.builder("name", "type", "source").build();
     const container = createExtensionContainer(eventHub, "test", new SharedStateManager());
     container.dispatch(event);
 
@@ -98,7 +98,7 @@ describe("test ConfigurationExtension class", () => {
     const container = createExtensionContainer(eventHub, "extension_name", sharedStateManager);
 
     const eventId = 101;
-    const e = new Event("name", "type", "source");
+    const e = Event.builder("name", "type", "source").build();
     e.id = eventId;
     const state = EventData.buildFrom({}) as EventData;
     container.createXDMSharedState(state, e);
@@ -150,7 +150,7 @@ describe("test ConfigurationExtension class", () => {
     sharedStateManager.getSharedState = jest.fn();
 
     const eventId = 99;
-    const event = new Event("name", "type", "source");
+    const event = Event.builder("name", "type", "source").build();
     event.id = eventId;
 
     const container = createExtensionContainer(eventHub, "extension_name", sharedStateManager);
@@ -173,7 +173,7 @@ describe("test ConfigurationExtension class", () => {
     sharedStateManager.updateSharedState = jest.fn();
 
     const eventId = 99;
-    const e = new Event("name", "type", "source");
+    const e = Event.builder("name", "type", "source").build();
     e.id = eventId;
 
     const container = createExtensionContainer(eventHub, "extension_name", sharedStateManager);
@@ -225,7 +225,7 @@ describe("test ConfigurationExtension class", () => {
     sharedStateManager.removeSharedState = jest.fn();
 
     const eventId = 99;
-    const e = new Event("name", "type", "source");
+    const e = Event.builder("name", "type", "source").build();
     e.id = eventId;
 
     const container = createExtensionContainer(eventHub, "extension_name", sharedStateManager);

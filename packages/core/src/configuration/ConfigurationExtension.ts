@@ -84,12 +84,12 @@ export class ConfigurationExtension implements Configuration, Extension {
     }
 
     this.container?.dispatch(
-      new Event(
+      Event.builder(
         UPDATE_CONFIGURATION_EVENT_NAME,
         EventType.CONFIGURATION,
         EventSource.REQUEST_CONTENT,
         data
-      )
+      ).build()
     );
   }
 

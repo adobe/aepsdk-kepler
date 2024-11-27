@@ -44,10 +44,10 @@ describe("test EventHubImpl class", () => {
       expect(event.data).toBeNull();
     });
 
-    eventHub.dispatchEvent(new Event("name", "type_1", "source_1", data_1));
-    eventHub.dispatchEvent(new Event("name", "type_2", "source_2", data_2));
-    eventHub.dispatchEvent(new Event("name", "type_3", "source_3"));
-    eventHub.dispatchEvent(new Event("name", "type_4", "source_4"));
+    eventHub.dispatchEvent(Event.builder("name", "type_1", "source_1", data_1).build());
+    eventHub.dispatchEvent(Event.builder("name", "type_2", "source_2", data_2).build());
+    eventHub.dispatchEvent(Event.builder("name", "type_3", "source_3").build());
+    eventHub.dispatchEvent(Event.builder("name", "type_4", "source_4").build());
   });
 
   test("test: multiple event listeners", () => {
@@ -74,9 +74,9 @@ describe("test EventHubImpl class", () => {
       expect(event.data).toBeNull();
     });
 
-    eventHub.dispatchEvent(new Event("name", "type_1", "source_1", data_1));
-    eventHub.dispatchEvent(new Event("name", "type_3", "source_3"));
-    eventHub.dispatchEvent(new Event("name", "type_4", "source_4"));
+    eventHub.dispatchEvent(Event.builder("name", "type_1", "source_1", data_1).build());
+    eventHub.dispatchEvent(Event.builder("name", "type_3", "source_3").build());
+    eventHub.dispatchEvent(Event.builder("name", "type_4", "source_4").build());
     expect(counter).toEqual(2);
   });
 
@@ -102,10 +102,10 @@ describe("test EventHubImpl class", () => {
       counter++;
     });
 
-    eventHub.dispatchEvent(new Event("name", "type_1", "source_1", data_1));
-    eventHub.dispatchEvent(new Event("name", "type_2", "source_2", data_2));
-    eventHub.dispatchEvent(new Event("name", "type_3", "source_3"));
-    eventHub.dispatchEvent(new Event("name", "type_4", "source_4"));
+    eventHub.dispatchEvent(Event.builder("name", "type_1", "source_1", data_1).build());
+    eventHub.dispatchEvent(Event.builder("name", "type_2", "source_2", data_2).build());
+    eventHub.dispatchEvent(Event.builder("name", "type_3", "source_3").build());
+    eventHub.dispatchEvent(Event.builder("name", "type_4", "source_4").build());
 
     eventHub.start();
     expect(counter).toEqual(2);
@@ -134,7 +134,7 @@ describe("test EventHubImpl class", () => {
 
     // trigger
     eventHub.start();
-    eventHub.dispatchEvent(new Event("name", "type", "source", data));
+    eventHub.dispatchEvent(Event.builder("name", "type", "source", data).build());
   });
 
   test("on adds event listener and dispatch event processes event listeners", () => {
@@ -146,7 +146,7 @@ describe("test EventHubImpl class", () => {
     });
 
     // this event will trigger the listener
-    const testEvent = new Event("name", "type", "source", data);
+    const testEvent = Event.builder("name", "type", "source", data).build();
     const listenerCallback = jest.fn();
 
     jest.spyOn(eventHub, "on");

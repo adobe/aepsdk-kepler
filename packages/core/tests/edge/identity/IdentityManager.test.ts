@@ -121,12 +121,12 @@ describe("IdentityManager tests", () => {
       ecid: "newECID",
     });
 
-    const expectedEvent = new Event(
+    const expectedEvent = Event.builder(
       "Edge Identity Response",
       "com.adobe.eventType.edgeIdentity",
       "com.adobe.eventSource.responseIdentity",
       expectedEventData
-    );
+    ).build();
 
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
 

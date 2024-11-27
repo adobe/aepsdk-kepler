@@ -89,12 +89,12 @@ describe("ConsentManager tests", () => {
       },
     });
 
-    const configurationEvent = new Event(
+    const configurationEvent = Event.builder(
       "Mock Configuration Event",
       EventType.CONFIGURATION,
       EventSource.RESPONSE_CONTENT,
       configurationData
-    );
+    ).build();
     consentManager.processConfigurationEvent(configurationEvent);
 
     const consent = consentManager.getCollectConsent();
@@ -114,12 +114,12 @@ describe("ConsentManager tests", () => {
       },
     });
 
-    const configurationEvent = new Event(
+    const configurationEvent = Event.builder(
       "Mock Configuration Event",
       EventType.CONFIGURATION,
       EventSource.RESPONSE_CONTENT,
       configurationData
-    );
+    ).build();
     consentManager.processConfigurationEvent(configurationEvent);
 
     const consent = consentManager.getCollectConsent();

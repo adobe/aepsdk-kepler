@@ -91,12 +91,12 @@ export class IdentityManager {
       const eventData = EventData.buildFrom({
         [EdgeConstants.EventData.Keys.ECID]: ecid,
       });
-      const event = new Event(
+      const event = Event.builder(
         "Edge Identity Response",
         EventType.EDGE_IDENTITY,
         EventSource.RESPONSE_IDENTITY,
         eventData
-      );
+      ).build();
       this.dispatchFn(event);
     }
   }

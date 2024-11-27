@@ -17,11 +17,11 @@ describe("test Event class", () => {
 
   afterEach(() => {});
 
-  test("test Event: constructor()", () => {
+  test("Event.builder() - build an Event", () => {
     const data = EventData.buildFrom({
       key: "value",
     });
-    const event = new Event("name", "type", "source", data);
+    const event = Event.builder("name", "type", "source", data).build();
 
     expect(event.uuid).toBeDefined();
     expect(event.timestamp).toBeDefined();
@@ -32,8 +32,8 @@ describe("test Event class", () => {
     expect(event.data).toEqual(data);
   });
 
-  test("test Event: constructor() - data is null", () => {
-    const event = new Event("name", "type", "source");
+  test("Event.builder() - build an Event with null data", () => {
+    const event = Event.builder("name", "type", "source").build();
 
     expect(event.uuid).toBeDefined();
     expect(event.timestamp).toBeDefined();
@@ -44,8 +44,8 @@ describe("test Event class", () => {
     expect(event.data).toBeNull();
   });
 
-  test("test Event: id should only be set once", () => {
-    const event = new Event("name", "type", "source");
+  test("Event.id : id should only be set once", () => {
+    const event = Event.builder("name", "type", "source").build();
 
     expect(event.id).toBe(-1);
 
@@ -58,23 +58,22 @@ describe("test Event class", () => {
     expect(event.id).toBe(1);
   });
 
-  test("test Event: toString()", () => {
+  test("Event.toString() - include all properties", () => {
     const data = EventData.buildFrom({
       key: "value",
     });
-    const str = new Event("event_name", "event_type", "event_source", data).toString();
-    // console.log(str);
+    const str = Event.builder("event_name", "event_type", "event_source", data).build().toString();
     expect(str).toContain("name: event_name");
     expect(str).toContain('data: {"key":"value"}');
     expect(str).toContain("type: event_type");
     expect(str).toContain("source: event_source");
   });
 
-  test("test Event: cloneWithEventData()", async () => {
+  test("Event.cloneWithEventData()", async () => {
     const data = EventData.buildFrom({
       key: "value",
     });
-    const event = new Event("event_name", "event_type", "event_source", data);
+    const event = Event.builder("event_name", "event_type", "event_source", data).build();
     const newData = EventData.buildFrom({
       key: "newValue",
     });

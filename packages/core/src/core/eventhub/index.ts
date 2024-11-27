@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { EventHub } from "./EventHub";
 import { EventHubImpl } from "./EventHubImpl";
 
-export { Event } from "./Event";
+export { Event, type EventBuilder } from "./Event";
 export { EventData } from "./EventData";
 export type { EventHub, EventProcessor } from "./EventHub";
 export { EventType } from "./EventType";

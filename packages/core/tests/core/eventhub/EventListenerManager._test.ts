@@ -36,7 +36,7 @@ describe("test EventListenerManager class", () => {
     const eventType = "eventType";
     const eventSource = "eventSource";
 
-    const testEvent = new Event("test", eventType, eventSource, null, "parentID");
+    const testEvent = Event.builder("test", eventType, eventSource, null);
     const eventListener = jest.fn();
     eventListenerManager.addOneTimeResponseListener(
       testEvent,

@@ -117,7 +117,11 @@ export class EventListenerManager {
     );
     // Key will start with the parent id of the trigger event
     // Which is the id of the event waiting for response
-    const responseKey = this.generateIdPrefixedKey(triggerEvent.parentId, eventType, eventSource);
+    const responseKey = this.generateIdPrefixedKey(
+      triggerEvent.parentId ?? "",
+      eventType,
+      eventSource
+    );
 
     return this.oneTimeListeners.get(responseKey) || [];
   }
@@ -175,7 +179,11 @@ export class EventListenerManager {
    * @param listener the listener to be removed
    */
   removeOneTimeEventListener(responseEvent: Event, eventType: string, eventSource: string): void {
-    const responseKey = this.generateIdPrefixedKey(responseEvent.parentId, eventType, eventSource);
+    const responseKey = this.generateIdPrefixedKey(
+      responseEvent.parentId ?? "",
+      eventType,
+      eventSource
+    );
     this.oneTimeListeners.delete(responseKey);
   }
 

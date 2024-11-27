@@ -15,9 +15,11 @@ import { EventData } from "./EventData";
 import { LOG_SOURCE } from "../CoreConstants";
 
 const LOG_TAG = "Event";
+
 /**
  * Event class is the basic building block of the EventHub. It is used to represent an event that is being sent or received.
  */
+
 export class Event {
   readonly uuid: string = uuid();
 
@@ -34,7 +36,9 @@ export class Event {
 
   readonly data: EventData | null;
 
-  readonly parentId: string = "";
+  private _parentId: string | null = null;
+
+  private _responseId: string | null = null;
 
   /**
    * Constructor of the Event class.
@@ -44,18 +48,11 @@ export class Event {
    * @param source  the source of the event
    * @param data  the data of the event
    */
-  constructor(
-    name: string,
-    type: string,
-    source: string,
-    data: EventData | null = null,
-    parentId: string = ""
-  ) {
+  private constructor(name: string, type: string, source: string, data: EventData | null = null) {
     this.name = name;
     this.type = type;
     this.source = source;
     this.data = data;
-    this.parentId = parentId;
   }
 
   /**
@@ -83,6 +80,22 @@ export class Event {
         `Failed to set the event id to: ${value}. It has already been set to: ${this.sequentialId}`
       );
     }
+  }
+
+  private set parentId(parentId: string | null) {
+    this._parentId = parentId;
+  }
+
+  get parentId(): string | null {
+    return this._parentId;
+  }
+
+  private set responseId(responseId: string | null) {
+    this._responseId = responseId;
+  }
+
+  get responseId(): string | null {
+    return this._responseId;
   }
 
   /**
@@ -115,19 +128,57 @@ export class Event {
    * @returns a clone of the event object
    */
   cloneWithEventData(data: EventData | null = null): Event {
-    const newEvent = new Event(this.name, this.type, this.source, data, this.parentId);
+    const newEvent = new Event(this.name, this.type, this.source, data);
     newEvent.id = this.id;
     return newEvent;
   }
+
+  private static EventBuilderInternal = class implements EventBuilder {
+    private event: Event;
+
+    constructor(event: Event) {
+      this.event = event;
+    }
+
+    setParentId(parentId: string): EventBuilder {
+      this.event.parentId = parentId;
+      return this;
+    }
+
+    chainToParentEvent(event: Event): EventBuilder {
+      this.setParentId(event.uuid);
+      return this;
+    }
+
+    setResponseId(responseId: string): EventBuilder {
+      this.event.responseId = responseId;
+      return this;
+    }
+
+    inResponseToEvent(event: Event): EventBuilder {
+      this.setResponseId(event.uuid);
+      return this;
+    }
+
+    build(): Event {
+      return this.event;
+    }
+  };
+
+  static builder(
+    name: string,
+    type: string,
+    source: string,
+    data: EventData | null = null
+  ): EventBuilder {
+    return new Event.EventBuilderInternal(new Event(name, type, source, data));
+  }
 }
 
-export const createResponseEvent = function (
-  parentEvent: Event,
-  eventName: string,
-  eventType: string,
-  eventSource: string,
-  data: EventData
-): Event {
-  const responseEvent = new Event("Response Event", eventType, eventSource, data, parentEvent.uuid);
-  return responseEvent;
-};
+export interface EventBuilder {
+  setParentId(parentId: string): EventBuilder;
+  setResponseId(responseId: string): EventBuilder;
+  inResponseToEvent(event: Event): EventBuilder;
+  chainToParentEvent(event: Event): EventBuilder;
+  build(): Event;
+}

@@ -58,9 +58,7 @@ export class KeplerDataStore implements DataStore {
       LOG_TAG,
       `set() - Saving Key(${prefixedKey}) with value(${value}) to KeplerDataStore`
     );
-    try {
-      AsyncStorage.setItem(prefixedKey, value);
-    } catch (error) {
+    AsyncStorage.setItem(prefixedKey, value).catch((error) => {
       Log.debug(
         LOG_EXTENSION,
         LOG_TAG,
@@ -68,7 +66,7 @@ export class KeplerDataStore implements DataStore {
           (error as Error).message
         }`
       );
-    }
+    });
   }
 
   delete(key: string): void {
@@ -78,14 +76,12 @@ export class KeplerDataStore implements DataStore {
       LOG_TAG,
       `delete() - Deleting key(${prefixedKey}) from KeplerDataStore`
     );
-    try {
-      AsyncStorage.removeItem(prefixedKey);
-    } catch (error) {
+    AsyncStorage.removeItem(prefixedKey).catch((error) => {
       Log.debug(
         LOG_EXTENSION,
         LOG_TAG,
         `delete() - Failed to delete key(${prefixedKey}), error(${(error as Error).message})`
       );
-    }
+    });
   }
 }

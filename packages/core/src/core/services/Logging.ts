@@ -16,6 +16,7 @@ export enum LogLevel {
   DEBUG = 2,
   VERBOSE = 3,
 }
+
 export interface Logging {
   setLogLevel(level: LogLevel): void;
   getLogLevel(): LogLevel;
@@ -27,36 +28,36 @@ export interface Logging {
 }
 
 export class DefaultLogging implements Logging {
-  private logLevel: LogLevel = LogLevel.ERROR;
+  private currentLogLevel: LogLevel = LogLevel.ERROR;
 
   getLogLevel(): LogLevel {
-    return this.logLevel;
+    return this.currentLogLevel;
   }
 
   setLogLevel(level: LogLevel): void {
-    this.logLevel = level;
+    this.currentLogLevel = level;
   }
 
   verbose(extension: string, tag: string, message: string): void {
-    if (this.logLevel >= LogLevel.VERBOSE) {
+    if (this.currentLogLevel >= LogLevel.VERBOSE) {
       this.print(extension, tag, message);
     }
   }
 
   debug(extension: string, tag: string, message: string): void {
-    if (this.logLevel >= LogLevel.DEBUG) {
+    if (this.currentLogLevel >= LogLevel.DEBUG) {
       this.print(extension, tag, message);
     }
   }
 
   warning(extension: string, tag: string, message: string): void {
-    if (this.logLevel >= LogLevel.WARNING) {
+    if (this.currentLogLevel >= LogLevel.WARNING) {
       this.print(extension, tag, message);
     }
   }
 
   error(extension: string, tag: string, message: string): void {
-    if (this.logLevel >= LogLevel.ERROR) {
+    if (this.currentLogLevel >= LogLevel.ERROR) {
       this.print(extension, tag, message);
     }
   }

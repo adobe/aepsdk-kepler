@@ -11,12 +11,19 @@ governing permissions and limitations under the License.
 */
 import { LogLevel, DefaultLogging } from "../../../src/core/services/Logging";
 describe("test Logging service", () => {
-  beforeEach(() => {});
+  let loggingService: DefaultLogging;
+  let consoleLogSpy: jest.SpyInstance;
 
-  afterEach(() => {});
+  beforeEach(() => {
+    loggingService = new DefaultLogging();
+    consoleLogSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore();
+  });
 
   test("test log level", () => {
-    const loggingService = new DefaultLogging();
     const defaultLogLevel = loggingService.getLogLevel();
     expect(defaultLogLevel).toEqual(LogLevel.ERROR);
 
@@ -31,5 +38,89 @@ describe("test Logging service", () => {
 
     loggingService.setLogLevel(LogLevel.VERBOSE);
     expect(loggingService.getLogLevel()).toEqual(LogLevel.VERBOSE);
+  });
+
+  test("test VERBOSE logs", () => {
+    loggingService.setLogLevel(LogLevel.VERBOSE);
+    loggingService.verbose("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.DEBUG);
+    loggingService.verbose("ext", "tag", "message");
+    loggingService.setLogLevel(LogLevel.ERROR);
+    loggingService.verbose("ext", "tag", "message");
+    loggingService.setLogLevel(LogLevel.WARNING);
+    loggingService.verbose("ext", "tag", "message");
+    expect(consoleLogSpy).not.toBeCalled();
+  });
+
+  test("test DEBUG logs", () => {
+    loggingService.setLogLevel(LogLevel.DEBUG);
+    loggingService.debug("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.VERBOSE);
+    loggingService.debug("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.ERROR);
+    loggingService.debug("ext", "tag", "message");
+    loggingService.setLogLevel(LogLevel.WARNING);
+    loggingService.debug("ext", "tag", "message");
+    expect(consoleLogSpy).not.toBeCalled();
+  });
+
+  test("test WARNING logs", () => {
+    loggingService.setLogLevel(LogLevel.VERBOSE);
+    loggingService.warning("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.DEBUG);
+    loggingService.warning("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.WARNING);
+    loggingService.warning("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.ERROR);
+    loggingService.warning("ext", "tag", "message");
+    expect(consoleLogSpy).not.toBeCalled();
+  });
+
+  test("test ERROR logs", () => {
+    loggingService.setLogLevel(LogLevel.VERBOSE);
+    loggingService.error("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.DEBUG);
+    loggingService.error("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.WARNING);
+    loggingService.error("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
+
+    consoleLogSpy.mockReset();
+
+    loggingService.setLogLevel(LogLevel.ERROR);
+    loggingService.error("ext", "tag", "message");
+    expect(consoleLogSpy).toBeCalledWith("[ext][tag]message");
   });
 });

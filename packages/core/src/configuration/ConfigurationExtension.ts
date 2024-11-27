@@ -21,6 +21,7 @@ import {
   UPDATE_CONFIGURATION_EVENT_KEY,
   UPDATE_CONFIGURATION_EVENT_NAME,
 } from "./Constants";
+import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_EXTENSION = EXTENSION_NAME;
 const LOG_TAG = "ConfigurationExtension";
@@ -62,13 +63,11 @@ export class ConfigurationExtension implements Configuration, Extension {
       )}`
     );
 
-    const mergedConfiguration = this.mergeConfiguration(configuration);
-
     const data = EventData.buildFrom({
-      [UPDATE_CONFIGURATION_EVENT_KEY]: mergedConfiguration,
+      [UPDATE_CONFIGURATION_EVENT_KEY]: configuration,
     });
 
-    if (data === null) {
+    if (!data) {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
@@ -77,7 +76,12 @@ export class ConfigurationExtension implements Configuration, Extension {
       return;
     }
 
-    this.configuration = mergedConfiguration;
+    const purifiedConfigData = data.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY);
+
+    if (!purifiedConfigData || isEmptyDataObject(purifiedConfigData)) {
+      Log.error(LOG_EXTENSION, LOG_TAG, "updateConfiguration() - Configuration data is empty.");
+      return;
+    }
 
     this.container?.dispatch(
       new Event(
@@ -102,11 +106,19 @@ export class ConfigurationExtension implements Configuration, Extension {
       (event) => {
         const configObj = event.data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY);
         if (!configObj) {
-          Log.error(LOG_EXTENSION, LOG_TAG, "onRegister() - Configuration object is not found.");
+          Log.error(
+            LOG_EXTENSION,
+            LOG_TAG,
+            "process [config.update] event - Configuration object is not found."
+          );
           return;
         }
-        const state = EventData.buildFrom(configObj);
+
+        const mergedConfiguration = this.mergeConfiguration(configObj);
+
+        const state = EventData.buildFrom(mergedConfiguration);
         if (state) {
+          this.configuration = mergedConfiguration;
           this.container?.createXDMSharedState(state, event);
         }
       }

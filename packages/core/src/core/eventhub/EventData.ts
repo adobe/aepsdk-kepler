@@ -93,6 +93,7 @@ export class EventData {
       const deepCopy = JSON.parse(this.convertToJSONString());
       return new EventData(deepCopy);
     } catch (error) {
+      /* istanbul ignore next */
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
@@ -190,6 +191,7 @@ export class EventData {
     try {
       return JSON.stringify(this.data);
     } catch (error) {
+      /* istanbul ignore next */
       Log.error(
         LOG_SOURCE,
         LOG_TAG,

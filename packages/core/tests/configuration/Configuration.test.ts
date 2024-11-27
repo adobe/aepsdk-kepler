@@ -23,11 +23,14 @@ import {
 } from "../../src/configuration/Constants";
 import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/sharedstate/Constants";
 import { EventHub } from "../../src/core/eventhub";
+import { Log } from "../../src/core/utils/Log";
+import { EventData } from "../../src/core/eventhub/EventData";
 
 describe("test Configuration extension", () => {
   let configuration: Configuration = new ConfigurationExtension();
   let eventHub = createEventHub();
   let configurationContainer: ExtensionContainer | null = null;
+
   beforeEach(() => {
     configuration = new ConfigurationExtension();
     eventHub = createEventHub();
@@ -40,9 +43,36 @@ describe("test Configuration extension", () => {
     configuration.EXTENSION.onRegister(configurationContainer, serviceLookup);
   });
 
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   it("should return correct extension name & extension version", () => {
     expect(configuration.EXTENSION.name).toEqual(EXTENSION_NAME);
     expect(configuration.EXTENSION.version).toEqual(EXTENSION_VERSION);
+  });
+
+  it("should not dispatch update event if Configuration is not registered", () => {
+    configuration = new ConfigurationExtension();
+    const sharedStateManager = new SharedStateManager();
+    configurationContainer = createExtensionContainer(
+      eventHub,
+      configuration.EXTENSION.name,
+      sharedStateManager
+    );
+
+    jest.spyOn(Log, "error").mockImplementation(() => {});
+    jest.spyOn(Log, "verbose").mockImplementation(() => {});
+
+    expect(Log.error).not.toHaveBeenCalled();
+    expect(Log.verbose).not.toHaveBeenCalled();
+    configuration.updateConfiguration({ key: "value" });
+    expect(Log.error).toHaveBeenCalledWith(
+      "com.adobe.marketing.configuration",
+      "ConfigurationExtension",
+      "updateConfiguration() - The Configuration extension is not registered."
+    );
+    expect(Log.verbose).not.toHaveBeenCalled();
   });
 
   it("updateConfiguration() - should update the configuration state and dispatch shared state event", () => {
@@ -63,16 +93,86 @@ describe("test Configuration extension", () => {
     expect(dispatchedEvents[0].data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY)).toEqual({
       key: "value",
     });
+  });
 
-    // configuration shared state
-    expect(dispatchedEvents[1].name).toEqual(SHARED_STATE_NAME);
-    expect(dispatchedEvents[1].type).toEqual(EventType.HUB);
-    expect(dispatchedEvents[1].source).toEqual(EventSource.SHARED_STATE);
-    expect(dispatchedEvents[1].data?.getString(SHARED_STATE_KEY_OWNER)).toEqual(EXTENSION_NAME);
+  it("updateConfiguration() - should not update the configuration state if the input is invalid (1)", () => {
+    const dispatchedEvents: Event[] = [];
+    eventHub.registerEventProcessor((event: Event) => {
+      dispatchedEvents.push(event);
+      return event;
+    });
+    eventHub.start();
+    jest.spyOn(Log, "error").mockImplementation(() => {});
+    jest.spyOn(Log, "verbose").mockImplementation(() => {});
 
-    const result = configurationContainer?.getXDMSharedState(EXTENSION_NAME, null);
-    expect(result?.value?.getDataObject()).toEqual({ key: "value" });
-    expect(result?.status).toEqual(SharedStateStatus.SET);
+    expect(Log.error).not.toHaveBeenCalled();
+    expect(Log.verbose).not.toHaveBeenCalled();
+
+    configuration.updateConfiguration({ key: () => {} });
+    expect(dispatchedEvents.length).toBe(0);
+    expect(Log.verbose).toHaveBeenCalled();
+    expect(Log.error).toHaveBeenCalledWith(
+      "com.adobe.marketing.configuration",
+      "ConfigurationExtension",
+      "updateConfiguration() - Configuration data is empty."
+    );
+  });
+
+  it("updateConfiguration() - should not update the configuration state if the input is invalid (2)", () => {
+    const circularReference = {
+      myself: null as unknown,
+    };
+    circularReference.myself = circularReference;
+
+    const dispatchedEvents: Event[] = [];
+    eventHub.registerEventProcessor((event: Event) => {
+      dispatchedEvents.push(event);
+      return event;
+    });
+    eventHub.start();
+    jest.spyOn(Log, "error").mockImplementation(() => {});
+    jest.spyOn(Log, "verbose").mockImplementation(() => {});
+
+    expect(Log.error).not.toHaveBeenCalled();
+    expect(Log.verbose).not.toHaveBeenCalled();
+
+    configuration.updateConfiguration(circularReference);
+    expect(dispatchedEvents.length).toBe(0);
+    expect(Log.verbose).toHaveBeenCalled();
+    expect(Log.error).toHaveBeenCalled();
+  });
+
+  it("update configuration listener - should handle invalid event data", () => {
+    const dispatchedEvents: Event[] = [];
+    eventHub.registerEventProcessor((event: Event) => {
+      dispatchedEvents.push(event);
+      return event;
+    });
+    eventHub.start();
+    jest.spyOn(Log, "error").mockImplementation(() => {});
+    jest.spyOn(Log, "verbose").mockImplementation(() => {});
+
+    expect(Log.error).not.toHaveBeenCalled();
+    expect(Log.verbose).not.toHaveBeenCalled();
+
+    const data = EventData.buildFrom({
+      ["xx"]: {},
+    });
+    eventHub.dispatchEvent(
+      new Event(
+        UPDATE_CONFIGURATION_EVENT_NAME,
+        EventType.CONFIGURATION,
+        EventSource.REQUEST_CONTENT,
+        data
+      )
+    );
+    expect(dispatchedEvents.length).toBe(1);
+    expect(Log.verbose).not.toHaveBeenCalled();
+    expect(Log.error).toHaveBeenCalledWith(
+      "com.adobe.marketing.configuration",
+      "ConfigurationExtension",
+      "process [config.update] event - Configuration object is not found."
+    );
   });
 
   it("updateConfiguration() - should combine the new configuration with the existing one.", () => {

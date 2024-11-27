@@ -13,11 +13,19 @@ governing permissions and limitations under the License.
 import { DataObject, DataArray, DataType } from "../eventhub/EventData";
 import { Log } from "./Log";
 import { CoreConstants } from "../CoreConstants";
-
 import { isArray, isString, isBoolean, isNumber, isUndefined, isObject } from "./TypeCheck";
 
 const LOG_TAG = "DataObjectUtil";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
+
+/**
+ *
+ * @param data The data object that needs to be checked if it is empty.
+ * @returns True if the data object is empty, otherwise false.
+ */
+export function isEmptyDataObject(data: DataObject): boolean {
+  return Object.keys(data).length === 0;
+}
 
 /**
  *

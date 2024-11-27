@@ -44,11 +44,11 @@ describe("test EventData class", () => {
         },
       },
     };
-    const data = EventData.buildFrom(jsonObj);
-    expect(data).not.toBeNull();
+    const eventData = EventData.buildFrom(jsonObj);
+    expect(eventData?.getData() ?? {}).toEqual(jsonObj);
     // console.log(`${data}`);
     // {"str":"value","num":1,"bool":true,"nil":null,"arr":["value",1,true,null,{"key":"value"}],"obj":{"str":"value","arr":["value",{"key":"value"}],"obj":{"key":"value"}}}
-    expect(data?.toString()).toEqual(JSON.stringify(jsonObj));
+    expect(eventData?.toString()).toEqual(JSON.stringify(jsonObj));
   });
 
   test("buildFrom() - should omit unsupported values when building the EventData object ", () => {
@@ -66,7 +66,7 @@ describe("test EventData class", () => {
     };
     // console.log(JSON.stringify(jsonObj));
     const data = EventData.buildFrom(jsonObj);
-    if (data === null) {
+    if (!data) {
       fail("EventData object should not be null");
     }
     // console.log(`${data}`);

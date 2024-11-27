@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Event, createEventHub, EventData } from "../../../src/core/eventhub";
 import { EventListenerManager } from "../../../src/core/eventhub/EventListenerManager";
 
-describe("test EventHubImpl class", () => {
+describe("test EventHubInternal class", () => {
   beforeEach(() => {
     jest.spyOn(EventListenerManager.prototype, "addEventListener");
     jest.spyOn(EventListenerManager.prototype, "addOneTimeResponseListener");

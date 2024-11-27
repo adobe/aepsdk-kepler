@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { ExtensionContainer } from "./ExtensionContainer";
-import { ExtensionContainerImpl } from "./ExtensionContainerImpl";
+import { ExtensionContainerInternal } from "./ExtensionContainerInternal";
 import { EventHub } from "../eventhub";
 import { SharedStateManager } from "../sharedstate";
 
@@ -22,5 +22,5 @@ export function createExtensionContainer(
   extensionName: string,
   sharedStateManager: SharedStateManager
 ): ExtensionContainer {
-  return new ExtensionContainerImpl(eventHub, extensionName, sharedStateManager);
+  return new ExtensionContainerInternal(eventHub, extensionName, sharedStateManager);
 }

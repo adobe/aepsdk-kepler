@@ -15,7 +15,7 @@ import { EventListenerCallback } from "../eventhub/EventListenerManager";
 import { buildSharedStateEvent } from "../sharedstate";
 import { SharedStateStatus, SharedStateResult, SharedStateManager } from "../sharedstate";
 
-export class ExtensionContainerImpl implements ExtensionContainer {
+export class ExtensionContainerInternal implements ExtensionContainer {
   constructor(
     private eventHub: EventHub,
     private extensionName: string,

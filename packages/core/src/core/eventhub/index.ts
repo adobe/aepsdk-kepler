@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { EventHub } from "./EventHub";
-import { EventHubImpl } from "./EventHubImpl";
+import { EventHubInternal } from "./EventHubInternal";
 
 export { Event, type EventBuilder } from "./Event";
 export { EventData } from "./EventData";
@@ -18,5 +18,5 @@ export type { EventHub, EventProcessor } from "./EventHub";
 export { EventType } from "./EventType";
 export { EventSource } from "./EventSource";
 export function createEventHub(): EventHub {
-  return new EventHubImpl();
+  return new EventHubInternal();
 }

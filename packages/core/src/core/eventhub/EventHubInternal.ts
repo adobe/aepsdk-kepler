@@ -14,9 +14,9 @@ import { EventHub, EventProcessor, Event } from ".";
 import { LOG_SOURCE } from "../CoreConstants";
 import { EventListenerManager, EventListenerCallback } from "./EventListenerManager";
 
-const LOG_TAG = "EventHubImpl";
+const LOG_TAG = "EventHubInternal";
 
-export class EventHubImpl implements EventHub {
+export class EventHubInternal implements EventHub {
   private isStarted: boolean = false;
   private eventQueue: Event[] = [];
   private processors: EventProcessor[] = [];

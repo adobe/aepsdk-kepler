@@ -10,17 +10,18 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Log } from "../utils/Log";
-import { EventHub, EventListener, EventProcessor, Event } from ".";
+import { EventHub, EventProcessor, Event } from ".";
 import { LOG_SOURCE } from "../CoreConstants";
+import { EventListenerManager, EventListenerCallback } from "./EventListenerManager";
 
 const LOG_TAG = "EventHubImpl";
 
 export class EventHubImpl implements EventHub {
   private isStarted: boolean = false;
-  private listeners: Map<string, EventListener[]> = new Map();
   private eventQueue: Event[] = [];
   private processors: EventProcessor[] = [];
   private currentEventId: number = 1;
+  private eventListenerManager: EventListenerManager = new EventListenerManager();
 
   start(): void {
     this.isStarted = true;
@@ -32,13 +33,14 @@ export class EventHubImpl implements EventHub {
     this.processors.push(processor);
   }
 
-  on(eventType: string, EventSource: string, listener: EventListener): void {
-    const key = this.generateListenerKey(eventType, EventSource);
-    if (this.listeners.has(key)) {
-      this.listeners.get(key)?.push(listener);
-    } else {
-      this.listeners.set(key, [listener]);
-    }
+  on(eventType: string, EventSource: string, listener: EventListenerCallback): void {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `Registering listener for event type: ${eventType}, source: ${EventSource}`
+    );
+
+    this.eventListenerManager.addEventListener(eventType, EventSource, listener);
   }
 
   dispatchEvent(event: Event): void {
@@ -54,9 +56,23 @@ export class EventHubImpl implements EventHub {
     Log.debug(LOG_SOURCE, LOG_TAG, `Event is dispatched: ${event}`);
     const processedEvent = this.processEvent(event);
 
-    const key = this.generateListenerKey(processedEvent.type, processedEvent.source);
-    this.listeners.get(key)?.forEach((listen) => listen(processedEvent));
+    this.eventListenerManager.processListeners(processedEvent);
+
     return;
+  }
+
+  registerOneTimeEventListener(
+    triggerEvent: Event,
+    eventType: string,
+    eventSource: string,
+    listener: EventListenerCallback
+  ): void {
+    this.eventListenerManager.addOneTimeResponseListener(
+      triggerEvent,
+      eventType,
+      eventSource,
+      listener
+    );
   }
 
   /**
@@ -75,16 +91,5 @@ export class EventHubImpl implements EventHub {
       }
     });
     return event;
-  }
-
-  /**
-   * Generate a key for the listener
-   *
-   * @param eventType the type of the event
-   * @param eventSource the source of the event
-   * @returns the key for the listener in the format of "eventType:eventSource"
-   */
-  private generateListenerKey(eventType: string, eventSource: string): string {
-    return `${eventType}:${eventSource}`;
   }
 }

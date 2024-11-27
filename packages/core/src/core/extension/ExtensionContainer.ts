@@ -9,9 +9,10 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { EventListener, Event } from "../eventhub";
+import { Event } from "../eventhub";
 import { SharedStateResult } from "../sharedstate";
 import { EventData } from "../eventhub";
+import { EventListenerCallback } from "../eventhub/EventListenerManager";
 
 export interface ExtensionContainer {
   /**
@@ -21,7 +22,11 @@ export interface ExtensionContainer {
    * @param eventSource The source of the event
    * @param listener The event listener
    */
-  registerEventListener(eventType: string, eventSource: string, listener: EventListener): void;
+  registerEventListener(
+    eventType: string,
+    eventSource: string,
+    listener: EventListenerCallback
+  ): void;
 
   /**
    * Creates a new shared state for this extension. If event is null, one of two behaviors will be observed:

@@ -9,12 +9,18 @@ import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
 import {Link} from './components/Link';
 import {AEPSDK} from '@adobe/kepler-aepcore';
 import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
+import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+
+const images = {
+  aep: require('./assets/aepsdk-black.png'),
+};
 
 const keplerDataStore = new KeplerDataStore();
 const clearDatastore = async () => {
   console.log('##AEPSample - Clearing Datastore');
   const sdk_keys = [
     'ecid',
+    'consent.collect',
     'locationHint'
   ]
 
@@ -23,10 +29,6 @@ const clearDatastore = async () => {
     await keplerDataStore.delete(key);
   }
 }
-
-const images = {
-  aep: require('./assets/aepsdk-black.png'),
-};
 
 export const App = () => {
   const [ecid, setECID] = useState('not set');
@@ -58,12 +60,18 @@ export const App = () => {
 
   const initSDK = () => {
     console.log('##AEPSample - Initializing AEPSDK');
-    AEPSDK.setLogLevel(3);
-    AEPSDK.initialize();
-    AEPSDK.updateConfiguration({
+
+    const sdkConfig = {
       "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
       //"edge.domain": "edgeDomain",
       //"consent.default": {"collect": "y"}
+    }
+
+    AEPSDK.initialize(
+    {
+      config: sdkConfig,
+      logLevel: LogLevel.VERBOSE
+      //extensions?:
     });
   }
 
@@ -121,6 +129,9 @@ export const App = () => {
                   },
                   data: {
                     freeformKey: 'freeformVal'
+                  },
+                  query: {
+                    queryKey: 'queryVal'
                   }
                 }
 

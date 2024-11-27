@@ -10,7 +10,8 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { ExtensionContainer, SharedStateResolver } from ".";
-import { EventHub, EventListener, Event, EventData } from "../eventhub";
+import { EventHub, /*EventListener,*/ Event, EventData } from "../eventhub";
+import { EventListenerCallback } from "../eventhub/EventListenerManager";
 import { buildSharedStateEvent } from "../sharedstate";
 import { SharedStateStatus, SharedStateResult, SharedStateManager } from "../sharedstate";
 
@@ -21,7 +22,11 @@ export class ExtensionContainerImpl implements ExtensionContainer {
     private sharedStateManager: SharedStateManager
   ) {}
 
-  registerEventListener(eventType: string, EventSource: string, listener: EventListener): void {
+  registerEventListener(
+    eventType: string,
+    EventSource: string,
+    listener: EventListenerCallback
+  ): void {
     this.eventHub.on(eventType, EventSource, listener);
   }
 

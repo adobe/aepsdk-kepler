@@ -10,13 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event } from ".";
-
-/**
- * Invoked when the specified event is dispatched.
- *
- * @param event  The event that is dispatched
- */
-export type EventListener = (event: Event) => void;
+import { EventListenerCallback } from "./EventListenerManager";
 
 /**
  * Processes the event before dispatching to the listeners
@@ -34,7 +28,7 @@ export interface EventHub {
    * @param eventSource  The source of the event
    * @param listener     The listener to be called when the event is dispatched
    */
-  on(eventType: string, eventSource: string, listener: EventListener): void;
+  on(eventType: string, eventSource: string, listener: EventListenerCallback): void;
 
   /**
    * Dispatch an event
@@ -53,4 +47,11 @@ export interface EventHub {
    * Register an event processor. All events will be processed by the processor before sending to the listeners.
    */
   registerEventProcessor(processor: EventProcessor): void;
+
+  registerOneTimeEventListener(
+    triggerEvent: Event,
+    eventType: string,
+    eventSource: string,
+    listener: EventListenerCallback
+  ): void;
 }

@@ -14,7 +14,7 @@ import { EventHubImpl } from "./EventHubImpl";
 
 export { Event } from "./Event";
 export { EventData } from "./EventData";
-export type { EventHub, EventListener, EventProcessor } from "./EventHub";
+export type { EventHub, EventProcessor } from "./EventHub";
 export { EventType } from "./EventType";
 export { EventSource } from "./EventSource";
 export function createEventHub(): EventHub {

@@ -10,9 +10,14 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event, createEventHub, EventData } from "../../../src/core/eventhub";
+import { EventListenerManager } from "../../../src/core/eventhub/EventListenerManager";
 
 describe("test EventHubImpl class", () => {
-  beforeEach(() => {});
+  beforeEach(() => {
+    jest.spyOn(EventListenerManager.prototype, "addEventListener");
+    jest.spyOn(EventListenerManager.prototype, "addOneTimeResponseListener");
+    jest.spyOn(EventListenerManager.prototype, "processListeners");
+  });
 
   afterEach(() => {});
 
@@ -130,5 +135,33 @@ describe("test EventHubImpl class", () => {
     // trigger
     eventHub.start();
     eventHub.dispatchEvent(new Event("name", "type", "source", data));
+  });
+
+  test("on adds event listener and dispatch event processes event listeners", () => {
+    const eventHub = createEventHub();
+    eventHub.start();
+
+    const data = EventData.buildFrom({
+      k: "v",
+    });
+
+    // this event will trigger the listener
+    const testEvent = new Event("name", "type", "source", data);
+    const listenerCallback = jest.fn();
+
+    jest.spyOn(eventHub, "on");
+    eventHub.on("type", "source", listenerCallback);
+
+    expect(eventHub.on).toBeCalledWith("type", "source", listenerCallback);
+
+    expect(EventListenerManager.prototype.addEventListener).toBeCalledWith(
+      "type",
+      "source",
+      listenerCallback
+    );
+
+    eventHub.dispatchEvent(testEvent);
+    expect(EventListenerManager.prototype.processListeners).toBeCalledWith(testEvent);
+    expect(listenerCallback).toBeCalledWith(testEvent);
   });
 });

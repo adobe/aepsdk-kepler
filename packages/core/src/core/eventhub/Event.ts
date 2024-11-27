@@ -34,6 +34,8 @@ export class Event {
 
   readonly data: EventData | null;
 
+  readonly parentId: string = "";
+
   /**
    * Constructor of the Event class.
    *
@@ -42,11 +44,18 @@ export class Event {
    * @param source  the source of the event
    * @param data  the data of the event
    */
-  constructor(name: string, type: string, source: string, data: EventData | null = null) {
+  constructor(
+    name: string,
+    type: string,
+    source: string,
+    data: EventData | null = null,
+    parentId: string = ""
+  ) {
     this.name = name;
     this.type = type;
     this.source = source;
     this.data = data;
+    this.parentId = parentId;
   }
 
   /**
@@ -94,6 +103,7 @@ export class Event {
       source: ${this.source}
       ts: ${tsString}
       data: ${dataString}
+      parentId: ${this.parentId}
     ]
     `;
   }
@@ -105,8 +115,19 @@ export class Event {
    * @returns a clone of the event object
    */
   cloneWithEventData(data: EventData | null = null): Event {
-    const newEvent = new Event(this.name, this.type, this.source, data);
+    const newEvent = new Event(this.name, this.type, this.source, data, this.parentId);
     newEvent.id = this.id;
     return newEvent;
   }
 }
+
+export const createResponseEvent = function (
+  parentEvent: Event,
+  eventName: string,
+  eventType: string,
+  eventSource: string,
+  data: EventData
+): Event {
+  const responseEvent = new Event("Response Event", eventType, eventSource, data, parentEvent.uuid);
+  return responseEvent;
+};

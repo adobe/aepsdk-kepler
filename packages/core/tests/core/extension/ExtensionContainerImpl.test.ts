@@ -10,15 +10,9 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { createExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
-import {
-  Event,
-  EventHub,
-  EventListener,
-  EventSource,
-  EventType,
-  EventData,
-} from "../../../src/core/eventhub";
+import { Event, EventHub, EventSource, EventType, EventData } from "../../../src/core/eventhub";
 import { SharedStateManager, SharedStateStatus } from "../../../src/core/sharedstate";
+import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerManager";
 describe("test ConfigurationExtension class", () => {
   beforeEach(() => {});
 
@@ -30,6 +24,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const event = new Event("name", "type", "source");
@@ -46,10 +41,11 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const container = createExtensionContainer(eventHub, "test", new SharedStateManager());
-    const listener: EventListener = jest.fn();
+    const listener: EventListenerCallback = jest.fn();
     container.registerEventListener("type", "source", listener);
 
     expect(eventHub.on).toBeCalledTimes(1);
@@ -62,6 +58,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -92,6 +89,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -126,6 +124,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -144,6 +143,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -166,6 +166,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -216,6 +217,7 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
+      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();

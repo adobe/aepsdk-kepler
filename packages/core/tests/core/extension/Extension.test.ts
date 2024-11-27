@@ -9,7 +9,8 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { EventListener, EventData, Event } from "../../../src/core/eventhub";
+import { EventData, Event } from "../../../src/core/eventhub";
+import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerManager";
 import { Extension, ExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
 import { ServiceLookup } from "../../../src/core/services";
 import { SharedStateResult } from "../../../src/core/sharedstate";
@@ -21,7 +22,7 @@ describe("test Extension", () => {
       registerEventListener: function (
         eventType: string,
         eventSource: string,
-        listener: EventListener
+        listener: EventListenerCallback
       ): void {
         throw new Error("Function not implemented.");
       },

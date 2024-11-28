@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 import { SharedStateManager } from "./core/sharedstate/SharedStateManager";
 import { createExtensionContainer, ExtensionContainer, type Extension } from "./core/extension";
-import { createEventHub, EventData } from "./core/eventhub";
+import { createEventHub, EventData, EventHub } from "./core/eventhub";
 import { ServiceLookup, serviceLookup } from "./core/services";
 import { Log } from "./core/utils/Log";
 import { configuration } from "./configuration";
@@ -22,6 +22,13 @@ import {
   WRAPPER_NONE,
 } from "./core/CoreConstants";
 import { InitOptions } from ".";
+import { EventDispatcher, EventDispatcherInternal } from "./core/eventhub";
+
+const eventDispatcher = new EventDispatcherInternal();
+
+export function getEventDispatcher(): EventDispatcher {
+  return eventDispatcher;
+}
 
 const LOG_TAG = "Core";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
@@ -73,6 +80,7 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
 
   const eventHub = createEventHub();
   const sharedStateManager = new SharedStateManager();
+  eventDispatcher.setEventHub(eventHub);
 
   const onRegisterPromises: Promise<void>[] = [];
 
@@ -140,4 +148,7 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
 // It's only used in the test file
 export function _resetSDK() {
   isStarted = false;
+}
+export function _resetEventDispathcer(eventHub: EventHub) {
+  eventDispatcher.setEventHub(eventHub);
 }

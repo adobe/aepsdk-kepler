@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Log } from "../utils/Log";
 import { EventHub, EventProcessor, Event } from ".";
 import { LOG_SOURCE } from "../CoreConstants";
-import { EventListenerManager, EventListenerCallback } from "./EventListenerManager";
+import { EventListenerCallback } from "./EventListenerCallback";
 
 const LOG_TAG = "EventHubInternal";
 
@@ -21,7 +21,7 @@ export class EventHubInternal implements EventHub {
   private eventQueue: Event[] = [];
   private processors: EventProcessor[] = [];
   private currentEventId: number = 1;
-  private eventListenerManager: EventListenerManager = new EventListenerManager();
+  private listeners: Map<string, EventListenerCallback[]> = new Map();
 
   start(): void {
     this.isStarted = true;
@@ -40,7 +40,12 @@ export class EventHubInternal implements EventHub {
       `Registering listener for event type: ${eventType}, source: ${EventSource}`
     );
 
-    this.eventListenerManager.addEventListener(eventType, EventSource, listener);
+    const key = this.generateListenerKey(eventType, EventSource);
+    if (this.listeners.has(key)) {
+      this.listeners.get(key)?.push(listener);
+    } else {
+      this.listeners.set(key, [listener]);
+    }
   }
 
   dispatchEvent(event: Event): void {
@@ -56,23 +61,10 @@ export class EventHubInternal implements EventHub {
     Log.debug(LOG_SOURCE, LOG_TAG, `Event is dispatched: ${event}`);
     const processedEvent = this.processEvent(event);
 
-    this.eventListenerManager.processListeners(processedEvent);
+    const key = this.generateListenerKey(processedEvent.type, processedEvent.source);
+    this.listeners.get(key)?.forEach((listen) => listen(processedEvent));
 
     return;
-  }
-
-  registerOneTimeEventListener(
-    triggerEvent: Event,
-    eventType: string,
-    eventSource: string,
-    listener: EventListenerCallback
-  ): void {
-    this.eventListenerManager.addOneTimeResponseListener(
-      triggerEvent,
-      eventType,
-      eventSource,
-      listener
-    );
   }
 
   /**
@@ -91,5 +83,15 @@ export class EventHubInternal implements EventHub {
       }
     });
     return event;
+  }
+  /**
+   * Generate a key for the listener
+   *
+   * @param eventType the type of the event
+   * @param eventSource the source of the event
+   * @returns the key for the listener in the format of "eventType:eventSource"
+   */
+  private generateListenerKey(eventType: string, eventSource: string): string {
+    return `${eventType}:${eventSource}`;
   }
 }

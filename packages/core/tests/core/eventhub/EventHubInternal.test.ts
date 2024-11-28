@@ -10,26 +10,24 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event, createEventHub, EventData } from "../../../src/core/eventhub";
-import { EventListenerManager } from "../../../src/core/eventhub/EventListenerManager";
 
 describe("test EventHubInternal class", () => {
-  beforeEach(() => {
-    jest.spyOn(EventListenerManager.prototype, "addEventListener");
-    jest.spyOn(EventListenerManager.prototype, "addOneTimeResponseListener");
-    jest.spyOn(EventListenerManager.prototype, "processListeners");
-  });
+  beforeEach(() => {});
 
   afterEach(() => {});
 
-  test("test: basic", () => {
+  test("test: basic", (done) => {
     const eventHub = createEventHub();
     eventHub.start();
+    let counter = 0;
 
     const data_1 = EventData.buildFrom({
       k1: "v1",
     });
+
     eventHub.on("type_1", "source_1", (event: Event) => {
       expect(event.data).toEqual(data_1);
+      counter++;
     });
 
     const data_2 = EventData.buildFrom({
@@ -38,10 +36,12 @@ describe("test EventHubInternal class", () => {
 
     eventHub.on("type_2", "source_2", (event: Event) => {
       expect(event.data).toEqual(data_2);
+      counter++;
     });
 
     eventHub.on("type_3", "source_3", (event: Event) => {
       expect(event.data).toBeNull();
+      if (counter === 2) done();
     });
 
     eventHub.dispatchEvent(Event.builder("name", "type_1", "source_1", data_1).build());
@@ -50,7 +50,7 @@ describe("test EventHubInternal class", () => {
     eventHub.dispatchEvent(Event.builder("name", "type_4", "source_4").build());
   });
 
-  test("test: multiple event listeners", () => {
+  test("test: multiple event listeners", (done) => {
     let counter = 0;
 
     const eventHub = createEventHub();
@@ -70,14 +70,18 @@ describe("test EventHubInternal class", () => {
       counter++;
     });
 
+    eventHub.on("type_4", "type_4", () => {
+      fail("This listener should not be called");
+    });
+
     eventHub.on("type_3", "source_3", (event: Event) => {
       expect(event.data).toBeNull();
+      if (counter === 2) done();
     });
 
     eventHub.dispatchEvent(Event.builder("name", "type_1", "source_1", data_1).build());
     eventHub.dispatchEvent(Event.builder("name", "type_3", "source_3").build());
     eventHub.dispatchEvent(Event.builder("name", "type_4", "source_4").build());
-    expect(counter).toEqual(2);
   });
 
   test("test: dispatch events before starting the EventHub", () => {
@@ -135,33 +139,5 @@ describe("test EventHubInternal class", () => {
     // trigger
     eventHub.start();
     eventHub.dispatchEvent(Event.builder("name", "type", "source", data).build());
-  });
-
-  test("on adds event listener and dispatch event processes event listeners", () => {
-    const eventHub = createEventHub();
-    eventHub.start();
-
-    const data = EventData.buildFrom({
-      k: "v",
-    });
-
-    // this event will trigger the listener
-    const testEvent = Event.builder("name", "type", "source", data).build();
-    const listenerCallback = jest.fn();
-
-    jest.spyOn(eventHub, "on");
-    eventHub.on("type", "source", listenerCallback);
-
-    expect(eventHub.on).toBeCalledWith("type", "source", listenerCallback);
-
-    expect(EventListenerManager.prototype.addEventListener).toBeCalledWith(
-      "type",
-      "source",
-      listenerCallback
-    );
-
-    eventHub.dispatchEvent(testEvent);
-    expect(EventListenerManager.prototype.processListeners).toBeCalledWith(testEvent);
-    expect(listenerCallback).toBeCalledWith(testEvent);
   });
 });

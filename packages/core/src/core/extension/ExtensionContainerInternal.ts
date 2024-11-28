@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 */
 import { ExtensionContainer, SharedStateResolver } from ".";
 import { EventHub, /*EventListener,*/ Event, EventData } from "../eventhub";
-import { EventListenerCallback } from "../eventhub/EventListenerManager";
+import { EventListenerCallback } from "../eventhub/EventListenerCallback";
 import { buildSharedStateEvent } from "../sharedstate";
 import { SharedStateStatus, SharedStateResult, SharedStateManager } from "../sharedstate";
 

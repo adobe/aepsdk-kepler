@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { Event } from ".";
-import { EventListenerCallback } from "./EventListenerManager";
+import { EventListenerCallback } from "./EventListenerCallback";
 
 /**
  * Processes the event before dispatching to the listeners
@@ -47,11 +47,4 @@ export interface EventHub {
    * Register an event processor. All events will be processed by the processor before sending to the listeners.
    */
   registerEventProcessor(processor: EventProcessor): void;
-
-  registerOneTimeEventListener(
-    triggerEvent: Event,
-    eventType: string,
-    eventSource: string,
-    listener: EventListenerCallback
-  ): void;
 }

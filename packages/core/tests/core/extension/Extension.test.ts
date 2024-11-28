@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { EventData, Event } from "../../../src/core/eventhub";
-import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerManager";
+import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerCallback";
 import { Extension, ExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
 import { ServiceLookup } from "../../../src/core/services";
 import { SharedStateResult } from "../../../src/core/sharedstate";

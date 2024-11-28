@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Event } from "../eventhub";
 import { SharedStateResult } from "../sharedstate";
 import { EventData } from "../eventhub";
-import { EventListenerCallback } from "../eventhub/EventListenerManager";
+import { EventListenerCallback } from "../eventhub/EventListenerCallback";
 
 export interface ExtensionContainer {
   /**

@@ -9,30 +9,19 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { Configuration } from ".";
-import { Event, EventType, EventSource, EventData } from "../core/eventhub";
+import { EventType, EventSource, EventData, Event } from "../core/eventhub";
 import { Extension, ExtensionContainer } from "../core/extension";
 import { Log } from "../core/utils/Log";
 import { ServiceLookup } from "../core/services";
-import { safeStringify } from "../core/utils/common";
-import {
-  EXTENSION_NAME,
-  EXTENSION_VERSION,
-  UPDATE_CONFIGURATION_EVENT_KEY,
-  UPDATE_CONFIGURATION_EVENT_NAME,
-} from "./Constants";
-import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
+import { EXTENSION_NAME, EXTENSION_VERSION, UPDATE_CONFIGURATION_EVENT_KEY } from "./Constants";
 
 const LOG_EXTENSION = EXTENSION_NAME;
 const LOG_TAG = "ConfigurationExtension";
 
 // Implementation
-export class ConfigurationExtension implements Configuration, Extension {
-  readonly EXTENSION: Extension = this;
-
+export class ConfigurationExtension implements Extension {
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
-  private isRegistered: boolean = false;
 
   private configuration: Record<string, unknown> = {};
 
@@ -44,66 +33,15 @@ export class ConfigurationExtension implements Configuration, Extension {
     return EXTENSION_VERSION;
   }
 
-  // public API
-  updateConfiguration(configuration: Record<string, unknown>): void {
-    if (!this.isRegistered) {
-      Log.error(
-        LOG_EXTENSION,
-        LOG_TAG,
-        "updateConfiguration() - The Configuration extension is not registered."
-      );
-      return;
-    }
-
-    Log.verbose(
-      LOG_EXTENSION,
-      LOG_TAG,
-      `updateConfiguration() - the configruation object sent by the client: ${safeStringify(
-        configuration
-      )}`
-    );
-
-    const data = EventData.buildFrom({
-      [UPDATE_CONFIGURATION_EVENT_KEY]: configuration,
-    });
-
-    if (!data) {
-      Log.error(
-        LOG_EXTENSION,
-        LOG_TAG,
-        "updateConfiguration() - Configuration data is malformatted."
-      );
-      return;
-    }
-
-    const purifiedConfigData = data.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY);
-
-    if (!purifiedConfigData || isEmptyDataObject(purifiedConfigData)) {
-      Log.error(LOG_EXTENSION, LOG_TAG, "updateConfiguration() - Configuration data is empty.");
-      return;
-    }
-
-    this.container?.dispatch(
-      Event.builder(
-        UPDATE_CONFIGURATION_EVENT_NAME,
-        EventType.CONFIGURATION,
-        EventSource.REQUEST_CONTENT,
-        data
-      ).build()
-    );
-  }
-
   onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
     this.container = extensionContainer;
     this.serviceLookup = serviceLookup;
-
-    this.isRegistered = true;
 
     // Register the event listener for the "update configuration" event
     this.container.registerEventListener(
       EventType.CONFIGURATION,
       EventSource.REQUEST_CONTENT,
-      (event) => {
+      (event: Event) => {
         const configObj = event.data?.getDataObject(UPDATE_CONFIGURATION_EVENT_KEY);
         if (!configObj) {
           Log.error(

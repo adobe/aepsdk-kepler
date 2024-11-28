@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { createExtensionContainer, SharedStateResolver } from "../../../src/core/extension";
 import { Event, EventHub, EventSource, EventType, EventData } from "../../../src/core/eventhub";
 import { SharedStateManager, SharedStateStatus } from "../../../src/core/sharedstate";
-import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerManager";
+import { EventListenerCallback } from "../../../src/core/eventhub/EventListenerCallback";
 describe("test ConfigurationExtension class", () => {
   beforeEach(() => {});
 
@@ -24,7 +24,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const event = Event.builder("name", "type", "source").build();
@@ -41,7 +40,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const container = createExtensionContainer(eventHub, "test", new SharedStateManager());
@@ -58,7 +56,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -89,7 +86,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -124,7 +120,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -143,7 +138,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -166,7 +160,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();
@@ -217,7 +210,6 @@ describe("test ConfigurationExtension class", () => {
       dispatchEvent: jest.fn(),
       start: jest.fn(),
       registerEventProcessor: jest.fn(),
-      registerOneTimeEventListener: jest.fn(),
     };
 
     const sharedStateManager = new SharedStateManager();

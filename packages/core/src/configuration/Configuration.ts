@@ -9,16 +9,15 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { EventHub } from "./EventHub";
-import { EventHubInternal } from "./EventHubInternal";
+import { Extension } from "../core/extension";
 
-export { Event, type EventBuilder } from "./Event";
-export { EventData } from "./EventData";
-export type { EventHub, EventProcessor } from "./EventHub";
-export { EventType } from "./EventType";
-export { EventSource } from "./EventSource";
-export function createEventHub(): EventHub {
-  return new EventHubInternal();
+export interface Configuration {
+  readonly EXTENSION: Extension;
+
+  /**
+   * Update the SDK configuration
+   *
+   * @param configuration Configuration key/value pairs to be updated or added.
+   */
+  updateConfiguration(configuration: Record<string, unknown>): void;
 }
-export type { EventListenerCallback } from "./EventListenerCallback";
-export { EventDispatcherInternal, type EventDispatcher } from "./EventDispatchers";

@@ -35,9 +35,9 @@ const config = {
           if (
             name &&
             name.startsWith &&
-            name.startsWith('@adobe/kepler-ape')
+            name.startsWith('@adobe/kepler-aep')
           ) {
-            const packageName = name.replace('@adobe/kepler-ape', '');
+            const packageName = name.replace('@adobe/kepler-aep', '');
             console.log('------packageName -> ' + packageName);
             return join(__dirname, `../../packages/${packageName}`);
           }

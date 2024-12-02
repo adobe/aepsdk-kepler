@@ -1,6 +1,6 @@
 {
-  "name": "@amzn/keplersampleapp",
-  "version": "0.0.1",
+  "name": "@adobe/keplersampleapp",
+  "version": "1.0.0",
   "private": true,
   "installConfig": {
     "hoistingLimits": "workspaces"

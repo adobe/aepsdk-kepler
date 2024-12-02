@@ -1,5 +1,5 @@
 {
   "//": "The declared app name must follow this pattern to be KRL-compatible",
-  "name": "com.amazon.keplersampleapp.main",
-  "displayName": "Keplersampleapp"
+  "name": "com.adobe.marketing.keplersampleapp.main",
+  "displayName": "KeplerSampleApp"
 }

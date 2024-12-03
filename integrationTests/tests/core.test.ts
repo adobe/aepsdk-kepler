@@ -9,10 +9,160 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { AEPSDK } from '@adobe/kepler-aepcore';
 
-describe('Core module tests', () => {
-    it('start() - TODO', () => {
-        expect(AEPSDK.initialize).toBeDefined();
+jest.mock("@adobe/kepler-aepcore/dist/platform-kepler");
+
+import { AEPSDK } from "@adobe/kepler-aepcore";
+import { registerPlatformService } from "@adobe/kepler-aepcore/dist/platform-kepler";
+import { configuration } from "@adobe/kepler-aepcore/dist/configuration";
+import { resetSDK } from "../src/test-utils/resetSDK";
+import { serviceLookup } from "@adobe/kepler-aepcore/dist/core/services";
+import { Extension, ExtensionContainer } from "@adobe/kepler-aepcore/dist/core/extension";
+import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
+
+describe("test public APIs", () => {
+  beforeEach(() => {
+    resetSDK();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test("test start() should call registerPlatformService().", () => {
+    AEPSDK.initialize();
+    expect(registerPlatformService).toBeCalled();
+  });
+
+  test("test start() should always register Edge and Configuration extensions.", async () => {
+    await AEPSDK.initialize({
+      extensions: [testExtension],
     });
+    const sharedState = testExtension.getEventHubSharedState();
+
+    expect(sharedState).not.toBeNull();
+    expect(sharedState).toEqual({
+      data: {
+        version: "1.0.0",
+        wrapper: {
+          type: "NONE",
+          friendlyName: "None",
+        },
+        extensions: [
+          {
+            name: "com.adobe.marketing.configuration",
+            version: "1.0.0",
+          },
+          {
+            name: "com.adobe.marketing.edge",
+            version: "1.0.0",
+          },
+          {
+            name: "testExtension",
+            version: "1.0",
+          },
+        ],
+      },
+    });
+  });
+
+  test("test start() should not crash if extension registration throw error", async () => {
+    const extension = {
+      name: "errorExtension",
+      onRegister: jest.fn(() => {
+        throw new Error("error");
+      }),
+      version: "1.1.0",
+      doSomething: jest.fn(),
+    };
+    await AEPSDK.initialize({
+      extensions: [extension, testExtension],
+    });
+    expect(extension.onRegister).toBeCalled();
+    extension.doSomething();
+    expect(extension.doSomething).toBeCalled();
+
+    const sharedState = testExtension.getEventHubSharedState();
+    expect(sharedState).not.toBeNull();
+
+    expect(sharedState).toEqual({
+      data: {
+        version: "1.0.0",
+        wrapper: {
+          type: "NONE",
+          friendlyName: "None",
+        },
+        extensions: [
+          {
+            name: "com.adobe.marketing.configuration",
+            version: "1.0.0",
+          },
+          {
+            name: "com.adobe.marketing.edge",
+            version: "1.0.0",
+          },
+          {
+            name: "testExtension",
+            version: "1.0",
+          },
+        ],
+      },
+    });
+  });
+
+  test("test start() should pass configuration correctly.", async () => {
+    jest.spyOn(configuration, "updateConfiguration");
+    await AEPSDK.initialize({
+      config: {
+        key: "value",
+      },
+    });
+    expect(configuration.updateConfiguration).toBeCalledWith({ key: "value" });
+  });
+
+  test("test start() should set log level correctly.", async () => {
+    jest.spyOn(serviceLookup.getService("logging"), "setLogLevel");
+    await AEPSDK.initialize({
+      logLevel: 2,
+    });
+    expect(serviceLookup.getService("logging").setLogLevel).toBeCalledWith(2);
+  });
+
+  test("test updateConfiguration() should register extensions correctly.", async () => {
+    jest.spyOn(configuration, "updateConfiguration");
+    AEPSDK.updateConfiguration({
+      key: "value",
+    });
+    expect(configuration.updateConfiguration).toBeCalledWith({ key: "value" });
+  });
+
+  test("test setLogLevel() should set log level correctly.", async () => {
+    jest.spyOn(serviceLookup.getService("logging"), "setLogLevel");
+    AEPSDK.setLogLevel(3);
+    expect(serviceLookup.getService("logging").setLogLevel).toBeCalledWith(3);
+  });
+
+  test("test getLogLevel() should get log level correctly.", async () => {
+    jest.spyOn(serviceLookup.getService("logging"), "getLogLevel");
+    AEPSDK.getLogLevel();
+    expect(serviceLookup.getService("logging").getLogLevel).toBeCalled();
+  });
 });
+
+const testExtension = new (class implements Extension {
+  readonly version = "1.0";
+  readonly name = "testExtension";
+  private container: ExtensionContainer | null = null;
+
+  onRegister(extensionContainer: ExtensionContainer): Promise<void> {
+    this.container = extensionContainer;
+    return Promise.resolve();
+  }
+  getEventHubSharedState(): EventData | null {
+    const data = this.container?.getXDMSharedState("com.adobe.module.eventhub", null)?.value;
+    if (data) {
+      return data;
+    }
+    return null;
+  }
+})();

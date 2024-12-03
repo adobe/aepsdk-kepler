@@ -25,7 +25,7 @@ import { SHARED_STATE_NAME, SHARED_STATE_KEY_OWNER } from "../../src/core/shared
 import { EventHub } from "../../src/core/eventhub";
 import { Log } from "../../src/core/utils/Log";
 import { EventData } from "../../src/core/eventhub/EventData";
-import { _resetEventDispathcer } from "../../src/Core";
+import { _resetEventDispatcher } from "../../src/Core";
 
 describe("test Configuration extension", () => {
   let configuration: Configuration = new ConfigurationAPI();
@@ -35,7 +35,7 @@ describe("test Configuration extension", () => {
   beforeEach(() => {
     configuration = new ConfigurationAPI();
     eventHub = createEventHub();
-    _resetEventDispathcer(eventHub);
+    _resetEventDispatcher(eventHub);
     const sharedStateManager = new SharedStateManager();
     configurationContainer = createExtensionContainer(
       eventHub,

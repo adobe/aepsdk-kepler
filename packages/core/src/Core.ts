@@ -34,6 +34,7 @@ const LOG_TAG = "Core";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 let isStarted = false;
+let eventHub = createEventHub();
 
 const eventHubPlaceHolderExtension = new (class implements Extension {
   readonly version = eventHubPlaceHolderExtensionConstants.VERSION;
@@ -78,7 +79,6 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
 
   Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Registering platform services.");
 
-  const eventHub = createEventHub();
   const sharedStateManager = new SharedStateManager();
   eventDispatcher.setEventHub(eventHub);
 
@@ -146,9 +146,11 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
 }
 
 // It's only used in the test file
-export function _resetSDK() {
+export function _resetSDK(): EventHub {
   isStarted = false;
+  eventHub = createEventHub();
+  return eventHub;
 }
-export function _resetEventDispathcer(eventHub: EventHub) {
+export function _resetEventDispatcher(eventHub: EventHub) {
   eventDispatcher.setEventHub(eventHub);
 }

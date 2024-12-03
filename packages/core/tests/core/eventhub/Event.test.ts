@@ -88,7 +88,7 @@ describe("test Event class", () => {
     expect(clonedEvent.source).toEqual(event.source);
 
     expect(clonedEvent.uuid).not.toEqual(event.uuid);
-    expect(clonedEvent.timestamp.getMilliseconds()).not.toEqual(event.timestamp.getMilliseconds());
+    expect(clonedEvent.timestamp).not.toEqual(event.timestamp);
   });
 
   test("chainToParentEvent()", () => {

@@ -23,7 +23,7 @@ const LOG_TAG = "Event";
 export class Event {
   readonly uuid: string = uuid();
 
-  readonly timestamp: Date = new Date();
+  readonly timestamp: number = Date.now();
 
   // Note: incrementally increasing id number, "-1" stands for the unprocessed event
   private sequentialId: number = -1;
@@ -105,7 +105,6 @@ export class Event {
    */
 
   toString(): string {
-    const tsString = this.timestamp.toTimeString();
     const dataString = this.data?.toString() || "unknown format";
     return `
     [
@@ -114,7 +113,7 @@ export class Event {
       name: ${this.name}
       type: ${this.type}
       source: ${this.source}
-      ts: ${tsString}
+      ts: ${this.timestamp}
       data: ${dataString}
       parentId: ${this.parentId}
     ]

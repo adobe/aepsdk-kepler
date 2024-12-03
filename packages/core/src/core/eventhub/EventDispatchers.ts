@@ -18,7 +18,7 @@ export interface EventDispatcher {
 }
 
 export class EventDispatcherInternal implements EventDispatcher {
-  private pendingResponses: Map<string, [Date, EventListenerCallback]> = new Map();
+  private pendingResponses: Map<string, [number, EventListenerCallback]> = new Map();
   private eventHub: EventHub | null = null;
 
   setEventHub(eventHub: EventHub): void {
@@ -34,7 +34,7 @@ export class EventDispatcherInternal implements EventDispatcher {
       const triggerEventId = event.responseId;
       const response = this.pendingResponses.get(triggerEventId);
       if (response) {
-        if (response[0] > new Date()) {
+        if (response[0] > Date.now()) {
           response[1](event);
         }
         this.pendingResponses.delete(triggerEventId);
@@ -51,7 +51,7 @@ export class EventDispatcherInternal implements EventDispatcher {
     timeout: number,
     callback: EventListenerCallback
   ): void {
-    const expiredTimestamp = new Date(triggerEvent.timestamp.getTime() + timeout);
+    const expiredTimestamp = triggerEvent.timestamp + timeout;
     this.pendingResponses.set(triggerEvent.uuid, [expiredTimestamp, callback]);
     this.dispatch(triggerEvent);
   }

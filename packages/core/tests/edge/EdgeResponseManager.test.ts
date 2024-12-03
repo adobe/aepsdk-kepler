@@ -156,7 +156,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
-    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
@@ -226,7 +226,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
-    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
@@ -296,7 +296,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
-    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
@@ -366,7 +366,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
-    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
@@ -422,7 +422,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
-    expect(dispatchedEvent.timestamp).toEqual(expect.any(Date));
+    expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 });

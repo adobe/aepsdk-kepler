@@ -14,7 +14,7 @@ import { EventHub, Event, EventListenerCallback } from ".";
 
 export interface EventDispatcher {
   dispatch(event: Event): void;
-  dispatchWithResponse(triggerEvent: Event, timeout: number): Promise<Event>;
+  dispatchWithResponse(triggerEvent: Event, timeout?: number): Promise<Event>;
 }
 
 export class EventDispatcherInternal implements EventDispatcher {
@@ -46,17 +46,7 @@ export class EventDispatcherInternal implements EventDispatcher {
     this.eventHub?.dispatchEvent(event);
   }
 
-  private dispatchWithResponseCallback(
-    triggerEvent: Event,
-    timeout: number,
-    callback: EventListenerCallback
-  ): void {
-    const expiredTimestamp = triggerEvent.timestamp + timeout;
-    this.pendingResponses.set(triggerEvent.uuid, [expiredTimestamp, callback]);
-    this.dispatch(triggerEvent);
-  }
-
-  dispatchWithResponse(triggerEvent: Event, timeout: number): Promise<Event> {
+  dispatchWithResponse(triggerEvent: Event, timeout: number = 5000): Promise<Event> {
     if (!this.eventHub) {
       return Promise.reject(new Error("EventHub is not set"));
     }
@@ -70,5 +60,15 @@ export class EventDispatcherInternal implements EventDispatcher {
         resolve(event);
       });
     });
+  }
+
+  private dispatchWithResponseCallback(
+    triggerEvent: Event,
+    timeout: number,
+    callback: EventListenerCallback
+  ): void {
+    const expiredTimestamp = triggerEvent.timestamp + timeout;
+    this.pendingResponses.set(triggerEvent.uuid, [expiredTimestamp, callback]);
+    this.dispatch(triggerEvent);
   }
 }

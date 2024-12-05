@@ -48,7 +48,7 @@ export class EdgeHitProcessor {
 
   constructor(
     private edgeResponseManager: EdgeResponseManager,
-    private edgeStateMananger: EdgeStateManager
+    private edgeStateManager: EdgeStateManager
   ) {
     this.hitQueue = new EdgeHitQueue();
     this.consentHitQueue = new EdgeHitQueue();
@@ -102,7 +102,7 @@ export class EdgeHitProcessor {
    * If the consent is NO, the edge hits are dropped but the
    * consent hits are processed and sent to the Edge Network.
    * @returns Promise<boolean> boolean indicating if the hits were
-   * processed and sent to the Edge Network succesfully.
+   * processed and sent to the Edge Network successfully.
    */
   async process(): Promise<boolean> {
     if (this.isProcessing) {
@@ -113,7 +113,7 @@ export class EdgeHitProcessor {
 
     try {
       while (!this.hitQueue.isEmpty() || !this.consentHitQueue.isEmpty()) {
-        if (isNullOrEmptyString(this.edgeStateMananger.getDatastreamId())) {
+        if (isNullOrEmptyString(this.edgeStateManager.getDatastreamId())) {
           Log.error(
             LOG_SOURCE,
             LOG_TAG,
@@ -127,7 +127,7 @@ export class EdgeHitProcessor {
           return Promise.resolve(false);
         }
 
-        const consent = this.edgeStateMananger.getCollectConsent();
+        const consent = this.edgeStateManager.getCollectConsent();
         const hit = this.getNextHit(consent);
 
         if (!hit) {
@@ -135,20 +135,22 @@ export class EdgeHitProcessor {
           break;
         }
 
+        const requestId = hit.requestId;
+
         if (consent === ConsentValue.NO && hit.type !== EdgeHitType.CONSENT) {
           // if the consent is NO and the hit is not a consent hit,
           // remove the hit from the queue and drop it.
           Log.debug(
             LOG_SOURCE,
             LOG_TAG,
-            `process() - Dropping edge hit with id:(${hit.requestId}) as collect consent is set to NO.`
+            `process() - Dropping edge hit with id:(${requestId}) as collect consent is set to NO.`
           );
           this.popHit(hit);
           continue;
         }
 
         let meta = hit.meta;
-        const identity = this.edgeStateMananger.getIdentityMap();
+        const identity = this.edgeStateManager.getIdentityMap();
         const locationHint = this.edgeResponseManager.getLocationHint();
         const stateStore = this.edgeResponseManager.getStateStore();
 
@@ -161,7 +163,13 @@ export class EdgeHitProcessor {
 
         const url = this.getURLForHit(hit, locationHint);
 
-        const success = await this.sendHit(url, requestBody);
+        Log.verbose(
+          LOG_SOURCE,
+          LOG_TAG,
+          `process() - Sending hit with id:(${requestId}) to URL: ${url}`
+        );
+
+        const success = await this.sendHit(requestId, url, requestBody);
         if (success) {
           this.popHit(hit);
         } else {
@@ -278,7 +286,7 @@ export class EdgeHitProcessor {
    * @param requestBody string The request body to send.
    * @returns Promise<boolean> boolean indicating if the hit was sent successfully.
    */
-  private async sendHit(url: string, requestBody: string): Promise<boolean> {
+  private async sendHit(requestId: string, url: string, requestBody: string): Promise<boolean> {
     return asyncRequest({
       url: url,
       method: HttpMethod.POST,
@@ -290,7 +298,9 @@ export class EdgeHitProcessor {
           Log.debug(
             LOG_SOURCE,
             LOG_TAG,
-            `process() - Hit sent successfully with response \n code: ${response.responseCode}, \n body: ${response.bodyAsText}`
+            `process() - Hit sent successfully with response \n code: ${
+              response.responseCode
+            }, \n body: ${JSON.stringify(JSON.parse(response.bodyAsText ?? ""), undefined, 2)}`
           );
 
           // Reset the last failed hit timestamp
@@ -298,7 +308,7 @@ export class EdgeHitProcessor {
 
           const responseBody = response.bodyAsText ?? "";
           const responseObj = JSON.parse(responseBody);
-          this.edgeResponseManager.handleEdgeResponse(responseObj);
+          this.edgeResponseManager.handleEdgeResponse(responseObj, requestId);
 
           return true;
         } else if (this.isRecoverableError(response.responseCode)) {
@@ -319,7 +329,7 @@ export class EdgeHitProcessor {
           Log.error(
             LOG_SOURCE,
             LOG_TAG,
-            `process() - Request failed with unrecoverable error rsponse code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
+            `process() - Request failed with unrecoverable error response code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
           );
           return true; // Do not retry
         }
@@ -361,7 +371,7 @@ export class EdgeHitProcessor {
         },
       },
       xdm: {
-        implementationDetails: this.getImplentationDetails(),
+        implementationDetails: this.getImplementationDetails(),
       },
     };
 
@@ -398,7 +408,7 @@ export class EdgeHitProcessor {
   ): string {
     const requestObj: DataObject = {
       xdm: {
-        implementationDetails: this.getImplentationDetails(),
+        implementationDetails: this.getImplementationDetails(),
       },
       events: [],
     };
@@ -425,7 +435,7 @@ export class EdgeHitProcessor {
    * Returns the implementation details object.
    * @returns DataObject
    */
-  private getImplentationDetails(): DataObject {
+  private getImplementationDetails(): DataObject {
     return {
       name: IMPLEMENTATION_DETAILS.NAME,
       version: EdgeConstants.EXTENSION_VERSION, //Edge and core will be of same version always
@@ -440,19 +450,19 @@ export class EdgeHitProcessor {
    * @returns string The URL for the hit.
    */
   private getURLForHit(hit: EdgeHit, locationHint: string | null = null): string {
-    const customDomain = this.edgeStateMananger.getEdgeDomain();
+    const customDomain = this.edgeStateManager.getEdgeDomain();
     const domain = isNullOrEmptyString(customDomain) ? URL.DEFAULT : customDomain;
 
     let url = domain + PATH.PREFIX;
-    //const requestId = hit.requestId;
+    const requestId = hit.requestId;
 
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
-      `getURLForHit() - configID: ${this.edgeStateMananger.getDatastreamId()}`
+      `getURLForHit() - configID: ${this.edgeStateManager.getDatastreamId()}`
     );
 
-    const query = `?configId=${this.edgeStateMananger.getDatastreamId()}`;
+    const query = `?configId=${this.edgeStateManager.getDatastreamId()}&requestId=${requestId}`;
 
     url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
 

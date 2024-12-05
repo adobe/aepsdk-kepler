@@ -46,7 +46,7 @@ describe("LocationHintManager", () => {
     expect(locationHint).toBe("mockLocationHint");
   });
 
-  test("bootup loads persisted location hint", async () => {
+  test("bootUp loads persisted location hint", async () => {
     const mockLocationHintJson = JSON.stringify({
       value: "persistedLocationHint",
       expiryTS: Date.now() + 1800,
@@ -54,25 +54,25 @@ describe("LocationHintManager", () => {
     mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
     const locationHintManager = new LocationHintManager(mockDataStore);
-    await locationHintManager.bootup();
+    await locationHintManager.bootUp();
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe("persistedLocationHint");
     expect(mockDataStore.get).toHaveBeenCalledWith("locationHint");
   });
 
-  test("bootup sets location hint to null when persisted location hint is not present in persistence", async () => {
+  test("bootUp sets location hint to null when persisted location hint is not present in persistence", async () => {
     mockDataStore.get.mockResolvedValue(null);
 
     const locationHintManager = new LocationHintManager(mockDataStore);
-    await locationHintManager.bootup();
+    await locationHintManager.bootUp();
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe(null);
     expect(mockDataStore.get).toHaveBeenCalledWith("locationHint");
   });
 
-  test("getLocationHint without bootup will return null even when locationHint is persisted on the DataStore", async () => {
+  test("getLocationHint without bootUp will return null even when locationHint is persisted on the DataStore", async () => {
     const mockLocationHintJson = JSON.stringify({
       value: "persistedLocationHint",
       expiryTS: Date.now() + 1800,
@@ -94,7 +94,7 @@ describe("LocationHintManager", () => {
     mockDataStore.get.mockResolvedValue(mockLocationHintJson);
 
     const locationHintManager = new LocationHintManager(mockDataStore);
-    await locationHintManager.bootup(); // load persisted location hint
+    await locationHintManager.bootUp(); // load persisted location hint
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe(null);

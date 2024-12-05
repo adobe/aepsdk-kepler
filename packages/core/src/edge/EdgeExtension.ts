@@ -9,7 +9,6 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Edge } from ".";
 import { Event, EventType, EventSource } from "../core/eventhub";
 import { ExtensionContainer, Extension } from "../core/extension";
 import { DataStore, ServiceLookup } from "../core/services";
@@ -24,8 +23,8 @@ import { LocationHintManager } from "./LocationHintManager";
 import { StateStoreManager } from "./StateStoreManager";
 import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, EventData } from "../core/eventhub/EventData";
-import { uuid } from "../core/utils/uuid";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
+import { safeStringify } from "../core/utils/common";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
@@ -34,9 +33,7 @@ const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeExtension";
 
 // Implementation
-export class EdgeExtension implements Edge, Extension {
-  readonly EXTENSION: Extension = this;
-
+export class EdgeExtension implements Extension {
   private isActive: boolean = false;
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
@@ -50,21 +47,25 @@ export class EdgeExtension implements Edge, Extension {
   private dispatchFn: DispatchFn | null = null;
   private createSharedState: createXDMSharedState | null = null;
   private hitProcessor: EdgeHitProcessor | null = null;
-  private pendingIdentityResponses: {
-    resolve: (value: string | null) => void;
-    reject: (reason?: string | null) => void;
-  }[] = [];
   private hitProcessingTimer: NodeJS.Timeout | null = null;
 
-  public version: string = EdgeConstants.EXTENSION_VERSION;
-  public name: string = EdgeConstants.EXTENSION_NAME;
+  public get name(): string {
+    return EdgeConstants.EXTENSION_NAME;
+  }
+
+  public get version(): string {
+    return EdgeConstants.EXTENSION_VERSION;
+  }
 
   /**
    * Boots the Edge extension.
    * @param extensionContainer ExtensionContainer
    * @param serviceLookup ServiceLookup
    */
-  onRegister(extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup): Promise<void> {
+  async onRegister(
+    extensionContainer: ExtensionContainer,
+    serviceLookup: ServiceLookup
+  ): Promise<void> {
     this.container = extensionContainer;
     this.dispatchFn = this.dispatchEvent.bind(this);
     this.createSharedState = this.createXDMSharedState.bind(this);
@@ -73,7 +74,10 @@ export class EdgeExtension implements Edge, Extension {
     this.dataStore = serviceLookup.getService("dataStore");
 
     this.consentManager = new ConsentManager(this.dataStore, this.dispatchFn);
-    this.identityManager = new IdentityManager(this.dataStore, this.dispatchFn);
+    this.identityManager = new IdentityManager(
+      this.dataStore,
+      this.dispatchIdentityResponseEvent.bind(this)
+    );
     this.locationHintManager = new LocationHintManager(this.dataStore);
     this.stateStoreManager = new StateStoreManager(this.dataStore);
 
@@ -98,13 +102,13 @@ export class EdgeExtension implements Edge, Extension {
     this.registerListeners();
     this.startHitProcessingTimer();
 
-    return Promise.all([this.edgeStateManager.bootup(), this.edgeResponseManager.bootup()])
+    return Promise.all([this.edgeStateManager.bootUp(), this.edgeResponseManager.bootUp()])
       .then(() => {
-        Log.debug(LOG_SOURCE, LOG_TAG, "Edge extension bootup complete");
+        Log.debug(LOG_SOURCE, LOG_TAG, "Edge extension bootUp complete");
         Promise.resolve();
       })
       .catch((error) => {
-        Log.error(LOG_SOURCE, LOG_TAG, `Edge extension bootup failed with error:(${error})`);
+        Log.error(LOG_SOURCE, LOG_TAG, `Edge extension bootUp failed with error:(${error})`);
         Promise.reject(error);
       });
   }
@@ -134,8 +138,6 @@ export class EdgeExtension implements Edge, Extension {
       `dispatchEvent() - Dispatching event: (${JSON.stringify(event)}).`
     );
     if (this.isActive) {
-      // handle outgoing event to resolve any pending promises
-      this.handleOutgoingEvent(event);
       // dispatch the event to the event hub
       this.container?.dispatch(event);
     }
@@ -146,13 +148,14 @@ export class EdgeExtension implements Edge, Extension {
    * If the ECID is not available, then it sends an edge request to fetch the ECID.
    * @returns Promise<string | null>
    */
-  async getExperienceCloudId(): Promise<string | null> {
+  getExperienceCloudId(event: Event): void {
     Log.debug(LOG_SOURCE, LOG_TAG, "getExperienceCloudId() - Getting ECID.");
     const ecid = this.edgeStateManager?.getEcid() ?? null;
 
     if (!isNullOrEmptyString(ecid)) {
       Log.verbose(LOG_SOURCE, LOG_TAG, `getExperienceCloudId() - Returning ECID: (${ecid}).`);
-      return Promise.resolve(ecid);
+
+      this.dispatchIdentityResponseEvent(event.uuid, ecid);
     } else {
       Log.verbose(
         LOG_SOURCE,
@@ -160,30 +163,53 @@ export class EdgeExtension implements Edge, Extension {
         "getECID() - ECID is not set. Requesting ECID from Edge server."
       );
 
-      this.sendEventForIdentity();
-
-      return new Promise((resolve, reject) => {
-        this.pendingIdentityResponses.push({ resolve, reject });
-      });
+      this.sendEventForIdentity(event.uuid);
     }
+  }
+
+  dispatchIdentityResponseEvent(requestId: string, ecid: string | null): void {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `dispatchIdentityResponseEvent() - Dispatching identity response event with ECID: (${ecid}).`
+    );
+
+    const eventData = EventData.buildFrom({
+      [EdgeConstants.EventData.Keys.ECID]: ecid,
+    });
+
+    const responseEvent = Event.builder(
+      EdgeConstants.Event.Name.GET_IDENTITY_ECID,
+      EventType.EDGE_IDENTITY,
+      EventSource.RESPONSE_IDENTITY,
+      eventData
+    )
+      .setResponseId(requestId)
+      .setParentId(requestId)
+      .build();
+
+    this.dispatchEvent(responseEvent);
   }
 
   /**
    * Sends the event data to the edge server
    * @param data Object containing the event data
    */
-  sendEvent(data: DataObject): void {
-    const xdm = data.xdm as DataObject;
-    if (!xdm) {
-      Log.error(
-        LOG_SOURCE,
-        LOG_TAG,
-        `sendEvent() - Event data(${data}) does not contain xdm object.`
-      );
+  sendEvent(event: Event): void {
+    const eventData = event.data;
+
+    if (!eventData) {
+      Log.error(LOG_SOURCE, LOG_TAG, `sendEvent() - Event data(${eventData}) is invalid.`);
       return;
     }
 
-    Log.debug(LOG_SOURCE, LOG_TAG, "sendEvent() - Received event with data: " + data.toString());
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      "sendEvent() - Received event with data: " + eventData.toString()
+    );
+
+    const xdm = eventData.getDataObject("xdm") as DataObject;
 
     let hitTimestamp = xdm["timestamp"] as number;
     if (!hitTimestamp) {
@@ -197,8 +223,8 @@ export class EdgeExtension implements Edge, Extension {
     }
 
     const edgeHit = EdgeHit.builder()
-      .setRequestId(uuid())
-      .setData(data)
+      .setRequestId(event.uuid)
+      .setData(eventData.getData())
       .setTimestamp(hitTimestamp)
       .build();
 
@@ -220,7 +246,7 @@ export class EdgeExtension implements Edge, Extension {
   }
 
   /**
-   * Unregisters the Edge extension.
+   * Un-registers the Edge extension.
    */
   onUnregister(): void {
     this.isActive = false;
@@ -236,7 +262,6 @@ export class EdgeExtension implements Edge, Extension {
     this.dispatchFn = null;
     this.createSharedState = null;
     this.hitProcessor = null;
-    this.pendingIdentityResponses = [];
     this.cancelHitProcessingTimer();
   }
 
@@ -245,17 +270,20 @@ export class EdgeExtension implements Edge, Extension {
    * This event is sent only once when the getECID() is called
    * and the ECID is not available.
    */
-  private sendEventForIdentity() {
+  private sendEventForIdentity(requestEventId: string): void {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
-      "sendEventForIdentity() - Sending edge request to fetch Identity."
+      `sendEventForIdentity() - Sending edge request (requestId:${requestEventId}) to fetch Identity.`
     );
     const identityHit = EdgeHit.builder()
       .setType(EdgeHitType.EDGE)
       .setTimestamp(Date.now())
-      .setRequestId(uuid())
+      .setRequestId(requestEventId)
       .build();
+
+    // add the event to the list of events waiting for identity response
+    this.identityManager?.addEventWaitingForIdentityResponse(requestEventId);
 
     this.hitProcessor?.queueHit(identityHit);
     this.hitProcessor?.process();
@@ -268,21 +296,19 @@ export class EdgeExtension implements Edge, Extension {
     Log.debug(EdgeConstants.EXTENSION_NAME, LOG_TAG, "registerListeners() - Registering listeners");
 
     // if the container is not available, then return
-    if (this.container === null) {
-      // log error message
+    if (!this.container) {
+      Log.error(LOG_SOURCE, LOG_TAG, "registerListeners() - Container is not available.");
       return;
     }
 
     this.container.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT, (event) => {
       Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
       if (this.isActive) {
-        //TODO: implement the logic here
         const eventData = event.data;
-        // const xdm = eventData?.getDataObject("xdm");
-        // const data = eventData?.getDataObject("data");
+
         if (eventData) {
-          Log.debug(LOG_SOURCE, LOG_TAG, "Received data: " + eventData?.toString());
-          this.sendEvent(eventData.getData());
+          Log.debug(LOG_SOURCE, LOG_TAG, "Received data: " + safeStringify(eventData));
+          this.sendEvent(event);
         }
       }
     });
@@ -302,46 +328,17 @@ export class EdgeExtension implements Edge, Extension {
         }
       }
     });
-  }
 
-  /**
-   * Handles the outgoing events.
-   * @param event Event
-   */
-  private handleOutgoingEvent(event: Event) {
-    Log.verbose(LOG_SOURCE, LOG_TAG, "handleOutgoingEvent() - Handling outgoing event.");
-    if (!this.isActive) {
-      return;
-    }
-
-    if (event.type === EventType.EDGE_IDENTITY && event.source === EventSource.RESPONSE_IDENTITY) {
-      this.resolveWaitingIdentityPromises(event);
-    }
-  }
-
-  /**
-   * Resolves the waiting promises with the ECID.
-   * @param event Response Event containing the ECID
-   * @returns
-   */
-  private resolveWaitingIdentityPromises(event: Event): void {
-    Log.verbose(
-      LOG_SOURCE,
-      LOG_TAG,
-      "resolveWaitingIdentityPromises() - Resolving waiting promises."
+    this.container.registerEventListener(
+      EventType.EDGE_IDENTITY,
+      EventSource.REQUEST_IDENTITY,
+      (event) => {
+        Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
+        if (this.isActive) {
+          this.getExperienceCloudId(event);
+        }
+      }
     );
-    for (const waitingPromise of this.pendingIdentityResponses) {
-      if (!waitingPromise) {
-        return;
-      }
-
-      const ecid = event.data?.getString(EdgeConstants.EventData.Keys.ECID) ?? null;
-      if (!isNullOrEmptyString(ecid)) {
-        waitingPromise.resolve(ecid);
-      } else {
-        waitingPromise.reject(null);
-      }
-    }
   }
 
   /**

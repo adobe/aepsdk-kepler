@@ -43,8 +43,8 @@ export class ConsentManager {
    * load the Collect consent value from persistence.
    * @returns Promise<void>
    */
-  async bootup(): Promise<void> {
-    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() -  Booting up ConsentManager.`);
+  async bootUp(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootUp() -  Booting up ConsentManager.`);
     this.collectConsent = await this.getCollectConsentFromPersistence();
     Promise.resolve();
   }

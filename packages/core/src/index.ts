@@ -14,7 +14,6 @@ import { Log } from "./core/utils/Log";
 import { LogLevel } from "./core/services";
 import { configuration as configurationExtension } from "./configuration";
 import { edge } from "./edge";
-import { DataObject } from "./core/eventhub/EventData";
 import { CoreConstants } from "./core/CoreConstants";
 import { Extension } from "./core/extension";
 import { registerPlatformService } from "./platform-kepler";
@@ -24,13 +23,14 @@ const LOG_TAG = "Index";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 export interface InitOptions {
+  // todo update label configuration
   config?: Record<string, unknown>;
   logLevel?: LogLevel;
   extensions?: Array<Extension>;
 }
 
 export const AEPSDK = {
-  version: "1.0.0" as const,
+  version: "1.0.0-Beta" as const,
 
   /**
    * Initializes the SDK with the given parameters.
@@ -74,11 +74,11 @@ export const AEPSDK = {
     configurationExtension.updateConfiguration(configuration);
   },
 
-  sendEvent(event: DataObject): void {
-    edge.sendEvent(event);
+  sendEvent(event: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
+    return edge.sendEvent(event);
   },
 
-  setConsent(consent: DataObject): void {
+  setConsent(consent: Record<string, unknown>): void {
     edge.setConsent(consent);
   },
 

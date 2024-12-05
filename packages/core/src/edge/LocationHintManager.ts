@@ -13,7 +13,7 @@ import { DataStore } from "../core/services";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { Log } from "../core/utils/Log";
 import { EdgeConstants } from "./EdgeConstants";
-import { DataObject, DataArray } from "../core/eventhub/EventData";
+import { DataObject } from "../core/eventhub/EventData";
 import { getArray, getDataObject, getNumber, getString } from "../core/utils/DataObjectUtil";
 
 const LOCATION_HINT_KEY = "locationHint";
@@ -40,11 +40,11 @@ export class LocationHintManager {
   }
 
   /**
-   * Bootup the LocationHintManager. Load the location hint from persistence.
+   * Boots up the LocationHintManager. Load the location hint from persistence.
    * @returns Promise<void>
    */
-  public async bootup(): Promise<void> {
-    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() - Booting up LocationHintManager.`);
+  public async bootUp(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootUp() - Booting up LocationHintManager.`);
     const locationHintObj = await this.getLocationHintFromPersistence();
 
     this.locationHint = (locationHintObj?.[LOCATION_HINT_VALUE] as string) || null;

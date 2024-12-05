@@ -17,7 +17,7 @@ import { SharedStateResult } from "../../../src/core/sharedstate";
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 describe("test Extension", () => {
-  test("onRegister() - should be able to do some aync operations", async () => {
+  test("onRegister() - should be able to do some async operations", async () => {
     const extensionContainer: ExtensionContainer = {
       registerEventListener: function (
         eventType: string,

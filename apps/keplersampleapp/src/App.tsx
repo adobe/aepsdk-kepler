@@ -5,7 +5,8 @@
  */
 
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, ImageBackground, View, Image} from 'react-native';
+import {StyleSheet, Text, ImageBackground, View, Image, Modal, Button, ScrollView} from 'react-native';
+
 import {Link} from './components/Link';
 import {AEPSDK} from '@adobe/kepler-aepcore';
 import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
@@ -32,6 +33,8 @@ const clearDatastore = async () => {
 
 export const App = () => {
   const [ecid, setECID] = useState('not set');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalText, setModalText] = useState('');
 
   const styles = getStyles();
 
@@ -45,17 +48,12 @@ export const App = () => {
     }
 
     const ecid = async () => {
-      console.log('##AEPSample - Getting ECID');
-      const ecid = await AEPSDK.getExperienceCloudId();
-      if (ecid) {
-        setECID(ecid);
-      }
-
+      getECID();
     };
+
     clear();
     init();
     ecid();
-
   }, []); // Runs once when the component mounts.
 
   const initSDK = () => {
@@ -101,10 +99,34 @@ export const App = () => {
     AEPSDK.getExperienceCloudId().then((ecid) => {
       console.log('##AEPSample - Got ECID: ', ecid);
       if (ecid) {
-        console.log('##AEPSample - Setting ECID: ', ecid);
         setECID(ecid);
       }
     });
+  };
+
+  const sendEvent = () => {
+    AEPSDK.sendEvent({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
+    })
+      .then((eventHandles) => {
+        const sendEventResponseJson = JSON.stringify(eventHandles ?? "{}", undefined, 2);
+        console.log(`##AEPSample - SendEvent Success: ${sendEventResponseJson}`);
+        setModalText(`Response:\n ${sendEventResponseJson}`);
+        setModalVisible(true);
+      })
+      .catch((error) => {
+        console.log(`##AEPSample - SendEvent Error: ${error}`);
+        setModalText(`SendEvent Error: ${error}`);
+        setModalVisible(true);
+      });
   };
 
   return (
@@ -112,6 +134,30 @@ export const App = () => {
       source={require('./assets/aep_bg.png')}
       style={styles.background}>
       <View style={styles.container}>
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(false);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <Text style={styles.modalText}>
+                  {modalText}
+                </Text>
+                {/* Add more content here */}
+              </ScrollView>
+              <View style={styles.modalButton}>
+                <Button
+                  title="Close"
+                  onPress={() => setModalVisible(false)}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
         <View style={styles.links}>
           <View style={styles.headerContainer}>
             <Text style={styles.subHeaderText}>
@@ -121,21 +167,7 @@ export const App = () => {
           <Link
             linkText={'SendEvent'}
             onPress={() => {
-              AEPSDK.sendEvent(
-                {
-                  xdm :
-                  {
-                    xdmKey: 'xdmVal'
-                  },
-                  data: {
-                    freeformKey: 'freeformVal'
-                  },
-                  query: {
-                    queryKey: 'queryVal'
-                  }
-                }
-
-              );
+              sendEvent();
             }}
           />
           <Link
@@ -232,5 +264,29 @@ const getStyles = () =>
       marginLeft: 150,
       marginBottom: 30,
       fontWeight: 'bold'
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: 40,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      width: '50%',
+      maxHeight: '70%', // Ensure the modal doesn't exceed screen height
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 20,
+    },
+    scrollContainer: {
+      paddingVertical: 10, // Add padding inside the scrollable area
+    },
+    modalText: {
+      fontSize: 25,
+      marginBottom: 20, // Adds space below the text
+    },
+    modalButton: {
+      marginTop: 20, // Adds space above the button
     },
   });

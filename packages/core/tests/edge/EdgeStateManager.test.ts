@@ -73,16 +73,16 @@ describe("EdgeStateManager tests", () => {
     expect(edgeStateManager).toBeDefined();
   });
 
-  test("EdgeStateManager bootup", async () => {
+  test("EdgeStateManager bootUp", async () => {
     const edgeStateManager = new EdgeStateManager(
       mockCreateSharedStateFn,
       mockIdentityManager,
       mockConsentManager
     );
 
-    await edgeStateManager.bootup();
-    expect(mockIdentityManager.bootup).toHaveBeenCalledTimes(1);
-    expect(mockConsentManager.bootup).toHaveBeenCalledTimes(1);
+    await edgeStateManager.bootUp();
+    expect(mockIdentityManager.bootUp).toHaveBeenCalledTimes(1);
+    expect(mockConsentManager.bootUp).toHaveBeenCalledTimes(1);
   });
 
   test("EdgeStateManager handleConfigurationUpdate with null data", () => {
@@ -213,7 +213,7 @@ describe("EdgeStateManager tests", () => {
     expect(mockConsentManager.getCollectConsent).toHaveBeenCalledTimes(1);
   });
 
-  test("EdgeStateManager updatesharedStateIfChanged updates shared state when ECID changes", () => {
+  test("EdgeStateManager updateSharedStateIfChanged updates shared state when ECID changes", () => {
     jest.spyOn(mockIdentityManager, "getECID").mockReturnValue("ECID");
 
     const edgeStateManager = new EdgeStateManager(
@@ -223,7 +223,7 @@ describe("EdgeStateManager tests", () => {
     );
 
     // ecid was null before and now it is set
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState = {
       ecid: "ECID",
       "consent.collect": "y",
@@ -232,7 +232,7 @@ describe("EdgeStateManager tests", () => {
     expect(mockCreateSharedStateFn).toHaveBeenCalledWith(expectedSharedState, null);
   });
 
-  test("EdgeStateManager updatesharedStateIfChanged updates shared state when collect consent changes", () => {
+  test("EdgeStateManager updateSharedStateIfChanged updates shared state when collect consent changes", () => {
     jest.spyOn(mockConsentManager, "getCollectConsent").mockReturnValue(ConsentValue.YES);
 
     const edgeStateManager = new EdgeStateManager(
@@ -242,7 +242,7 @@ describe("EdgeStateManager tests", () => {
     );
 
     // collect consent was p before and now it is y
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState = {
       "consent.collect": "y",
     };
@@ -250,7 +250,7 @@ describe("EdgeStateManager tests", () => {
     expect(mockCreateSharedStateFn).toHaveBeenCalledWith(expectedSharedState, null);
   });
 
-  test("EdgeStateManager updatesharedStateIfChanged updates shared state when when both ecid and collect consent changes", () => {
+  test("EdgeStateManager updateSharedStateIfChanged updates shared state when when both ecid and collect consent changes", () => {
     jest
       .spyOn(mockIdentityManager, "getECID")
       .mockReturnValueOnce("ECID")
@@ -272,7 +272,7 @@ describe("EdgeStateManager tests", () => {
     );
 
     // previously null ecid and collect consent will be set
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState = {
       "consent.collect": "y",
       ecid: "ECID",
@@ -281,7 +281,7 @@ describe("EdgeStateManager tests", () => {
     expect(mockCreateSharedStateFn).toHaveBeenCalledWith(expectedSharedState, null);
 
     // ecid and collect consent are changed
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
 
     const expectedSharedState2 = {
       ecid: "NEW_ECID",
@@ -291,7 +291,7 @@ describe("EdgeStateManager tests", () => {
     expect(mockCreateSharedStateFn).toHaveBeenNthCalledWith(2, expectedSharedState2, null);
 
     // ecid is set to null, no change in consent
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState3 = {
       "consent.collect": "n",
     };
@@ -299,12 +299,12 @@ describe("EdgeStateManager tests", () => {
     expect(mockCreateSharedStateFn).toHaveBeenNthCalledWith(3, expectedSharedState3, null);
 
     // ecid is still null, collect consent is null
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState4 = {};
     expect(mockCreateSharedStateFn).toHaveBeenNthCalledWith(4, expectedSharedState4, null);
   });
 
-  test("EdgeStateManager updatesharedStateIfChanged does not update shared state when ecid and collect consent are the same", () => {
+  test("EdgeStateManager updateSharedStateIfChanged does not update shared state when ecid and collect consent are the same", () => {
     jest.spyOn(mockIdentityManager, "getECID").mockReturnValue("ECID");
     jest.spyOn(mockConsentManager, "getCollectConsent").mockReturnValue(ConsentValue.YES);
 
@@ -315,16 +315,16 @@ describe("EdgeStateManager tests", () => {
     );
 
     // previously null ecid and collect consent will be set
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
     const expectedSharedState = {
       "consent.collect": "y",
       ecid: "ECID",
     };
 
     // ecid and collect consent are already set
-    edgeStateManager.updatesharedStateIfChanged();
-    edgeStateManager.updatesharedStateIfChanged();
-    edgeStateManager.updatesharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
+    edgeStateManager.updateSharedStateIfChanged();
 
     expect(mockCreateSharedStateFn).toHaveBeenCalledTimes(1); // the first time
     expect(mockCreateSharedStateFn).toHaveBeenCalledWith(expectedSharedState, null);

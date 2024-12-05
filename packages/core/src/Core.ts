@@ -23,6 +23,7 @@ import {
 } from "./core/CoreConstants";
 import { InitOptions } from ".";
 import { EventDispatcher, EventDispatcherInternal } from "./core/eventhub";
+import { safeStringify } from "./core/utils/common";
 
 const eventDispatcher = new EventDispatcherInternal();
 
@@ -35,6 +36,8 @@ const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
 let isStarted = false;
 let eventHub = createEventHub();
+
+type ExtensionInfo = { name: string; version: string };
 
 const eventHubPlaceHolderExtension = new (class implements Extension {
   readonly version = eventHubPlaceHolderExtensionConstants.VERSION;
@@ -49,12 +52,7 @@ const eventHubPlaceHolderExtension = new (class implements Extension {
     return Promise.resolve();
   }
 
-  createSharedStateForRegisteredExtensions(
-    extensionInfoList: {
-      name: string;
-      version: string;
-    }[]
-  ): void {
+  createSharedStateForRegisteredExtensions(extensionInfoList: ExtensionInfo[]): void {
     const state = EventData.buildFrom({
       version: eventHubPlaceHolderExtensionConstants.VERSION,
       wrapper: {
@@ -82,8 +80,6 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
   const sharedStateManager = new SharedStateManager();
   eventDispatcher.setEventHub(eventHub);
 
-  const onRegisterPromises: Promise<void>[] = [];
-
   const extensions: Extension[] = [
     eventHubPlaceHolderExtension,
     configuration.EXTENSION,
@@ -93,13 +89,55 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
   if (options?.extensions) {
     extensions.push(...options.extensions);
   }
+
+  const registeredExtensionInfoList = await registerExtensions(
+    eventHub,
+    sharedStateManager,
+    extensions
+  );
+
+  eventHub.start();
+
+  eventHubPlaceHolderExtension.createSharedStateForRegisteredExtensions(
+    registeredExtensionInfoList
+  );
+
+  if (options?.config) {
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `initializeSDK() - Updating SDK configuration: ${safeStringify(options.config, null, 2)}`
+    );
+    configuration.updateConfiguration(options.config);
+  }
+
+  if (options?.logLevel) {
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `initializeSDK() - Setting SDK log level to: (${options.logLevel}) `
+    );
+    serviceLookup.getService("logging").setLogLevel(options.logLevel);
+  }
+
+  Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK initialized successfully!");
+}
+
+async function registerExtensions(
+  eventHub: EventHub,
+  sharedStateManager: SharedStateManager,
+  extensions: Extension[]
+): Promise<Array<ExtensionInfo>> {
   const registeredExtensionInfoList: {
     name: string;
     version: string;
   }[] = [];
 
+  const onRegisterPromises: Promise<void>[] = [];
+
   extensions.forEach((extension) => {
-    Log.debug(LOG_SOURCE, LOG_TAG, `initializeSDK() - Registering extension: ${extension.name}`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `initializeSDK() - Registering extension: (${extension.name})`);
+
     try {
       onRegisterPromises.push(
         extension.onRegister(
@@ -107,6 +145,7 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
           serviceLookup
         )
       );
+
       if (extension.name !== eventHubPlaceHolderExtensionConstants.EXTENSION_NAME) {
         registeredExtensionInfoList.push({
           name: extension.name,
@@ -117,7 +156,7 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `initializeSDK() - Failed to register extension: ${extension.name}, error: ${
+        `initializeSDK() - Failed to register extension: (${extension.name}), error: ${
           (error as Error).message
         }`
       );
@@ -126,23 +165,7 @@ export async function initializeSDK(options?: InitOptions): Promise<void> {
 
   await Promise.all(onRegisterPromises);
 
-  eventHub.start();
-
-  eventHubPlaceHolderExtension.createSharedStateForRegisteredExtensions(
-    registeredExtensionInfoList
-  );
-
-  if (options?.config) {
-    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK configuration.");
-    configuration.updateConfiguration(options.config);
-  }
-
-  if (options?.logLevel) {
-    Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - Updating SDK log level.");
-    serviceLookup.getService("logging").setLogLevel(options.logLevel);
-  }
-
-  Log.debug(LOG_SOURCE, LOG_TAG, "initializeSDK() - SDK initialized succesfully!");
+  return registeredExtensionInfoList;
 }
 
 // It's only used in the test file

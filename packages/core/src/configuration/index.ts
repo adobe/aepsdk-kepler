@@ -33,7 +33,7 @@ export class ConfigurationAPI implements Configuration {
     Log.verbose(
       LOG_EXTENSION,
       LOG_TAG,
-      `updateConfiguration() - the configruation object sent by the client: ${safeStringify(
+      `updateConfiguration() - the configuration object sent by the client: ${safeStringify(
         configuration
       )}`
     );
@@ -43,11 +43,7 @@ export class ConfigurationAPI implements Configuration {
     });
 
     if (!data) {
-      Log.error(
-        LOG_EXTENSION,
-        LOG_TAG,
-        "updateConfiguration() - Configuration data is malformatted."
-      );
+      Log.error(LOG_EXTENSION, LOG_TAG, "updateConfiguration() - Configuration data is invalid.");
       return;
     }
 

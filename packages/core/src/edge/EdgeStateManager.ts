@@ -36,21 +36,21 @@ export class EdgeStateManager {
   ) {}
 
   /**
-   * Bootup the EdgeStateManager and load the persisted values from the DataStore.
-   * This will bootup the IdentityManager and ConsentManager.
+   * Boots up the EdgeStateManager and load the persisted values from the DataStore.
+   * This will bootUp the IdentityManager and ConsentManager.
    * @returns Promise<void>
    */
-  async bootup(): Promise<void> {
-    return Promise.all([this.identityManager.bootup(), this.consentManager.bootup()])
+  async bootUp(): Promise<void> {
+    return Promise.all([this.identityManager.bootUp(), this.consentManager.bootUp()])
       .then(() => {
         // Share the initial shared state
-        this.updatesharedStateIfChanged();
+        this.updateSharedStateIfChanged();
 
-        console.log("EdgeStateManager bootup complete");
+        Log.error(LOG_SOURCE, LOG_TAG, "EdgeStateManager bootUp complete");
         Promise.resolve();
       })
       .catch((error) => {
-        console.error("EdgeStateManager bootup failed", error);
+        Log.error(LOG_SOURCE, LOG_TAG, `EdgeStateManager bootUp failed ${error}`);
         Promise.reject(error);
       });
   }
@@ -129,11 +129,11 @@ export class EdgeStateManager {
   /**
    * Updates the shared state if the state has changed.
    */
-  updatesharedStateIfChanged(): void {
+  updateSharedStateIfChanged(): void {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
-      "updatesharedStateIfChanged() - Updating shared state if state has changed."
+      "updateSharedStateIfChanged() - Updating shared state if state has changed."
     );
     const ecid = this.identityManager.getECID();
     const collectConsent = this.consentManager.getCollectConsent();
@@ -151,7 +151,7 @@ export class EdgeStateManager {
       Log.verbose(
         LOG_SOURCE,
         LOG_TAG,
-        `updatesharedStateIfChanged() - Shared state has changed. New shared state: (${JSON.stringify(
+        `updateSharedStateIfChanged() - Shared state has changed. New shared state: (${JSON.stringify(
           sharedState
         )})`
       );

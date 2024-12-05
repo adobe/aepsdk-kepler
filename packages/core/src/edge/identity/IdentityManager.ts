@@ -12,16 +12,15 @@ governing permissions and limitations under the License.
 import { DataStore } from "../../core/services";
 import { EdgeConstants } from "../EdgeConstants";
 import { Log } from "../../core/utils/Log";
-import { DataObject, DataType, EventData } from "../../core/eventhub/EventData";
+import { DataObject, DataType } from "../../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../../core/utils/StringUtil";
-import { Event } from "../../core/eventhub/Event";
-import { EventType, EventSource } from "../../core/eventhub";
 import { getArray, getString } from "../../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "IdentityManager";
 
 const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
+const eventsWaitingForIdentityResponse: Array<string> = [];
 
 /**
  * IdentityManager is responsible for managing the ECID and other identity related information.
@@ -32,27 +31,38 @@ export class IdentityManager {
   private ECID_NAMESPACE = EdgeConstants.IdentityMap.NameSpace.ECID;
   private ecid: string | null = null;
 
-  constructor(private dataStore: DataStore, private dispatchFn: (event: Event) => void) {}
+  constructor(
+    private dataStore: DataStore,
+    private dispatchIdentityResponse: (requestId: string, ecid: string | null) => void
+  ) {}
 
   /**
    * Boots up the IdentityManager and loads the ECID from the DataStore.
    * @returns Promise<void>
    */
-  async bootup(): Promise<void> {
-    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() -  Booting up IdentityManager.`);
+  async bootUp(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootUp() -  Booting up IdentityManager.`);
     this.ecid = await this.getECIDFromPersistence();
     Promise.resolve();
+  }
+
+  /**
+   * Adds the requestId to the list of events waiting for identity response.
+   * @param requestId string
+   */
+  addEventWaitingForIdentityResponse(requestId: string) {
+    eventsWaitingForIdentityResponse.push(requestId);
   }
 
   /**
    * Processes the Edge response and updates the ECID if available.
    * @param responseHandle The response handle containing the identity payload.
    */
-  processEdgeResponse(responseHandle: DataObject) {
+  processEdgeResponse(responseHandle: DataObject, requestId: string) {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
-      `processEdgeResponse() -  Processing Edge Response handle:(${JSON.stringify(
+      `processEdgeResponse() -  Processing Edge Response for requestId:(${requestId}) \nhandle:(${JSON.stringify(
         responseHandle
       )}).`
     );
@@ -63,42 +73,29 @@ export class IdentityManager {
       const code =
         getString(payload as DataObject, RESPONSE_DATA_KEYS.NAMESPACE, RESPONSE_DATA_KEYS.CODE) ??
         "";
-      //const code = (namespace?.["code"] as string) ?? "";
 
       if (code === this.ECID_NAMESPACE) {
         const ecid = getString(payload as DataObject, RESPONSE_DATA_KEYS.ID) ?? "";
-        //const ecid = payloadObj["id"] as string;
         if (!isNullOrEmptyString(ecid)) {
           this.updateECID(ecid);
-          // TODO: createSharedState update instead of dispatching event
-          this.dispatchECID(ecid);
+          this.dispatchIdentityResponse(requestId, ecid);
+          this.resolveWaitingReqestIdentityEvents(ecid);
         }
       }
     }
   }
 
   /**
-   * Dispatches the ECID to the event hub
+   * Resolves the events waiting for identity response by dispatching the ECID.
+   * @param ecid string | null
    */
-  dispatchECID(ecid: string) {
-    Log.debug(
-      LOG_SOURCE,
-      LOG_TAG,
-      `dispatchECID() -  Dispatching Identity Response Event with ecid:(${ecid})`
-    );
+  private resolveWaitingReqestIdentityEvents(ecid: string | null) {
+    eventsWaitingForIdentityResponse.forEach((requestId) => {
+      this.dispatchIdentityResponse(requestId, ecid);
+    });
 
-    if (!isNullOrEmptyString(ecid)) {
-      const eventData = EventData.buildFrom({
-        [EdgeConstants.EventData.Keys.ECID]: ecid,
-      });
-      const event = Event.builder(
-        "Edge Identity Response",
-        EventType.EDGE_IDENTITY,
-        EventSource.RESPONSE_IDENTITY,
-        eventData
-      ).build();
-      this.dispatchFn(event);
-    }
+    // Clear the events waiting for identity response
+    eventsWaitingForIdentityResponse.length = 0;
   }
 
   /**

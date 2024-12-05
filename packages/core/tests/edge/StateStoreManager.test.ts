@@ -117,7 +117,7 @@ describe("StateStoreManager", () => {
     expect(mockDataStore.set).not.toHaveBeenCalled();
   });
 
-  test("bootup initializes state store from persistence", async () => {
+  test("bootUp initializes state store from persistence", async () => {
     const mockStateStoreJson = JSON.stringify({
       kndctr_1234_AdobeOrg_cluster: {
         payload: {
@@ -132,7 +132,7 @@ describe("StateStoreManager", () => {
 
     const stateStoreManager = new StateStoreManager(mockDataStore);
 
-    await stateStoreManager.bootup();
+    await stateStoreManager.bootUp();
     expect(mockDataStore.get).toHaveBeenCalledWith("stateStore");
     expect(stateStoreManager.getStateStore()).toEqual([
       {
@@ -143,7 +143,7 @@ describe("StateStoreManager", () => {
     ]);
   });
 
-  test("getStateStore without bootup will return empty even when state store is persisted", async () => {
+  test("getStateStore without bootUp will return empty even when state store is persisted", async () => {
     const stateStoreManager = new StateStoreManager(mockDataStore);
 
     const stateStore = stateStoreManager.getStateStore(100);
@@ -181,7 +181,7 @@ describe("StateStoreManager", () => {
     mockDataStore.get.mockResolvedValue(mockStateStoreJson);
 
     const stateStoreManager = new StateStoreManager(mockDataStore);
-    await stateStoreManager.bootup(); // bootup to load state store from persistence
+    await stateStoreManager.bootUp(); // bootUp to load state store from persistence
 
     const stateStore = await stateStoreManager.getStateStore(100);
     expect(stateStore).toEqual([

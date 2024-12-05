@@ -36,12 +36,12 @@ export class StateStoreManager {
   }
 
   /**
-   * Bootup the StateStoreManager and load the
+   * Boots up the StateStoreManager and load the
    * state store object from persistence.
    * @returns Promise<void>
    */
-  async bootup(): Promise<void> {
-    Log.debug(LOG_SOURCE, LOG_TAG, `bootup() - Booting up StateStoreManager.`);
+  async bootUp(): Promise<void> {
+    Log.debug(LOG_SOURCE, LOG_TAG, `bootUp() - Booting up StateStoreManager.`);
     this.stateStoreObj = (await this.getStateStoreFromPersistence()) ?? {};
     return Promise.resolve();
   }

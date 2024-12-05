@@ -91,15 +91,6 @@ describe("test Event class", () => {
     expect(clonedEvent.timestamp).not.toEqual(event.timestamp);
   });
 
-  test("chainToParentEvent()", () => {
-    const triggerEvent = Event.builder("event_name", "event_type", "event_source").build();
-
-    const responseEvent = Event.builder("event_name", "event_type", "event_source")
-      .chainToParentEvent(triggerEvent)
-      .build();
-    expect(responseEvent.parentId).toEqual(triggerEvent.uuid);
-  });
-
   test("setParentId()", () => {
     const triggerEvent = Event.builder("event_name", "event_type", "event_source").build();
 
@@ -107,15 +98,6 @@ describe("test Event class", () => {
       .setParentId(triggerEvent.uuid)
       .build();
     expect(responseEvent.parentId).toEqual(triggerEvent.uuid);
-  });
-
-  test("inResponseToEvent()", () => {
-    const triggerEvent = Event.builder("event_name", "event_type", "event_source").build();
-
-    const responseEvent = Event.builder("event_name", "event_type", "event_source")
-      .inResponseToEvent(triggerEvent)
-      .build();
-    expect(responseEvent.responseId).toEqual(triggerEvent.uuid);
   });
 
   test("setResponseId()", () => {

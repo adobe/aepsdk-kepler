@@ -87,7 +87,7 @@ describe("EdgeResponseManager tests", () => {
     expect(edgeResponseManager).toBeDefined();
   });
 
-  test("EdgeResponseManager handleEdgeResponse with identity handle calls identity processEdgeRespons with correct handle data and the response event is dispatched", () => {
+  test("EdgeResponseManager handleEdgeResponse with identity handle calls identity processEdgeResponse with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
       mockEdgeStateManager,
@@ -96,38 +96,44 @@ describe("EdgeResponseManager tests", () => {
       mockLocationHintManager,
       mockStateStoreManager
     );
-    edgeResponseManager.handleEdgeResponse({
-      handle: [
-        {
-          type: "identity:result",
-          payload: [
-            {
-              namespace: {
-                code: "ECID",
+    edgeResponseManager.handleEdgeResponse(
+      {
+        handle: [
+          {
+            type: "identity:result",
+            payload: [
+              {
+                namespace: {
+                  code: "ECID",
+                },
+                id: "test-ecid",
               },
-              id: "test-ecid",
-            },
-          ],
-        },
-      ],
-    });
+            ],
+          },
+        ],
+      },
+      "testRequestId"
+    );
 
     expect(mockIdentityManager.processEdgeResponse).toHaveBeenCalledTimes(1);
-    expect(mockIdentityManager.processEdgeResponse).toBeCalledWith({
-      type: "identity:result",
-      payload: [
-        {
-          namespace: {
-            code: "ECID",
+    expect(mockIdentityManager.processEdgeResponse).toBeCalledWith(
+      {
+        type: "identity:result",
+        payload: [
+          {
+            namespace: {
+              code: "ECID",
+            },
+            id: "test-ecid",
           },
-          id: "test-ecid",
-        },
-      ],
-    });
+        ],
+      },
+      "testRequestId"
+    );
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
-    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.updateSharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEventData = EventData.buildFrom({
       type: "identity:result",
@@ -146,7 +152,9 @@ describe("EdgeResponseManager tests", () => {
       "com.adobe.eventType.edge",
       "identity:result",
       expectedEventData
-    ).build();
+    )
+      .setParentId("testRequestId")
+      .build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -155,12 +163,13 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.type).toEqual(expectedEvent.type);
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.parentId).toEqual(expectedEvent.parentId);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
     expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
-  test("EdgeResponseManager handleEdgeResponse with consent handle calls consent processEdgeRespons with correct handle data and the response event is dispatched", () => {
+  test("EdgeResponseManager handleEdgeResponse with consent handle calls consent processEdgeResponse with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
       mockEdgeStateManager,
@@ -169,20 +178,23 @@ describe("EdgeResponseManager tests", () => {
       mockLocationHintManager,
       mockStateStoreManager
     );
-    edgeResponseManager.handleEdgeResponse({
-      handle: [
-        {
-          type: "consent:preferences",
-          payload: [
-            {
-              collect: {
-                val: "y",
+    edgeResponseManager.handleEdgeResponse(
+      {
+        handle: [
+          {
+            type: "consent:preferences",
+            payload: [
+              {
+                collect: {
+                  val: "y",
+                },
               },
-            },
-          ],
-        },
-      ],
-    });
+            ],
+          },
+        ],
+      },
+      "testRequestId"
+    );
 
     expect(mockConsentManager.processEdgeResponse).toHaveBeenCalledTimes(1);
     expect(mockConsentManager.processEdgeResponse).toBeCalledWith({
@@ -209,14 +221,16 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
-    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.updateSharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "consent:preferences",
       expectedEventData
-    ).build();
+    )
+      .setParentId("testRequestId")
+      .build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -225,12 +239,13 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.type).toEqual(expectedEvent.type);
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.parentId).toEqual(expectedEvent.parentId);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
     expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
-  test("EdgeResponseManager handleEdgeResponse with location hint handle calls location hint processEdgeRespons with correct handle data and the response event is dispatched", () => {
+  test("EdgeResponseManager handleEdgeResponse with location hint handle calls location hint processEdgeResponse with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
       mockEdgeStateManager,
@@ -239,20 +254,23 @@ describe("EdgeResponseManager tests", () => {
       mockLocationHintManager,
       mockStateStoreManager
     );
-    edgeResponseManager.handleEdgeResponse({
-      handle: [
-        {
-          type: "locationHint:result",
-          payload: [
-            {
-              scope: "EdgeNetwork",
-              hint: "test-location-hint",
-              ttlSeconds: 1800,
-            },
-          ],
-        },
-      ],
-    });
+    edgeResponseManager.handleEdgeResponse(
+      {
+        handle: [
+          {
+            type: "locationHint:result",
+            payload: [
+              {
+                scope: "EdgeNetwork",
+                hint: "test-location-hint",
+                ttlSeconds: 1800,
+              },
+            ],
+          },
+        ],
+      },
+      "testRequestId"
+    );
 
     expect(mockLocationHintManager.processEdgeResponse).toHaveBeenCalledTimes(1);
     expect(mockLocationHintManager.processEdgeResponse).toBeCalledWith({
@@ -279,14 +297,16 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
-    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.updateSharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "locationHint:result",
       expectedEventData
-    ).build();
+    )
+      .setParentId("testRequestId")
+      .build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -295,12 +315,13 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.type).toEqual(expectedEvent.type);
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.parentId).toEqual(expectedEvent.parentId);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
     expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
   });
 
-  test("EdgeResponseManager handleEdgeResponse with state store handle calls state store processEdgeRespons with correct handle data and the response event is dispatched", () => {
+  test("EdgeResponseManager handleEdgeResponse with state store handle calls state store processEdgeResponse with correct handle data and the response event is dispatched", () => {
     const edgeResponseManager = new EdgeResponseManager(
       mockDispatchFn,
       mockEdgeStateManager,
@@ -309,20 +330,23 @@ describe("EdgeResponseManager tests", () => {
       mockLocationHintManager,
       mockStateStoreManager
     );
-    edgeResponseManager.handleEdgeResponse({
-      handle: [
-        {
-          type: "state:store",
-          payload: [
-            {
-              key: "kndctr_1234_AdobeOrg_cluster",
-              value: "or2",
-              maxAge: 1800,
-            },
-          ],
-        },
-      ],
-    });
+    edgeResponseManager.handleEdgeResponse(
+      {
+        handle: [
+          {
+            type: "state:store",
+            payload: [
+              {
+                key: "kndctr_1234_AdobeOrg_cluster",
+                value: "or2",
+                maxAge: 1800,
+              },
+            ],
+          },
+        ],
+      },
+      "testRequestId"
+    );
 
     expect(mockStateStoreManager.processEdgeResponse).toHaveBeenCalledTimes(1);
     expect(mockStateStoreManager.processEdgeResponse).toBeCalledWith({
@@ -349,14 +373,16 @@ describe("EdgeResponseManager tests", () => {
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
-    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.updateSharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEvent = Event.builder(
       "AEP Response Event Handle",
       "com.adobe.eventType.edge",
       "state:store",
       expectedEventData
-    ).build();
+    )
+      .setParentId("testRequestId")
+      .build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -365,6 +391,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.type).toEqual(expectedEvent.type);
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.parentId).toEqual(expectedEvent.parentId);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
     expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));
@@ -379,24 +406,27 @@ describe("EdgeResponseManager tests", () => {
       mockLocationHintManager,
       mockStateStoreManager
     );
-    edgeResponseManager.handleEdgeResponse({
-      handle: [
-        {
-          type: "media-analytics:new-session",
-          payload: [
-            {
-              sessionId: "test-backend-session-id",
-            },
-          ],
-        },
-      ],
-    });
+    edgeResponseManager.handleEdgeResponse(
+      {
+        handle: [
+          {
+            type: "media-analytics:new-session",
+            payload: [
+              {
+                sessionId: "test-backend-session-id",
+              },
+            ],
+          },
+        ],
+      },
+      "testRequestId"
+    );
 
     expect(mockIdentityManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockConsentManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockLocationHintManager.processEdgeResponse).not.toHaveBeenCalled();
     expect(mockStateStoreManager.processEdgeResponse).not.toHaveBeenCalled();
-    expect(mockEdgeStateManager.updatesharedStateIfChanged).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.updateSharedStateIfChanged).toHaveBeenCalledTimes(1);
 
     const expectedEventData = EventData.buildFrom({
       type: "media-analytics:new-session",
@@ -412,7 +442,9 @@ describe("EdgeResponseManager tests", () => {
       "com.adobe.eventType.edge",
       "media-analytics:new-session",
       expectedEventData
-    ).build();
+    )
+      .setParentId("testRequestId")
+      .build();
 
     // get the event data from the dispatch call
     const dispatchedEvent = mockDispatchFn.mock.calls[0][0];
@@ -421,6 +453,7 @@ describe("EdgeResponseManager tests", () => {
     expect(dispatchedEvent.type).toEqual(expectedEvent.type);
     expect(dispatchedEvent.source).toEqual(expectedEvent.source);
     expect(dispatchedEvent.data).toEqual(expectedEvent.data);
+    expect(dispatchedEvent.parentId).toEqual(expectedEvent.parentId);
     expect(dispatchedEvent.sequentialId).toEqual(expect.any(Number));
     expect(dispatchedEvent.timestamp).toEqual(expect.any(Number));
     expect(dispatchedEvent.uuid).toEqual(expect.any(String));

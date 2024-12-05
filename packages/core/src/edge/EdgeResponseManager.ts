@@ -20,6 +20,7 @@ import { getAsDataObject, getAsString, isNullOrEmptyObject } from "../core/utils
 import { Event } from "../core/eventhub/Event";
 import { EventType } from "../core/eventhub/EventType";
 import { EdgeStateManager } from "./EdgeStateManager";
+import { EdgeCallbackManager } from "./EdgeCallbackManager";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeResponseManager";
@@ -40,14 +41,14 @@ export class EdgeResponseManager {
    * Boots up the EdgeResponseManager and loads the location hint and state store.
    * @returns Promise<void>
    */
-  async bootup(): Promise<void> {
-    return Promise.all([this.locationHintManager.bootup(), this.stateStoreManager.bootup()])
+  async bootUp(): Promise<void> {
+    return Promise.all([this.locationHintManager.bootUp(), this.stateStoreManager.bootUp()])
       .then(() => {
-        console.log("EdgeResponseManager bootup complete");
+        console.log("EdgeResponseManager bootUp complete");
         Promise.resolve();
       })
       .catch((error) => {
-        console.error("EdgeStateManager bootup failed", error);
+        console.error("EdgeResponseManager bootUp failed", error);
         Promise.reject(error);
       });
   }
@@ -72,7 +73,7 @@ export class EdgeResponseManager {
    * dispatches the response to the appropriate manager and eventhub.
    * @param response The response object for the edge request.
    */
-  handleEdgeResponse(response: DataObject) {
+  handleEdgeResponse(response: DataObject, requestId: string) {
     Log.debug(LOG_SOURCE, LOG_TAG, `handleEdgeResponse() -  ${JSON.stringify(response)}`);
 
     if (isNullOrEmptyObject(response)) {
@@ -96,7 +97,7 @@ export class EdgeResponseManager {
       const type = getAsString(handle?.[RESPONSE_DATA_KEYS.TYPE]) ?? "";
 
       if (type === RESPONSE_DATA_KEYS.IDENTITY_RESULT) {
-        this.identityManager.processEdgeResponse(handle);
+        this.identityManager.processEdgeResponse(handle, requestId);
       } else if (type === RESPONSE_DATA_KEYS.CONSENT_PREFERENCES) {
         this.consentManager.processEdgeResponse(handle);
       } else if (type === RESPONSE_DATA_KEYS.LOCATION_HINT_RESULT) {
@@ -118,12 +119,17 @@ export class EdgeResponseManager {
           EventType.EDGE,
           type,
           EventData.buildFrom(handle)
-        ).build()
+        )
+          .setParentId(requestId)
+          .build()
       );
+
+      EdgeCallbackManager.getInstance().addEventHandle(requestId, EventData.buildFrom(handle));
     }
 
+    EdgeCallbackManager.getInstance().unregisterCallback(requestId);
     // After all the responses are processed,
     // update the shared state if it has changed.
-    this.edgeStateManager.updatesharedStateIfChanged();
+    this.edgeStateManager.updateSharedStateIfChanged();
   }
 }

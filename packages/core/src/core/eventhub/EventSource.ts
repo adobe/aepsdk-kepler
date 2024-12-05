@@ -22,7 +22,7 @@ export const EventSource = {
   APPLICATION_LAUNCH: "com.adobe.eventSource.applicationLaunch",
   APPLICATION_CLOSE: "com.adobe.eventSource.applicationClose",
   CONSENT_PREFERENCE: "consent:preferences",
-  UPDATE_CONSENT: "com.adobe.eventSource.updateConsent",
+  SET_CONSENT: "com.adobe.eventSource.setConsent",
   RESET_COMPLETE: "com.adobe.eventSource.resetComplete",
   UPDATE_IDENTITY: "com.adobe.eventSource.updateIdentity",
   REMOVE_IDENTITY: "com.adobe.eventSource.removeIdentity",

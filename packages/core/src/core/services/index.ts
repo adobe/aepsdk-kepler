@@ -28,7 +28,7 @@ export interface ServiceLookup {
 }
 
 export const serviceLookup: ServiceLookup = {
-  // We may add more APIs in the future for multiple SDK Contianer support, such as generating new service instances per container
+  // We may add more APIs in the future for multiple SDK Container support, such as generating new service instances per container
   getService<T extends Name>(name: T): Services[T] {
     return services[name];
   },

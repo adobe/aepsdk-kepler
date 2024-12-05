@@ -68,7 +68,7 @@ describe("EventDispatcherInternal", () => {
 
     const triggerEvent = Event.builder("name1", "type1", "source1").build();
     const responseEvent = Event.builder("name2", "type2", "source2")
-      .inResponseToEvent(triggerEvent)
+      .setResponseId(triggerEvent.uuid)
       .build();
     eventHub.dispatchEvent(responseEvent);
     setTimeout(() => {
@@ -87,7 +87,7 @@ describe("EventDispatcherInternal", () => {
 
     const triggerEvent = Event.builder("name1", "type1", "source1").build();
     const responseEvent = Event.builder("name2", "type2", "source2")
-      .inResponseToEvent(triggerEvent)
+      .setResponseId(triggerEvent.uuid)
       .build();
     eventHub.dispatchEvent(responseEvent);
     setTimeout(() => {

@@ -14,6 +14,14 @@ export const EdgeConstants = {
   FRIENDLY_NAME: "Edge",
   EXTENSION_VERSION: "1.0.0",
 
+  Event: {
+    Name: {
+      SEND_EVENT: "AEP Send Event Request",
+      GET_IDENTITY_ECID: "AEP Identity ECID Request",
+      SET_CONSENT: "AEP Set Consent Request",
+    },
+  },
+
   ConfigurationKey: {
     EDGE_DOMAIN: "edge.domain",
     DATASTREAM_ID: "edge.configId",

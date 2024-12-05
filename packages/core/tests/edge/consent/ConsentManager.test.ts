@@ -38,29 +38,29 @@ describe("ConsentManager tests", () => {
     expect(consentManager).toBeDefined();
   });
 
-  test("bootup laods the consent value from the data store", async () => {
+  test("bootUp loads the consent value from the data store", async () => {
     mockDataStore.get.mockResolvedValue(ConsentValue.YES);
     const consentManager = new ConsentManager(mockDataStore, mockDispatchFn);
 
-    await consentManager.bootup();
+    await consentManager.bootUp();
 
     expect(mockDataStore.get).toHaveBeenCalledWith("consent.collect");
     expect(mockDispatchFn).not.toHaveBeenCalled();
     expect(consentManager.getCollectConsent()).toBe(ConsentValue.YES);
   });
 
-  test("bootup sets the consent value to null from when consent is not persisted", async () => {
+  test("bootUp sets the consent value to null from when consent is not persisted", async () => {
     mockDataStore.get.mockResolvedValue(null);
     const consentManager = new ConsentManager(mockDataStore, mockDispatchFn);
 
-    await consentManager.bootup();
+    await consentManager.bootUp();
 
     expect(mockDataStore.get).toHaveBeenCalledWith("consent.collect");
     expect(mockDispatchFn).not.toHaveBeenCalled();
     expect(consentManager.getCollectConsent()).toBeNull();
   });
 
-  test("getConsent returns null if bootup is not called even when consent value exists in persistence", async () => {
+  test("getConsent returns null if bootUp is not called even when consent value exists in persistence", async () => {
     const consentManager = new ConsentManager(mockDataStore, mockDispatchFn);
 
     const consent = consentManager.getCollectConsent();
@@ -101,7 +101,7 @@ describe("ConsentManager tests", () => {
     expect(consent).toBe(ConsentValue.PENDING);
   });
 
-  test("getConsent returns null when not set in cache or persistence and wrong consent value present in defaultconfiguration", async () => {
+  test("getConsent returns null when not set in cache or persistence and wrong consent value present in default configuration", async () => {
     const consentManager = new ConsentManager(mockDataStore, mockDispatchFn);
 
     const configurationData = EventData.buildFrom({

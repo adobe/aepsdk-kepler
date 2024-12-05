@@ -86,12 +86,12 @@ export class Event {
     this._parentId = parentId;
   }
 
-  get parentId(): string | null {
-    return this._parentId;
-  }
-
   private set responseId(responseId: string | null) {
     this._responseId = responseId;
+  }
+
+  get parentId(): string | null {
+    return this._parentId;
   }
 
   get responseId(): string | null {
@@ -116,6 +116,7 @@ export class Event {
       ts: ${this.timestamp}
       data: ${dataString}
       parentId: ${this.parentId}
+      responseId: ${this.responseId}
     ]
     `;
   }
@@ -144,18 +145,8 @@ export class Event {
       return this;
     }
 
-    chainToParentEvent(event: Event): EventBuilder {
-      this.setParentId(event.uuid);
-      return this;
-    }
-
     setResponseId(responseId: string): EventBuilder {
       this.event.responseId = responseId;
-      return this;
-    }
-
-    inResponseToEvent(event: Event): EventBuilder {
-      this.setResponseId(event.uuid);
       return this;
     }
 
@@ -177,7 +168,5 @@ export class Event {
 export interface EventBuilder {
   setParentId(parentId: string): EventBuilder;
   setResponseId(responseId: string): EventBuilder;
-  inResponseToEvent(event: Event): EventBuilder;
-  chainToParentEvent(event: Event): EventBuilder;
   build(): Event;
 }

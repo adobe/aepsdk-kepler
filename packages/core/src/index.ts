@@ -36,6 +36,17 @@ export const AEPSDK = {
    * Initializes the SDK with the given parameters.
    * This function needs to be called prior to calling any other SDK functions.
    *
+   * Example:
+   *
+   * AEPSDK.initialize({
+   *  config: {
+   *      "edge.configId": "xxx-xxx-xxx", // required
+   *      "edge.domain": "edgeDomain", // optional
+   *      "consent.default": {"collect": "y"} // optional
+   *  },
+   *  logLevel: LogLevel.VERBOSE
+   * });
+   *
    * @param options the InitOptions passed to the SDK.
    */
   initialize(options?: InitOptions): Promise<void> {
@@ -58,6 +69,7 @@ export const AEPSDK = {
   },
 
   /**
+   * Returns the current logging level of the SDK.
    *
    * @returns the current log level for the SDK logs.
    */
@@ -67,6 +79,14 @@ export const AEPSDK = {
 
   /**
    * Updates the SDK configuration.
+   *
+   * Example:
+   *
+   * AEPSDK.updateConfiguration({
+   *  "edge.configId": "xxx-xxx-xxx", // required
+   *  "edge.domain": "edgeDomain", // optional
+   *  "consent.default": {"collect": "y"} // optional
+   * });
    *
    * @param configuration the configuration object to be passed to the SDK.
    */

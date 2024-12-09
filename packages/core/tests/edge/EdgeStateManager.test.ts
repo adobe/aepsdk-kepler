@@ -105,6 +105,7 @@ describe("EdgeStateManager tests", () => {
 
     edgeStateManager.handleConfigurationUpdate(configData);
     expect(mockCreateSharedStateFn).toHaveBeenCalledTimes(0);
+    expect(mockConsentManager.processConfigurationEvent).toHaveBeenCalledTimes(1);
   });
 
   test("EdgeStateManager getEdgeDomain", () => {
@@ -127,23 +128,7 @@ describe("EdgeStateManager tests", () => {
 
     edgeStateManager.handleConfigurationUpdate(configData);
     expect(edgeStateManager.getDatastreamId()).toEqual("datastreamId");
-  });
-
-  test("EdgeStateManager getDefaultConsent", () => {
-    const edgeStateManager = new EdgeStateManager(
-      mockCreateSharedStateFn,
-      mockIdentityManager,
-      mockConsentManager
-    );
-
-    edgeStateManager.handleConfigurationUpdate(configData);
-    expect(edgeStateManager.getDefaultConsent()).toEqual({
-      consents: {
-        collect: {
-          val: "p",
-        },
-      },
-    });
+    expect(mockConsentManager.processConfigurationEvent).toHaveBeenCalledTimes(1);
   });
 
   test("EdgeStateManager handle invalid configuration update", () => {
@@ -159,7 +144,7 @@ describe("EdgeStateManager tests", () => {
 
     expect(edgeStateManager.getEdgeDomain()).toBeNull();
     expect(edgeStateManager.getDatastreamId()).toBeNull();
-    expect(edgeStateManager.getDefaultConsent()).toBeNull();
+    expect(mockConsentManager.processConfigurationEvent).toHaveBeenCalledTimes(1);
   });
 
   test("EdgeStateManager getEcid", () => {

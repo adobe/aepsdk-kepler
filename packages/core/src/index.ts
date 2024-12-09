@@ -94,15 +94,39 @@ export const AEPSDK = {
     configurationExtension.updateConfiguration(configuration);
   },
 
-  sendEvent(event: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
-    return edge.sendEvent(event);
-  },
-
-  setConsent(consent: Record<string, unknown>): void {
-    edge.setConsent(consent);
-  },
-
+  /**
+   * Returns the Experience Cloud ID (ECID) of the user.
+   * @returns Promise<string | null>
+   * @returns null if the ECID is not available.
+   */
   getExperienceCloudId(): Promise<string | null> {
     return edge.getExperienceCloudId();
+  },
+
+  /**
+   * Sends an event to the edge network.
+   * @param event the event to be sent.
+   */
+  sendEvent(event: Record<string, unknown>): void {
+    edge.sendEvent(event);
+  },
+
+  /**
+   * Sends an event to the edge network and returns the response.
+   * @param event the event to be sent.
+   * @returns Promise<Array<Record<string, unknown>>>
+   * @throws Error if the event data is invalid.
+   * @throws Error if the event data does not contain valid non-empty XDM data.
+   */
+  sendEventWithResponse(event: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
+    return edge.sendEventWithResponse(event);
+  },
+
+  /**
+   * Sends the consent data to the edge network.
+   * @param consent the consent data to be sent.
+   */
+  setConsent(consent: Record<string, unknown>): void {
+    edge.setConsent(consent);
   },
 };

@@ -28,7 +28,6 @@ const EXPIRY_TS_KEY = "expiryTS";
 const RESPONSE_DATA_KEYS = EdgeConstants.ResponseData.Keys;
 
 export class StateStoreManager {
-  private expiryTS: number | null = null;
   private stateStoreObj: DataObject;
 
   constructor(private dataStore: DataStore) {
@@ -156,7 +155,7 @@ export class StateStoreManager {
         LOG_TAG,
         `persistStateStore() - Persisting StateStore object: ${stateStoreJson}`
       );
-      return this.dataStore.set("stateStore", stateStoreJson);
+      return this.dataStore.set(EdgeConstants.DataStoreKey.STATE_STORE, stateStoreJson);
     } catch (exception) {
       Log.error(
         LOG_SOURCE,

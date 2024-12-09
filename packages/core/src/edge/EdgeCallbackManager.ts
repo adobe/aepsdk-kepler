@@ -17,14 +17,17 @@ import { EdgeConstants } from "./EdgeConstants";
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeCallbackManager";
 
+export type EdgeEventHandles = Array<EventData>;
+export type EdgeCallback = (eventHandle: EdgeEventHandles) => void;
+
 export class EdgeCallbackManager {
   // Private static instance of the singleton
   private static instance: EdgeCallbackManager | null;
 
   // Record to store callbacks
-  private callbacks: Record<string, (eventHandle: Array<EventData>) => void> = {};
+  private callbacks: Record<string, EdgeCallback> = {};
 
-  private edgeEventHandles: Record<string, Array<EventData>> = {};
+  private edgeEventHandles: Record<string, EdgeEventHandles> = {};
 
   // Private constructor to prevent instantiation
   private constructor() {}
@@ -46,10 +49,7 @@ export class EdgeCallbackManager {
    * @param requestEventId the event ID to register the callback for
    * @param callback the callback to register
    */
-  public registerCallback(
-    requestEventId: string,
-    callback: (eventHandles: Array<EventData>) => void
-  ): void {
+  public registerCallback(requestEventId: string, callback: EdgeCallback): void {
     Log.verbose(LOG_SOURCE, LOG_TAG, `Registering callback for event ID: ${requestEventId}`);
     this.callbacks[requestEventId] = callback;
   }

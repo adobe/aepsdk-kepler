@@ -51,15 +51,15 @@ export class ConsentManager {
 
   /**
    * Processes the Configuration Event to update the defaultConsent value.
-   * @param event Event
+   * @param data EventData containing the configuration key-value pairs.
    */
-  processConfigurationEvent(event: Event) {
+  processConfigurationEvent(data: EventData | null) {
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
       `processConfigurationEvent() -  Processing Configuration Event.`
     );
-    const data: EventData | null = event.data;
+
     this.defaultConsent =
       data?.getDataObject(EdgeConstants.ConfigurationKey.DEFAULT_CONSENT) ?? null;
   }

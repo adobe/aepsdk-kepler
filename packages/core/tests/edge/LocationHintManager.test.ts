@@ -58,7 +58,7 @@ describe("LocationHintManager", () => {
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe("persistedLocationHint");
-    expect(mockDataStore.get).toHaveBeenCalledWith("locationHint");
+    expect(mockDataStore.get).toHaveBeenCalledWith("edge.locationHint");
   });
 
   test("bootUp sets location hint to null when persisted location hint is not present in persistence", async () => {
@@ -69,7 +69,7 @@ describe("LocationHintManager", () => {
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe(null);
-    expect(mockDataStore.get).toHaveBeenCalledWith("locationHint");
+    expect(mockDataStore.get).toHaveBeenCalledWith("edge.locationHint");
   });
 
   test("getLocationHint without bootUp will return null even when locationHint is persisted on the DataStore", async () => {
@@ -98,7 +98,7 @@ describe("LocationHintManager", () => {
 
     const locationHint = locationHintManager.getLocationHint();
     expect(locationHint).toBe(null);
-    expect(mockDataStore.get).toHaveBeenCalledWith("locationHint");
+    expect(mockDataStore.get).toHaveBeenCalledWith("edge.locationHint");
   });
 
   test("setLocationHint persists location hint", async () => {
@@ -109,7 +109,7 @@ describe("LocationHintManager", () => {
       value: "mockLocationHint",
       expiryTS: 100000,
     });
-    expect(mockDataStore.set).toHaveBeenCalledWith("locationHint", expectedLocationHintJson);
+    expect(mockDataStore.set).toHaveBeenCalledWith("edge.locationHint", expectedLocationHintJson);
   });
 
   test("test processEdgeResponse with location hint", async () => {

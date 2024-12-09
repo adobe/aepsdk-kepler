@@ -21,6 +21,7 @@ import { asyncRequest, HttpConnection, HttpMethod } from "../core/utils/networki
 import { DataObject, DataArray } from "../core/eventhub/EventData";
 import { getAsDataArray, getAsDataObject, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
 import { EdgeStateManager } from "./EdgeStateManager";
+import { getDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeHitProcessor";
@@ -376,10 +377,13 @@ export class EdgeHitProcessor {
     };
 
     if (identityMap) {
-      (requestObj[DATA.XDM] as DataObject)[DATA.IDENTITY_MAP] = identityMap;
+      const xdmData = getDataObject(requestObj, DATA.XDM) ?? {};
+      xdmData[DATA.IDENTITY_MAP] = identityMap;
+      requestObj[DATA.XDM] = xdmData;
     } else {
-      (requestObj[QUERY.KEY] as DataObject)[QUERY.IDENTITY] = this.getECIDQueryPayload()
-        .identity as DataObject;
+      const queryData = getDataObject(requestObj, QUERY.KEY) ?? {};
+      queryData[QUERY.IDENTITY] = this.getECIDQueryPayload();
+      requestObj[QUERY.KEY] = queryData;
     }
 
     if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
@@ -417,9 +421,13 @@ export class EdgeHitProcessor {
     requestObj.events = [hit.data ?? {}];
 
     if (identityMap) {
-      (requestObj[DATA.XDM] as DataObject)[DATA.IDENTITY_MAP] = identityMap;
+      const xdmData = getDataObject(requestObj, DATA.XDM) ?? {};
+      xdmData[DATA.IDENTITY_MAP] = identityMap;
+      requestObj[DATA.XDM] = xdmData;
     } else {
-      requestObj[QUERY.KEY] = this.getECIDQueryPayload();
+      const queryData = getDataObject(requestObj, QUERY.KEY) ?? {};
+      queryData[QUERY.IDENTITY] = this.getECIDQueryPayload();
+      requestObj[QUERY.KEY] = queryData;
     }
 
     if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
@@ -484,9 +492,7 @@ export class EdgeHitProcessor {
    * @returns DataObject The query payload for fetching ECID.
    */
   private getECIDQueryPayload(): DataObject {
-    return {
-      identity: { fetch: [EdgeConstants.IdentityMap.NameSpace.ECID] },
-    };
+    return { fetch: [EdgeConstants.IdentityMap.NameSpace.ECID] };
   }
 }
 
@@ -494,7 +500,18 @@ export class EdgeHitProcessor {
  * The allowed values for the location hint.
  */
 export enum LocationHintValue {
-  // TODO add all the allowed values
-  OR = "or",
-  IND = "ind",
+  /// Oregon, USA
+  or2 = "or2",
+  /// Virginia, USA
+  va6 = "va6",
+  /// Ireland
+  irl1 = "irl1",
+  /// India
+  ind1 = "ind1",
+  /// Japan
+  jpn3 = "jpn3",
+  /// Singapore
+  sgp3 = "sgp3",
+  /// Australia
+  aus3 = "aus3",
 }

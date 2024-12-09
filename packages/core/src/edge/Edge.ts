@@ -16,7 +16,8 @@ export interface Edge {
   readonly EXTENSION: Extension;
 
   // public APIs
-  sendEvent(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+  sendEvent(data: Record<string, unknown>): void;
+  sendEventWithResponse(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
   getExperienceCloudId(): Promise<string | null>;
   setConsent(data: Record<string, unknown>): void;
 }

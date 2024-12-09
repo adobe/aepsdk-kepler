@@ -16,7 +16,7 @@ import { EdgeConstants } from "./EdgeConstants";
 import { DataObject } from "../core/eventhub/EventData";
 import { getArray, getDataObject, getNumber, getString } from "../core/utils/DataObjectUtil";
 
-const LOCATION_HINT_KEY = "locationHint";
+const LOCATION_HINT_KEY = EdgeConstants.DataStoreKey.LOCATION_HINT;
 const LOCATION_HINT_VALUE = "value";
 const LOCATION_HINT_EXPIRY_TS = "expiryTS";
 const DEFAULT_TTL_SECONDS = 1800; // 30 minutes

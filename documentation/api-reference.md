@@ -12,6 +12,7 @@ This document lists the APIs provided by AEP Kepler SDK, along with code samples
 - [Edge APIs](#edge-apis)
   - [getExperienceCloudId](#getExperienceCloudId)
   - [sendEvent](#sendEvent)
+  - [sendEventWithResponse](#sendEventWithResponse)
   - [setConsent](#setConsent)
 
 ## Core APIs
@@ -56,7 +57,13 @@ AEPSDK.initialize({
     config: {
         "edge.configId": "xxx-xxx-xxx", // required
         "edge.domain": "edgeDomain", // optional
-        "consent.default": {"collect": "y"} //optional
+        "consent.default": { // optional
+          "consents": {
+            "collect": {
+              "val": "p"
+            }
+          }
+        }
     },
     logLevel: LogLevel.VERBOSE
 });
@@ -87,8 +94,14 @@ import {AEPSDK} from '@adobe/kepler-aepcore';
 
 AEPSDK.updateConfiguration({
     "edge.configId": "xxx-xxx-xxx", // required
-    "edge.domain": "edgeDomain", // optional 
-    "consent.default": {"collect": "y"} // optional
+    "edge.domain": "edgeDomain", // optional
+    "consent.default": { // optional
+      "consents": {
+        "collect": {
+          "val": "p"
+        }
+      }
+    }
 });
 ```
 
@@ -188,6 +201,35 @@ const data = {
 }
 
 AEPSDK.sendEvent(data);
+```
+
+### sendEventWithResponse
+
+#### Syntax
+```typescript
+sendEventWithResponse(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
+```
+
+#### Example
+```typescript
+ AEPSDK.sendEventWithResponse({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      }
+    })
+      .then((sendEventResponse: Array<Record<string, unknown>>) => {
+        // Handle success
+        sendEventResponseJson = JSON.stringify(sendEventResponse)
+        console.log(`SendEventWithResponse Success: ${sendEventResponseJson}`);
+      })
+      .catch((error: string) => {
+        // Handle error
+        console.log(`SendEventWithResponse Error: ${error}`);
+      });
+
 ```
 
 ### setConsent

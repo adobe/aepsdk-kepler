@@ -19,6 +19,7 @@ export const EdgeConstants = {
       SEND_EVENT: "AEP Send Event Request",
       GET_IDENTITY_ECID: "AEP Identity ECID Request",
       SET_CONSENT: "AEP Set Consent Request",
+      IDENTITY_ECID_RESPONSE: "AEP Identity ECID Response",
     },
   },
 
@@ -29,8 +30,10 @@ export const EdgeConstants = {
   },
 
   DataStoreKey: {
-    ECID: "ecid",
-    COLLECT_CONSENT: "consent.collect",
+    ECID: "edge.ecid",
+    COLLECT_CONSENT: "edge.consent.collect",
+    LOCATION_HINT: "edge.locationHint",
+    STATE_STORE: "edge.stateStore",
   },
 
   IdentityMap: {

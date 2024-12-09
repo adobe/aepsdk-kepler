@@ -54,7 +54,7 @@ describe("StateStoreManager", () => {
 
     stateStoreManager.processEdgeResponse(responseHandle);
     expect(mockDataStore.set).toHaveBeenCalledWith(
-      "stateStore",
+      "edge.stateStore",
       JSON.stringify({
         kndctr_1234_AdobeOrg_cluster: {
           payload: {

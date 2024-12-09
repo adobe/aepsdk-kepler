@@ -20,9 +20,10 @@ const keplerDataStore = new KeplerDataStore();
 const clearDatastore = async () => {
   console.log('##AEPSample - Clearing Datastore');
   const sdk_keys = [
-    'ecid',
-    'consent.collect',
-    'locationHint'
+    'edge.ecid',
+    'edge.consent.collect',
+    'edge.locationHint',
+    'edge.stateStore',
   ]
 
   for (const key of sdk_keys) {
@@ -52,8 +53,11 @@ export const App = () => {
     };
 
     clear();
-    init();
-    ecid();
+    setTimeout(() => {
+      // wait for the datastore to clear
+      init();
+      ecid();
+    }, 100);
   }, []); // Runs once when the component mounts.
 
   const initSDK = () => {
@@ -62,7 +66,13 @@ export const App = () => {
     const sdkConfig = {
       "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
       //"edge.domain": "edgeDomain",
-      //"consent.default": {"collect": "y"}
+      "consent.default": {
+        "consents": {
+          "collect": {
+            "val": "p"
+           }
+         }
+       }
     }
 
     AEPSDK.initialize(
@@ -100,6 +110,8 @@ export const App = () => {
       console.log('##AEPSample - Got ECID: ', ecid);
       if (ecid) {
         setECID(ecid);
+        setModalText(`ECID: ${ecid}`);
+        setModalVisible(true);
       }
     });
   };
@@ -115,14 +127,28 @@ export const App = () => {
       query: {
         queryKey: 'queryVal',
       },
+    });
+  }
+
+  const sendEventWithResponse = () => {
+    AEPSDK.sendEventWithResponse({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
     })
-      .then((eventHandles) => {
+      .then((eventHandles: Array<Record<string, unknown>>) => {
         const sendEventResponseJson = JSON.stringify(eventHandles ?? "{}", undefined, 2);
         console.log(`##AEPSample - SendEvent Success: ${sendEventResponseJson}`);
         setModalText(`Response:\n ${sendEventResponseJson}`);
         setModalVisible(true);
       })
-      .catch((error) => {
+      .catch((error: string) => {
         console.log(`##AEPSample - SendEvent Error: ${error}`);
         setModalText(`SendEvent Error: ${error}`);
         setModalVisible(true);
@@ -165,18 +191,24 @@ export const App = () => {
             </Text>
           </View>
           <Link
-            linkText={'SendEvent'}
-            onPress={() => {
-              sendEvent();
-            }}
-          />
-          <Link
             linkText={'Get ECID'}
             onPress={() => {
               {
                 console.log('##Getting ECID');
                 getECID();
               }
+            }}
+          />
+          <Link
+            linkText={'SendEvent'}
+            onPress={() => {
+              sendEvent();
+            }}
+          />
+          <Link
+            linkText={'SendEventWithResponse'}
+            onPress={() => {
+              sendEventWithResponse();
             }}
           />
           <Link

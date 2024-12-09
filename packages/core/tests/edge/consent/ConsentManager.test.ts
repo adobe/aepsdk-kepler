@@ -44,7 +44,7 @@ describe("ConsentManager tests", () => {
 
     await consentManager.bootUp();
 
-    expect(mockDataStore.get).toHaveBeenCalledWith("consent.collect");
+    expect(mockDataStore.get).toHaveBeenCalledWith("edge.consent.collect");
     expect(mockDispatchFn).not.toHaveBeenCalled();
     expect(consentManager.getCollectConsent()).toBe(ConsentValue.YES);
   });
@@ -55,7 +55,7 @@ describe("ConsentManager tests", () => {
 
     await consentManager.bootUp();
 
-    expect(mockDataStore.get).toHaveBeenCalledWith("consent.collect");
+    expect(mockDataStore.get).toHaveBeenCalledWith("edge.consent.collect");
     expect(mockDispatchFn).not.toHaveBeenCalled();
     expect(consentManager.getCollectConsent()).toBeNull();
   });
@@ -89,13 +89,7 @@ describe("ConsentManager tests", () => {
       },
     });
 
-    const configurationEvent = Event.builder(
-      "Mock Configuration Event",
-      EventType.CONFIGURATION,
-      EventSource.RESPONSE_CONTENT,
-      configurationData
-    ).build();
-    consentManager.processConfigurationEvent(configurationEvent);
+    consentManager.processConfigurationEvent(configurationData);
 
     const consent = consentManager.getCollectConsent();
     expect(consent).toBe(ConsentValue.PENDING);
@@ -114,13 +108,7 @@ describe("ConsentManager tests", () => {
       },
     });
 
-    const configurationEvent = Event.builder(
-      "Mock Configuration Event",
-      EventType.CONFIGURATION,
-      EventSource.RESPONSE_CONTENT,
-      configurationData
-    ).build();
-    consentManager.processConfigurationEvent(configurationEvent);
+    consentManager.processConfigurationEvent(configurationData);
 
     const consent = consentManager.getCollectConsent();
     expect(consent).toBe(null);
@@ -141,7 +129,7 @@ describe("ConsentManager tests", () => {
     consentManager.updateCollectConsent(ConsentValue.YES);
 
     // Verify that the consent value is saved in the data store
-    expect(mockDataStore.set).toHaveBeenCalledWith("consent.collect", ConsentValue.YES);
+    expect(mockDataStore.set).toHaveBeenCalledWith("edge.consent.collect", ConsentValue.YES);
 
     const consent = consentManager.getCollectConsent();
     expect(consent).toBe(ConsentValue.YES);

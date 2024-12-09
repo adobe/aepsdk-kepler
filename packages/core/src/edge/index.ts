@@ -20,6 +20,7 @@ import { Log } from "../core/utils/Log";
 import { getEventDispatcher } from "../Core";
 import { Event, EventType, EventSource } from "../core/eventhub";
 import { EdgeCallbackManager } from "./EdgeCallbackManager";
+import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_EXTENSION = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeAPI";
@@ -28,20 +29,74 @@ export class EdgeAPI implements Edge {
   readonly EXTENSION: Extension = new EdgeExtension();
 
   // public APIs
-  sendEvent(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
-    // Send event
+  /**
+   * Sends an event to the Edge Network.
+   * @param data The event data to be sent.
+   */
+  sendEvent(data: Record<string, unknown>): void {
     Log.verbose(
       LOG_EXTENSION,
       LOG_TAG,
       `sendEvent() - Sending Event with data: ${safeStringify(data, null, 2)}`
     );
 
-    const cleanedData = clearEventDataForSendEvent(data);
-    const eventData = EventData.buildFrom(cleanedData);
+    const sanitizedData = sanitizeEventDataForSendEvent(data);
+    const eventData = EventData.buildFrom(sanitizedData);
+
+    if (!eventData) {
+      Log.error(LOG_EXTENSION, LOG_TAG, "sendEvent() - Passed event data is invalid.");
+      return;
+    }
+
+    const xdmData = eventData.getDataObject("xdm") ?? {};
+    if (isEmptyDataObject(xdmData)) {
+      Log.error(
+        LOG_EXTENSION,
+        LOG_TAG,
+        "sendEvent() - Event Data should contain valid non empty XDM data for sending an event."
+      );
+      return;
+    }
+
+    const sendEvent = Event.builder(
+      EdgeConstants.Event.Name.SEND_EVENT,
+      EventType.EDGE,
+      EventSource.REQUEST_CONTENT,
+      eventData
+    ).build();
+
+    getEventDispatcher().dispatch(sendEvent);
+  }
+
+  /**
+   * Sends an event to the Edge Network and returns the response.
+   * @param data The event data to be sent.
+   * @returns Promise<Array<Record<string, unknown>>>
+   */
+  sendEventWithResponse(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>> {
+    Log.verbose(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `sendEventWithResponse() - Sending Event with data: ${safeStringify(data, null, 2)}`
+    );
+
+    const sanitizedData = sanitizeEventDataForSendEvent(data);
+    const eventData = EventData.buildFrom(sanitizedData);
 
     if (!eventData) {
       Log.error(LOG_EXTENSION, LOG_TAG, "sendEvent() - Passed event data is invalid.");
       return Promise.reject("Passed event data is invalid.");
+    }
+
+    const xdmData = eventData.getDataObject("xdm") ?? {};
+    if (isEmptyDataObject(xdmData)) {
+      Log.error(
+        LOG_EXTENSION,
+        LOG_TAG,
+        "sendEvent() - Event Data should contain valid non empty XDM data for sending an event."
+      );
+
+      return Promise.reject("Passed event data should contain valid XDM data.");
     }
 
     const sendEvent = Event.builder(
@@ -57,41 +112,28 @@ export class EdgeAPI implements Edge {
       EdgeCallbackManager.getInstance().registerCallback(
         sendEvent.uuid,
         (eventHandles: Array<EventData>) => {
-          Log.verbose(
-            LOG_EXTENSION,
-            LOG_TAG,
-            `sendEvent() - Received event handles: ${eventHandles}`
-          );
-          resolve(eventHandles.map((eventHandle) => eventHandle.getData()));
+          resolve(convertToArrayOfObject(eventHandles));
         }
       );
     });
   }
 
+  /**
+   * Returns the Experience Cloud ID (ECID) of the user.
+   * @returns Promise<string | null>
+   */
   async getExperienceCloudId(): Promise<string | null> {
     // Get experience cloud id
     Log.verbose(LOG_EXTENSION, LOG_TAG, "getExperienceCloudId() - Getting Experience Cloud ID");
 
-    const identityResponse = getEventDispatcher().dispatchWithResponse(
-      Event.builder(
-        EdgeConstants.Event.Name.GET_IDENTITY_ECID,
-        EventType.EDGE_IDENTITY,
-        EventSource.REQUEST_IDENTITY
-      ).build()
-    );
-
-    return identityResponse
-      .then((responseEvent) => {
-        const ecid = responseEvent.data?.getString(EdgeConstants.EventData.Keys.ECID) ?? null;
-
-        Log.verbose(
-          LOG_EXTENSION,
-          LOG_TAG,
-          `getExperienceCloudId() - Received identity response with ECID: ${ecid}`
-        );
-
-        return Promise.resolve(ecid);
-      })
+    const identityResponseEvent = await getEventDispatcher()
+      .dispatchWithResponse(
+        Event.builder(
+          EdgeConstants.Event.Name.GET_IDENTITY_ECID,
+          EventType.IDENTITY,
+          EventSource.REQUEST_IDENTITY
+        ).build()
+      )
       .catch((error) => {
         Log.error(
           LOG_EXTENSION,
@@ -101,8 +143,22 @@ export class EdgeAPI implements Edge {
 
         return Promise.resolve(null);
       });
+
+    const ecid = identityResponseEvent?.data?.getString(EdgeConstants.EventData.Keys.ECID) ?? null;
+
+    Log.verbose(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `getExperienceCloudId() - Received identity response with ECID: ${ecid}`
+    );
+
+    return ecid;
   }
 
+  /**
+   * Sends the consent data to the Edge Network.
+   * @param data The consent data to be sent.
+   */
   setConsent(data: Record<string, unknown>): void {
     // Set consent
     Log.verbose(
@@ -129,7 +185,7 @@ export class EdgeAPI implements Edge {
   }
 }
 
-function clearEventDataForSendEvent(data: Record<string, unknown>): Record<string, unknown> {
+function sanitizeEventDataForSendEvent(data: Record<string, unknown>): Record<string, unknown> {
   // remove any keys that are not allowed
   const allowedKeys = ["xdm", "data", "query"];
 
@@ -138,13 +194,17 @@ function clearEventDataForSendEvent(data: Record<string, unknown>): Record<strin
       Log.verbose(
         LOG_EXTENSION,
         LOG_TAG,
-        `clearEventDataForSendEvent() - Removing invalid key: (${key})`
+        `sanitizeEventDataForSendEvent() - Removing invalid key: (${key})`
       );
       delete data[key];
     }
   });
 
   return data;
+}
+
+function convertToArrayOfObject(eventDataArray: Array<EventData>): Array<Record<string, unknown>> {
+  return eventDataArray.map((eventData) => eventData.getData());
 }
 
 export const edge: Edge = new EdgeAPI();

@@ -26,7 +26,6 @@ const SHARED_STATE_KEYS = EdgeConstants.SharedState.Keys;
 export class EdgeStateManager {
   private datastreamId: string | null = null;
   private edgeDomain: string | null = null;
-  private defaultConsent: DataObject | null = null;
   private lastSharedState: DataObject = {};
 
   constructor(
@@ -67,14 +66,13 @@ export class EdgeStateManager {
 
     this.datastreamId = data.getString(CONFIGURATION.DATASTREAM_ID) ?? null;
     this.edgeDomain = data.getString(CONFIGURATION.EDGE_DOMAIN) ?? null;
-    this.defaultConsent = data.getDataObject(CONFIGURATION.DEFAULT_CONSENT) ?? null;
+
+    this.consentManager.processConfigurationEvent(data);
 
     Log.debug(
       LOG_SOURCE,
       LOG_TAG,
-      `handleConfigurationUpdate() - Datastream ID: ${this.datastreamId}, Edge Domain: ${
-        this.edgeDomain
-      }, Default Consent: ${JSON.stringify(this.defaultConsent)}`
+      `handleConfigurationUpdate() - \nDatastream ID: ${this.datastreamId}, \nEdge Domain: ${this.edgeDomain}`
     );
   }
 
@@ -92,14 +90,6 @@ export class EdgeStateManager {
    */
   getDatastreamId(): string | null {
     return this.datastreamId;
-  }
-
-  /**
-   * Returns the default consent.
-   * @returns DataObject | null
-   */
-  getDefaultConsent(): DataObject | null {
-    return this.defaultConsent;
   }
 
   /**

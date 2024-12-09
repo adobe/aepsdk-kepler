@@ -107,8 +107,8 @@ describe("EdgeExtension tests", () => {
 
     edgeExtension.onRegister(mockExtensionContainer, mockServiceLookup);
 
-    // 1 for edge request, 1 for hub shared state, 1 for request Identity
-    expect(mockExtensionContainer.registerEventListener).toHaveBeenCalledTimes(3);
+    // 1 for edge request, 1 for hub shared state, 1 for request Identity, 1 for set consent
+    expect(mockExtensionContainer.registerEventListener).toHaveBeenCalledTimes(4);
 
     expect(mockServiceLookup.getService).toHaveBeenCalledWith("dataStore");
   });

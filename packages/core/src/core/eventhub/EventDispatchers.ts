@@ -12,6 +12,8 @@ governing permissions and limitations under the License.
 
 import { EventHub, Event, EventListenerCallback } from ".";
 
+const DEFAULT_RESPONSE_TIMEOUT = 5000;
+
 export interface EventDispatcher {
   dispatch(event: Event): void;
   dispatchWithResponse(triggerEvent: Event, timeout?: number): Promise<Event>;
@@ -46,14 +48,17 @@ export class EventDispatcherInternal implements EventDispatcher {
     this.eventHub?.dispatchEvent(event);
   }
 
-  dispatchWithResponse(triggerEvent: Event, timeout: number = 5000): Promise<Event> {
+  dispatchWithResponse(
+    triggerEvent: Event,
+    timeout: number = DEFAULT_RESPONSE_TIMEOUT
+  ): Promise<Event> {
     if (!this.eventHub) {
       return Promise.reject(new Error("EventHub is not set"));
     }
     return new Promise((resolve, reject) => {
       // Set up a timer to reject the promise when the timeout is reached
       const timer = setTimeout(() => {
-        reject(new Error("Timeout reached"));
+        reject(new Error("API Timed out waiting for response"));
       }, timeout);
       this.dispatchWithResponseCallback(triggerEvent, timeout, (event) => {
         clearTimeout(timer);

@@ -25,12 +25,14 @@ import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, EventData } from "../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { safeStringify } from "../core/utils/common";
+import { getNumber } from "../core/utils/DataObjectUtil";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeExtension";
+const HIT_PROCESSING_TIMER_INTERVAL_MS = 500;
 
 // Implementation
 export class EdgeExtension implements Extension {
@@ -179,8 +181,8 @@ export class EdgeExtension implements Extension {
     });
 
     const responseEvent = Event.builder(
-      EdgeConstants.Event.Name.GET_IDENTITY_ECID,
-      EventType.EDGE_IDENTITY,
+      EdgeConstants.Event.Name.IDENTITY_ECID_RESPONSE,
+      EventType.IDENTITY,
       EventSource.RESPONSE_IDENTITY,
       eventData
     )
@@ -209,9 +211,9 @@ export class EdgeExtension implements Extension {
       "sendEvent() - Received event with data: " + eventData.toString()
     );
 
-    const xdm = eventData.getDataObject("xdm") as DataObject;
+    const xdm = eventData.getDataObject("xdm") ?? {};
 
-    let hitTimestamp = xdm["timestamp"] as number;
+    let hitTimestamp = getNumber(xdm, "timestamp");
     if (!hitTimestamp) {
       Log.verbose(
         LOG_SOURCE,
@@ -236,10 +238,13 @@ export class EdgeExtension implements Extension {
    * Sends the consent data to the edge server
    * @param consent Object containing the consent data
    */
-  setConsent(consent: DataObject) {
+  setConsent(consent: EventData): void {
     Log.debug(LOG_SOURCE, LOG_TAG, "setConsent() - Received consent data: " + consent.toString());
 
-    const consentHit = EdgeHit.builder().setData(consent).setType(EdgeHitType.CONSENT).build();
+    const consentHit = EdgeHit.builder()
+      .setData(consent.getData())
+      .setType(EdgeHitType.CONSENT)
+      .build();
 
     this.hitProcessor?.queueHit(consentHit);
     this.hitProcessor?.process();
@@ -330,15 +335,27 @@ export class EdgeExtension implements Extension {
     });
 
     this.container.registerEventListener(
-      EventType.EDGE_IDENTITY,
+      EventType.IDENTITY,
       EventSource.REQUEST_IDENTITY,
       (event) => {
-        Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
+        Log.debug(LOG_SOURCE, LOG_TAG, "Received request identity event: " + event.toString());
         if (this.isActive) {
           this.getExperienceCloudId(event);
         }
       }
     );
+
+    this.container.registerEventListener(EventType.CONSENT, EventSource.SET_CONSENT, (event) => {
+      Log.debug(LOG_SOURCE, LOG_TAG, "Received set consent event: " + event.toString());
+      if (this.isActive) {
+        const eventData = event.data;
+
+        if (eventData) {
+          Log.debug(LOG_SOURCE, LOG_TAG, "Received data: " + safeStringify(eventData));
+          this.setConsent(eventData);
+        }
+      }
+    });
   }
 
   /**
@@ -350,7 +367,7 @@ export class EdgeExtension implements Extension {
     Log.debug(LOG_SOURCE, LOG_TAG, "startHitProcessingTimer() - Starting hit processing timer.");
     this.hitProcessingTimer = setInterval(() => {
       this.hitProcessor?.process();
-    }, 500);
+    }, HIT_PROCESSING_TIMER_INTERVAL_MS);
   }
 
   /**

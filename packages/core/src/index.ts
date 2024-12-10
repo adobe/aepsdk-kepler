@@ -88,10 +88,10 @@ export const AEPSDK = {
    *  "consent.default": {"collect": "y"} // optional
    * });
    *
-   * @param configuration the configuration object to be passed to the SDK.
+   * @param config the configuration object to be passed to the SDK.
    */
-  updateConfiguration(configuration: Record<string, unknown>): void {
-    configurationExtension.updateConfiguration(configuration);
+  updateConfiguration(config: Record<string, unknown>): void {
+    configurationExtension.updateConfiguration(config);
   },
 
   /**

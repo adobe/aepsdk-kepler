@@ -33,20 +33,21 @@ interface InitOptions {
 ```
 
 ```typescript
-function initialize(params?: InitOptions): void
+function initialize(options?: InitOptions): void
 ```
 
 - Parameters
 
   - `options` (optional): An object of type `InitOptions` that can contain the following properties:
 
-    - `config` (optional): A record of key-value pairs for configuration settings.
+    - `config` (optional): A record of key-value pairs for configuration settings. Refer to the [updateConfiguration](#updateConfiguration) API details below for the list of supported keys.
 
     - `logLevel` (optional): A value of type `LogLevel` that specifies the logging level.
 
 - Returns
 
     - `Promise<void>`: A promise that resolves when the initialization process is complete.
+
 
 #### Example
 
@@ -80,12 +81,26 @@ If the configuration has alread provided when calling the `initialize` function,
 #### Syntax
 
 ```typescript
-function updateConfiguration(configuration: Record<string, any>): void
+function updateConfiguration(config: Record<string, any>): void
 ```
 
 - Parameters
 
-  - `configuration`: A record of key-value pairs for configuration settings.
+  - `config`: A record of key-value pairs for configuration settings.
+
+
+- Reserved keys and sample values for the configuration object.
+
+|   Key  | Value (example) | Required | SDK version
+| -------- | ------- | ------- | ------- |
+| `edge.configId`  | xxx-xxx-xxx | Y | `1.0.0`|
+| `edge.domain` | edgeDomain     | N|`1.0.0`|
+| `consent.default`    |  {"consents":{"collect":{"val":"p"}}}   | N|`1.0.0`|
+
+The `edge.configId` value is presented as Datastream ID in the [Datastream details](https://experienceleague.adobe.com/en/docs/experience-platform/datastreams/configure#view-details) page.
+
+The `edge.domain` value is the first-party domain mapped to the Adobe-provisioned Edge Network domain. For more information, see this [documentation](https://developer.adobe.com/client-sdks/edge/edge-network/#domain-configuration).
+
 
 #### Example
 
@@ -128,7 +143,7 @@ function setLogLevel(logLevel: LogLevel): void
 
 - Parameters
 
-  - `level`: The desired logging level.
+  - `logLevel`: The desired logging level.
 
 #### Example
 

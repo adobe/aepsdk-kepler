@@ -69,7 +69,7 @@ export const App = () => {
       "consent.default": {
         "consents": {
           "collect": {
-            "val": "p"
+            "val": "y"
            }
          }
        }

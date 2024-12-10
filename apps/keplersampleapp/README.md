@@ -6,12 +6,12 @@ To run this app on your Amazon device, follow the steps below to set it up befor
 
 ## Install the AEP Kepler SDK
 
-Fristly, download the `@adobe-kepler-aepcore-1.0.0.tgz` file to the root directory of the Kepler sample app project.
+Fristly, download the `@adobe-kepler-aepcore-1.0.0-beta.tgz` file to the root directory of the Kepler sample app project.
 
 Next, execute the npm command provided below to install the package.
 
 ```shell
-npm install @adobe-kepler-aepcore-1.0.0.tgz
+npm install @adobe-kepler-aepcore-1.0.0-beta.tgz
 ```
 
 ## Initialize and configure the AEP Keper SDK

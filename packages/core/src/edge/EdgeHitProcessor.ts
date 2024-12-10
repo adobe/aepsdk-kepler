@@ -133,7 +133,7 @@ export class EdgeHitProcessor {
 
         if (!hit) {
           // This condition can be reached if the collect consent is pending and there are no consent hits
-          break;
+          return Promise.resolve(false);
         }
 
         const requestId = hit.requestId;
@@ -257,6 +257,10 @@ export class EdgeHitProcessor {
    */
   getConsentQueueSize(): number {
     return this.consentHitQueue.size();
+  }
+
+  isQueueEmpty(): boolean {
+    return this.hitQueue.isEmpty() && this.consentHitQueue.isEmpty();
   }
 
   /**

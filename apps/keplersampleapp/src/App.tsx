@@ -104,14 +104,16 @@ export const App = () => {
     AEPSDK.setConsent(consentData)
   }
 
-  const getECID = async () => {
+  const getECID = async (showModal: boolean = false) => {
     console.log('##AEPSample - Getting ECID');
     AEPSDK.getExperienceCloudId().then((ecid) => {
       console.log('##AEPSample - Got ECID: ', ecid);
       if (ecid) {
         setECID(ecid);
-        setModalText(`ECID: ${ecid}`);
-        setModalVisible(true);
+        if (showModal) {
+          setModalText(`ECID: ${ecid}`);
+          setModalVisible(true);
+        }
       }
     });
   };
@@ -144,12 +146,12 @@ export const App = () => {
     })
       .then((eventHandles: Array<Record<string, unknown>>) => {
         const sendEventResponseJson = JSON.stringify(eventHandles ?? "{}", undefined, 2);
-        console.log(`##AEPSample - SendEvent Success: ${sendEventResponseJson}`);
+        console.log(`##AEPSample - SendEventWithResponse Success: ${sendEventResponseJson}`);
         setModalText(`Response:\n ${sendEventResponseJson}`);
         setModalVisible(true);
       })
       .catch((error: string) => {
-        console.log(`##AEPSample - SendEvent Error: ${error}`);
+        console.log(`##AEPSample - SendEventWithResponse Error: ${error}`);
         setModalText(`SendEvent Error: ${error}`);
         setModalVisible(true);
       });
@@ -195,7 +197,7 @@ export const App = () => {
             onPress={() => {
               {
                 console.log('##Getting ECID');
-                getECID();
+                getECID(true);
               }
             }}
           />

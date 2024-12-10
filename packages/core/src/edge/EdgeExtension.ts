@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 import { Event, EventType, EventSource } from "../core/eventhub";
 import { ExtensionContainer, Extension } from "../core/extension";
 import { DataStore, ServiceLookup } from "../core/services";
-import { ConsentManager } from "./consent/ConsentManager";
+import { ConsentManager, ConsentValue } from "./consent/ConsentManager";
 import { EdgeConstants } from "./EdgeConstants";
 import { IdentityManager } from "./identity/IdentityManager";
 import { Log } from "../core/utils/Log";
@@ -36,7 +36,7 @@ const HIT_PROCESSING_TIMER_INTERVAL_MS = 500;
 
 // Implementation
 export class EdgeExtension implements Extension {
-  private isActive: boolean = false;
+  private _isActive: boolean = false;
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
   private dataStore: DataStore | null = null;
@@ -99,10 +99,9 @@ export class EdgeExtension implements Extension {
     );
 
     this.hitProcessor = new EdgeHitProcessor(this.edgeResponseManager, this.edgeStateManager);
-    this.isActive = true;
+    this._isActive = true;
 
     this.registerListeners();
-    this.startHitProcessingTimer();
 
     return Promise.all([this.edgeStateManager.bootUp(), this.edgeResponseManager.bootUp()])
       .then(() => {
@@ -114,6 +113,8 @@ export class EdgeExtension implements Extension {
         Promise.reject(error);
       });
   }
+
+
 
   /**
    * Creates the shared state with the provided data for the Edge extension.
@@ -139,7 +140,7 @@ export class EdgeExtension implements Extension {
       LOG_TAG,
       `dispatchEvent() - Dispatching event: (${JSON.stringify(event)}).`
     );
-    if (this.isActive) {
+    if (this.isActive()) {
       // dispatch the event to the event hub
       this.container?.dispatch(event);
     }
@@ -230,31 +231,52 @@ export class EdgeExtension implements Extension {
       .setTimestamp(hitTimestamp)
       .build();
 
-    this.hitProcessor?.queueHit(edgeHit);
-    this.hitProcessor?.process();
+    this.processHitAndStartTimer(edgeHit);
   }
 
   /**
    * Sends the consent data to the edge server
    * @param consent Object containing the consent data
    */
-  setConsent(consent: EventData): void {
-    Log.debug(LOG_SOURCE, LOG_TAG, "setConsent() - Received consent data: " + consent.toString());
+  setConsent(event: Event): void {
+    const eventData = event.data;
+
+    if (!eventData) {
+      Log.error(LOG_SOURCE, LOG_TAG, `setConsent() - Event data(${eventData}) is invalid.`);
+      return;
+    }
+
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      "setConsent() - Received event with data: " + eventData.toString()
+    );
 
     const consentHit = EdgeHit.builder()
-      .setData(consent.getData())
+      .setData(eventData.getData())
       .setType(EdgeHitType.CONSENT)
+      .setRequestId(event.uuid)
       .build();
 
-    this.hitProcessor?.queueHit(consentHit);
+    this.processHitAndStartTimer(consentHit);
+  }
+
+  private processHitAndStartTimer(hit: EdgeHit): void {
+    this.hitProcessor?.queueHit(hit);
     this.hitProcessor?.process();
+
+    this.startHitProcessingTimer();
+  }
+
+  isActive(): boolean {
+    return this._isActive;
   }
 
   /**
    * Un-registers the Edge extension.
    */
   onUnregister(): void {
-    this.isActive = false;
+    this._isActive = false;
     this.container = null;
     this.serviceLookup = null;
     this.dataStore = null;
@@ -290,8 +312,7 @@ export class EdgeExtension implements Extension {
     // add the event to the list of events waiting for identity response
     this.identityManager?.addEventWaitingForIdentityResponse(requestEventId);
 
-    this.hitProcessor?.queueHit(identityHit);
-    this.hitProcessor?.process();
+    this.processHitAndStartTimer(identityHit);
   }
 
   /**
@@ -308,7 +329,7 @@ export class EdgeExtension implements Extension {
 
     this.container.registerEventListener(EventType.EDGE, EventSource.REQUEST_CONTENT, (event) => {
       Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
-      if (this.isActive) {
+      if (this.isActive()) {
         const eventData = event.data;
 
         if (eventData) {
@@ -320,7 +341,7 @@ export class EdgeExtension implements Extension {
 
     this.container.registerEventListener(EventType.HUB, EventSource.SHARED_STATE, (event) => {
       Log.debug(LOG_SOURCE, LOG_TAG, "Received event: " + event.toString());
-      if (this.isActive) {
+      if (this.isActive()) {
         const eventData = event.data;
         const stateOwner = eventData?.getString(EdgeConstants.SharedState.STATE_OWNER);
 
@@ -339,7 +360,7 @@ export class EdgeExtension implements Extension {
       EventSource.REQUEST_IDENTITY,
       (event) => {
         Log.debug(LOG_SOURCE, LOG_TAG, "Received request identity event: " + event.toString());
-        if (this.isActive) {
+        if (this.isActive()) {
           this.getExperienceCloudId(event);
         }
       }
@@ -347,12 +368,12 @@ export class EdgeExtension implements Extension {
 
     this.container.registerEventListener(EventType.CONSENT, EventSource.SET_CONSENT, (event) => {
       Log.debug(LOG_SOURCE, LOG_TAG, "Received set consent event: " + event.toString());
-      if (this.isActive) {
+      if (this.isActive()) {
         const eventData = event.data;
 
         if (eventData) {
           Log.debug(LOG_SOURCE, LOG_TAG, "Received data: " + safeStringify(eventData));
-          this.setConsent(eventData);
+          this.setConsent(event);
         }
       }
     });
@@ -363,9 +384,28 @@ export class EdgeExtension implements Extension {
    * This timer will process the hits every 500ms.
    * This method is called when the Edge extension is registered.
    */
-  private startHitProcessingTimer() {
-    Log.debug(LOG_SOURCE, LOG_TAG, "startHitProcessingTimer() - Starting hit processing timer.");
+  startHitProcessingTimer() {
+    Log.verbose(LOG_SOURCE, LOG_TAG, "startHitProcessingTimer() - Starting hit processing timer.");
+    if (this.hitProcessingTimer) {
+      return;
+    }
+
     this.hitProcessingTimer = setInterval(() => {
+      if (!this.isActive()) {
+        this.cancelHitProcessingTimer();
+        return;
+      }
+
+      if (this.consentManager?.getCollectConsent() === ConsentValue.PENDING) {
+        this.cancelHitProcessingTimer();
+        return;
+      }
+
+      if (this.hitProcessor?.isQueueEmpty() ?? true) {
+        this.cancelHitProcessingTimer();
+        return;
+      }
+
       this.hitProcessor?.process();
     }, HIT_PROCESSING_TIMER_INTERVAL_MS);
   }
@@ -374,10 +414,11 @@ export class EdgeExtension implements Extension {
    * Cancels the hit processing timer.
    * The timer is cleared when the Edge extension is unregistered.
    */
-  private cancelHitProcessingTimer() {
-    Log.debug(LOG_SOURCE, LOG_TAG, "cancelHitProcessingTimer() - Cancelling hit processing timer.");
+  cancelHitProcessingTimer() {
     if (this.hitProcessingTimer) {
       clearInterval(this.hitProcessingTimer);
+      this.hitProcessingTimer = null;
+      Log.verbose(LOG_SOURCE, LOG_TAG, "cancelHitProcessingTimer() - Timer successfully canceled.");
     }
   }
 }

@@ -111,8 +111,6 @@ export class ConsentManager {
    * @returns Promise<ConsentValue | null>
    */
   public getCollectConsent(): ConsentValue | null {
-    Log.debug(LOG_SOURCE, LOG_TAG, `getCollectConsent() -  Getting collect consent value.`);
-
     const consent = this.collectConsent
       ? this.collectConsent
       : this.getCollectConsentFromConfiguration();

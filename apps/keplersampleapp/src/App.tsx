@@ -79,7 +79,6 @@ export const App = () => {
     {
       config: sdkConfig,
       logLevel: LogLevel.VERBOSE
-      //extensions?:
     });
   }
 

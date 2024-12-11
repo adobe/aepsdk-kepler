@@ -43,19 +43,19 @@ describe("test public APIs", () => {
     expect(sharedState).not.toBeNull();
     expect(sharedState).toEqual({
       data: {
-        version: "1.0.0",
+        version: "1.0.0-beta.1",
         wrapper: {
           type: "NONE",
           friendlyName: "None",
         },
         extensions: [
           {
-            name: "com.adobe.marketing.configuration",
-            version: "1.0.0",
+            name: "com.adobe.module.configuration",
+            version: "1.0.0-beta.1",
           },
           {
-            name: "com.adobe.marketing.edge",
-            version: "1.0.0",
+            name: "com.adobe.edge",
+            version: "1.0.0-beta.1",
           },
           {
             name: "testExtension",
@@ -87,19 +87,19 @@ describe("test public APIs", () => {
 
     expect(sharedState).toEqual({
       data: {
-        version: "1.0.0",
+        version: "1.0.0-beta.1",
         wrapper: {
           type: "NONE",
           friendlyName: "None",
         },
         extensions: [
           {
-            name: "com.adobe.marketing.configuration",
-            version: "1.0.0",
+            name: "com.adobe.module.configuration",
+            version: "1.0.0-beta.1",
           },
           {
-            name: "com.adobe.marketing.edge",
-            version: "1.0.0",
+            name: "com.adobe.edge",
+            version: "1.0.0-beta.1",
           },
           {
             name: "testExtension",

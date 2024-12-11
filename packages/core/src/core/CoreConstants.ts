@@ -10,14 +10,14 @@ governing permissions and limitations under the License.
 */
 
 export const CoreConstants = {
-  EXTENSION_NAME: "com.adobe.marketing.core",
+  EXTENSION_NAME: "com.adobe.core",
   FRIENDLY_NAME: "Core",
-  EXTENSION_VERSION: "1.0.0",
+  EXTENSION_VERSION: "1.0.0-beta.1",
 } as const;
 
 export const eventHubPlaceHolderExtensionConstants = {
   EXTENSION_NAME: "com.adobe.module.eventhub",
-  VERSION: "1.0.0",
+  VERSION: "1.0.0-beta.1",
 } as const;
 
 export const WRAPPER_NONE = {

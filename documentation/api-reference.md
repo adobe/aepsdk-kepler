@@ -2,6 +2,11 @@
 
 This document lists the APIs provided by AEP Kepler SDK, along with code samples for API usage.
 
+
+> **IMPORTANT:**
+> Refer to [Getting started page](./getting-started.md) before to get familiar with initial setup.
+
+> **NOTE:**
 > Please note that each API also offers TypeScript definitions. The API syntax presented below is in TypeScript.
 
 - [Core APIs](#core-apis)
@@ -53,30 +58,27 @@ function initialize(options?: InitOptions): void
 
 ```typescript
 import {AEPSDK} from '@adobe/kepler-aepcore';
+import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+```
 
+```typescript
 AEPSDK.initialize({
     config: {
-        "edge.configId": "xxx-xxx-xxx", // required
-        "edge.domain": "edgeDomain", // optional
-        "consent.default": { // optional
-          "consents": {
-            "collect": {
-              "val": "p"
-            }
-          }
-        }
+      "edge.configId": "<YOUR_DATASTREAM_ID>"
     },
     logLevel: LogLevel.VERBOSE
 });
 ```
 
+> **NOTE: **
+> Refer to the [Configuration](#configuration) section to learn more about all the available configuration keys
 ---
 
 ### updateConfiguration
 
 This function updates the SDK configuration with the provided key-value pairs.
 
-If the configuration has alread provided when calling the `initialize` function, calling `updateConfiguration` will override the existing configuration.
+If the configuration was provided when calling the `initialize` function, calling `updateConfiguration` will override the existing configuration.
 
 #### Syntax
 
@@ -89,27 +91,14 @@ function updateConfiguration(config: Record<string, any>): void
   - `config`: A record of key-value pairs for configuration settings.
 
 
-- Reserved keys and sample values for the configuration object.
-
-|   Key  | Value (example) | Required | SDK version
-| -------- | ------- | ------- | ------- |
-| `edge.configId`  | xxx-xxx-xxx | Y | `1.0.0`|
-| `edge.domain` | edgeDomain     | N|`1.0.0`|
-| `consent.default`    |  {"consents":{"collect":{"val":"p"}}}   | N|`1.0.0`|
-
-The `edge.configId` value is presented as Datastream ID in the [Datastream details](https://experienceleague.adobe.com/en/docs/experience-platform/datastreams/configure#view-details) page.
-
-The `edge.domain` value is the first-party domain mapped to the Adobe-provisioned Edge Network domain. For more information, see this [documentation](https://developer.adobe.com/client-sdks/edge/edge-network/#domain-configuration).
-
-
 #### Example
 
 ```typescript
 import {AEPSDK} from '@adobe/kepler-aepcore';
 
 AEPSDK.updateConfiguration({
-    "edge.configId": "xxx-xxx-xxx", // required
-    "edge.domain": "edgeDomain", // optional
+    "edge.configId": "<YOUR_DATASTREAM_ID>", // required
+    "edge.domain": "<YOUR_COMPANY_NAME.ABC>", // optional
     "consent.default": { // optional
       "consents": {
         "collect": {
@@ -119,6 +108,9 @@ AEPSDK.updateConfiguration({
     }
 });
 ```
+
+> **NOTE:**
+> Refer to the [Configuration](#configuration) section to learn more about all the available configuration keys
 
 ---
 
@@ -184,7 +176,7 @@ AEPSDK.getLogLevel();
 getExperienceCloudId(): Promise<String | null>
 ```
 
-#### Example
+#### Example using then
 ```typescript
 // Option 1: handle it using then
 AEPSDK.getExperienceCloudId().then((ecid) => {
@@ -192,7 +184,10 @@ AEPSDK.getExperienceCloudId().then((ecid) => {
     // handle ecid
   }
 });
+```
 
+### Example using await
+```typescript
 // Option 2: wait for the promise to resolve
 const ecid = await AEPSDK.getExperienceCloudId()
 ```
@@ -225,7 +220,10 @@ AEPSDK.sendEvent(data);
 sendEventWithResponse(data: Record<string, unknown>): Promise<Array<Record<string, unknown>>>;
 ```
 
-#### Example
+> **IMPORTANT**
+> Promise returned by SendEventWithResponse might throw errors in case of invalid data, so be sure to catch and handle error as shown in the sample.
+
+#### Example with then
 ```typescript
  AEPSDK.sendEventWithResponse({
       xdm: {
@@ -244,7 +242,26 @@ sendEventWithResponse(data: Record<string, unknown>): Promise<Array<Record<strin
         // Handle error
         console.log(`SendEventWithResponse Error: ${error}`);
       });
+```
 
+#### Example with await
+```typescript
+const sendEventResponse = await AEPSDK.sendEventWithResponse({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      }
+    })
+      .catch((error: string) => {
+        // Handle error
+        console.log(`SendEventWithResponse Error: ${error}`);
+      });
+
+sendEventResponseJson = JSON.stringify(sendEventResponse)
+
+console.log(`SendEventWithResponse Success: ${sendEventResponseJson}`);
 ```
 
 ### setConsent
@@ -276,3 +293,13 @@ const consentData = {
 
 AEPSDK.setConsent(consentData);
 ```
+
+## Configuration Keys
+
+Reserved keys and their description for the configuration object.
+
+|   Key  | Value Type | Required | Description |
+| -------- | ------- | ------- | ------- |
+| `edge.configId`  | String | Yes | Datastream ID to send the data to. The value is presented as Datastream ID in the [Datastream details](https://experienceleague.adobe.com/en/docs/experience-platform/datastreams/configure#view-details). |
+| `edge.domain` | String     | No| Custom domain to be used to send the edge request to. The value is the first-party domain mapped to the Adobe-provisioned Edge Network domain. For more information, see this [documentation](https://developer.adobe.com/client-sdks/edge/edge-network/#domain-configuration).  |
+| `consent.default` |  Map   | No | Default consent to be used when consent is unknown or pending. Typically used with value when waiting for consent preferences from the end user. |

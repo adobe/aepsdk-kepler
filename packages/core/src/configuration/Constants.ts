@@ -11,9 +11,9 @@ governing permissions and limitations under the License.
 */
 
 // Constants for the Extension information
-export const EXTENSION_NAME = "com.adobe.marketing.configuration";
+export const EXTENSION_NAME = "com.adobe.module.configuration";
 export const FRIENDLY_NAME = "Configuration";
-export const EXTENSION_VERSION = "1.0.0";
+export const EXTENSION_VERSION = "1.0.0-beta.1";
 
 // Constants for the Configuration Update event
 export const UPDATE_CONFIGURATION_EVENT_KEY = "config.update";

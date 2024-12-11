@@ -10,9 +10,9 @@ governing permissions and limitations under the License.
 */
 
 export const EdgeConstants = {
-  EXTENSION_NAME: "com.adobe.marketing.edge",
+  EXTENSION_NAME: "com.adobe.edge",
   FRIENDLY_NAME: "Edge",
-  EXTENSION_VERSION: "1.0.0",
+  EXTENSION_VERSION: "1.0.0-beta.1",
 
   Event: {
     Name: {
@@ -46,8 +46,8 @@ export const EdgeConstants = {
     STATE_OWNER: "stateowner",
 
     Owner: {
-      EDGE: "com.adobe.marketing.edge",
-      CONFIGURATION: "com.adobe.marketing.configuration",
+      EDGE: "com.adobe.edge",
+      CONFIGURATION: "com.adobe.module.configuration",
     },
 
     Keys: {

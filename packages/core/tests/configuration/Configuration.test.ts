@@ -70,7 +70,7 @@ describe("test Configuration extension", () => {
   //   expect(Log.verbose).not.toHaveBeenCalled();
   //   configuration.updateConfiguration({ key: "value" });
   //   expect(Log.error).toHaveBeenCalledWith(
-  //     "com.adobe.marketing.configuration",
+  //     "com.adobe.module.configuration",
   //     "ConfigurationAPI",
   //     "updateConfiguration() - The Configuration extension is not registered."
   //   );
@@ -114,7 +114,7 @@ describe("test Configuration extension", () => {
     expect(dispatchedEvents.length).toBe(0);
     expect(Log.verbose).toHaveBeenCalled();
     expect(Log.error).toHaveBeenCalledWith(
-      "com.adobe.marketing.configuration",
+      "com.adobe.module.configuration",
       "ConfigurationAPI",
       "updateConfiguration() - Configuration data is empty."
     );
@@ -171,7 +171,7 @@ describe("test Configuration extension", () => {
     expect(dispatchedEvents.length).toBe(1);
     expect(Log.verbose).not.toHaveBeenCalled();
     expect(Log.error).toHaveBeenCalledWith(
-      "com.adobe.marketing.configuration",
+      "com.adobe.module.configuration",
       "ConfigurationExtension",
       "process [config.update] event - Configuration object is not found."
     );

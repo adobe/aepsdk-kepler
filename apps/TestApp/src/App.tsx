@@ -64,15 +64,15 @@ export const App = () => {
     console.log('##AEPSample - Initializing AEPSDK');
 
     const sdkConfig = {
-      "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
-      //"edge.domain": "edgeDomain",
-      "consent.default": {
-        "consents": {
-          "collect": {
-            "val": "y"
-           }
-         }
-       }
+      "edge.configId": "<YOUR_DATASTREAM_ID>", // required
+      // "edge.domain": "<YOUR_DOMAIN>", // optional
+      // "consent.default": { // optional
+      //   "consents": {
+      //     "collect": {
+      //       "val": "y" // "p" = pending , "y" = yes, "n" = no
+      //      }
+      //    }
+      //  }
     }
 
     AEPSDK.initialize(

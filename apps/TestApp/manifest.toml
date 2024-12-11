@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2022 Amazon.com, Inc. or its affiliates.  All rights reserved.
+#
+# PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
+#
+schema-version = 1
+
+[package]
+title = "Basic UI React Native Application"
+version = "1.0.0"
+id = "com.adobe.marketing.keplersampleapp"
+
+[components]
+[[components.interactive]]
+id = "com.adobe.marketing.keplersampleapp.main"
+runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
+launch-type = "singleton"

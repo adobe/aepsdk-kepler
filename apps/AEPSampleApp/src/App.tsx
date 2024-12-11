@@ -1,0 +1,293 @@
+/*
+ * Copyright (c) 2022 Amazon.com, Inc. or its affiliates.  All rights reserved.
+ *
+ * PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
+ */
+
+import React, {useEffect, useState} from 'react';
+import {StyleSheet, Text, ImageBackground, View, Image, Modal, Button, ScrollView} from 'react-native';
+
+import {Link} from './components/Link';
+import {AEPSDK} from '@adobe/kepler-aepcore';
+import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+
+const images = {
+  aep: require('./assets/aepsdk-black.png'),
+};
+
+
+export const App = () => {
+  const [ecid, setECID] = useState('not set');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modalText, setModalText] = useState('');
+
+  const styles = getStyles();
+
+  useEffect(() => {
+    initAEPSDK();
+    getECID();
+  }, []); // Runs once when the component mounts.
+
+  const initAEPSDK = () => {
+    console.log('##AEPSample - Initializing AEPSDK');
+
+    const sdkConfig = {
+      "edge.configId": "<YOUR_DATASTREAM_ID>", // required
+      // "edge.domain": "<YOUR_DOMAIN>", // optional
+      // "consent.default": { // optional
+      //   "consents": {
+      //     "collect": {
+      //       "val": "y" // "p" = pending , "y" = yes, "n" = no
+      //      }
+      //    }
+      //  }
+    };
+
+    AEPSDK.initialize(
+    {
+      config: sdkConfig,
+      logLevel: LogLevel.VERBOSE
+    });
+  };
+
+  const setConsent = (consentValue: string = 'y') => {
+    console.log('##AEPSample - Setting Consent: ', consentValue);
+    const consentData = {
+      "consent": [
+          {
+              "standard": "Adobe",
+              "version": "2.0",
+              "value": {
+                  "collect": {
+                      "val": consentValue,
+                  },
+                  "metadata": {
+                    "time": Date.now(),
+                  }
+              }
+          }
+      ]
+  }
+    AEPSDK.setConsent(consentData);
+  };
+
+  const getECID = async (showModal: boolean = false) => {
+    console.log('##AEPSample - Getting ECID');
+    AEPSDK.getExperienceCloudId().then((ecid) => {
+      console.log('##AEPSample - Got ECID: ', ecid);
+      if (ecid) {
+        setECID(ecid);
+        if (showModal) {
+          setModalText(`ECID: ${ecid}`);
+          setModalVisible(true);
+        }
+      }
+    });
+  };
+
+  const sendEvent = () => {
+    AEPSDK.sendEvent({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
+    });
+  };
+
+  const sendEventWithResponse = () => {
+    AEPSDK.sendEventWithResponse({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
+    })
+      .then((eventHandles: Array<Record<string, unknown>>) => {
+        const sendEventResponseJson = JSON.stringify(eventHandles ?? "{}", undefined, 2);
+        console.log(`##AEPSample - SendEventWithResponse Success: ${sendEventResponseJson}`);
+        setModalText(`Response:\n ${sendEventResponseJson}`);
+        setModalVisible(true);
+      })
+      .catch((error: string) => {
+        console.log(`##AEPSample - SendEventWithResponse Error: ${error}`);
+        setModalText(`SendEvent Error: ${error}`);
+        setModalVisible(true);
+      });
+  };
+
+  return (
+    <ImageBackground
+      source={require('./assets/aep_bg.png')}
+      style={styles.background}>
+      <View style={styles.container}>
+      <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => {
+            setModalVisible(false);
+          }}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <Text style={styles.modalText}>
+                  {modalText}
+                </Text>
+                {/* Add more content here */}
+              </ScrollView>
+              <View style={styles.modalButton}>
+                <Button
+                  title="Close"
+                  onPress={() => setModalVisible(false)}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <View style={styles.links}>
+          <View style={styles.headerContainer}>
+            <Text style={styles.subHeaderText}>
+              AEP SDK Sample App
+            </Text>
+          </View>
+          <Link
+            linkText={'Get ECID'}
+            onPress={() => {
+              {
+                console.log('##Getting ECID');
+                getECID(true);
+              }
+            }}
+          />
+          <Link
+            linkText={'SendEvent'}
+            onPress={() => {
+              sendEvent();
+            }}
+          />
+          <Link
+            linkText={'SendEventWithResponse'}
+            onPress={() => {
+              sendEventWithResponse();
+            }}
+          />
+          <Link
+            linkText={'Set Consent (y)'}
+            onPress={() => {
+              setConsent('y')
+            }}
+          />
+          <Link
+            linkText={'Set Consent (n)'}
+            onPress={() => {
+              setConsent('n')
+            }}
+          />
+          <Link
+            linkText={'Set Consent (p)'}
+            onPress={() => {
+              setConsent('p')
+            }}
+          />
+        </View>
+      </View>
+      <View style={styles.textContainer}>
+        <View style={styles.image}>
+          <Image source={images.aep}/>
+        </View>
+        <Text style={styles.sdkInfoText}>
+          SDK Version: {AEPSDK.version}
+        </Text>
+        <Text style={styles.sdkInfoText}>
+          ECID: {ecid}
+        </Text>
+      </View>
+    </ImageBackground>
+  );
+};
+
+const getStyles = () =>
+  StyleSheet.create({
+    background: {
+      color: 'white',
+      flex: 1,
+      flexDirection: 'column',
+    },
+    container: {
+      flex: 6,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    headerContainer: {
+      marginLeft: 200,
+    },
+    headerText: {
+      color: 'white',
+      fontSize: 80,
+      marginBottom: 10,
+    },
+    subHeaderText: {
+      color: 'white',
+      fontSize: 45,
+      fontWeight: 'bold',
+    },
+    links: {
+      flex: 1,
+      flexDirection: 'column',
+      justifyContent: 'space-around',
+      height: 600,
+    },
+    image: {
+      flex: 1,
+      paddingLeft: 10,
+    },
+    textContainer: {
+      justifyContent: 'center',
+      flex: 1,
+      marginLeft: 190,
+    },
+    text: {
+      color: 'white',
+      fontSize: 40,
+    },
+    sdkInfoText: {
+      color: 'white',
+      fontSize: 40,
+      marginLeft: 150,
+      marginBottom: 30,
+      fontWeight: 'bold'
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      fontSize: 40,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+      width: '50%',
+      maxHeight: '70%', // Ensure the modal doesn't exceed screen height
+      backgroundColor: 'white',
+      borderRadius: 10,
+      padding: 20,
+    },
+    scrollContainer: {
+      paddingVertical: 10, // Add padding inside the scrollable area
+    },
+    modalText: {
+      fontSize: 25,
+      marginBottom: 20, // Adds space below the text
+    },
+    modalButton: {
+      marginTop: 20, // Adds space above the button
+    },
+  });

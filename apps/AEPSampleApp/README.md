@@ -6,12 +6,12 @@ To run this app on your Amazon device, follow the steps below to set it up befor
 
 ## Install the AEP Kepler SDK
 
-Fristly, download the `@adobe-kepler-aepcore-1.0.0-beta.tgz` file to the root directory of the Kepler sample app project.
+Fristly, download the `@adobe-kepler-aepcore-1.0.0-beta.1.tgz` file to the root directory of the Kepler sample app project.
 
 Next, execute the npm command provided below to install the package.
 
 ```shell
-npm install @adobe-kepler-aepcore-1.0.0-beta.tgz
+npm install @adobe-kepler-aepcore-1.0.0-beta.1.tgz
 ```
 
 ## Initialize and configure the AEP Keper SDK
@@ -26,10 +26,23 @@ import {AEPSDK, LogLevel} from '@adobe/kepler-aepcore';
 
 - Initliaze the SDK
 
+This section provides an example of how to initialize the AEP SDK in your Keper application.
+
+> **NOTE:**
+> The configuration key `edge.configId` is required for initializing the AEP SDK. Replace <YOUR_DATASTREAM_ID> with a valid datastream ID string before launching the app. Refer to the `API References` for additional details.
+
 ```typescript
 AEPSDK.initialize({
     config: {
-        "edge.configId": "xxx-xxx-xxx"
+       "edge.configId": "<YOUR_DATASTREAM_ID>", // required
+      // "edge.domain": "<YOUR_DOMAIN>", // optional
+      // "consent.default": { // optional
+      //   "consents": {
+      //     "collect": {
+      //       "val": "y" // "p" = pending , "y" = yes, "n" = no
+      //      }
+      //    }
+      //  }
     },
     logLevel: LogLevel.DEBUG
 });

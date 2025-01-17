@@ -10,7 +10,7 @@ governing permissions and limitations under the License.
 */
 
 import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
-import { Event, EventType, EventSource } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { Event } from "@adobe/kepler-aepcore/dist/core/eventhub";
 import { ExtensionContainer, Extension } from "@adobe/kepler-aepcore/dist/core/extension";
 import { ServiceLookup } from "@adobe/kepler-aepcore/dist/core/services";
 import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
@@ -26,6 +26,7 @@ const LOG_TAG = "MediaExtension";
 export class MediaExtension implements Extension {
   private _isActive: boolean = false;
   private container: ExtensionContainer | null = null;
+  private serviceLookup: ServiceLookup | null = null;
 
   public get name(): string {
     return MediaConstants.EXTENSION_NAME;
@@ -47,6 +48,7 @@ export class MediaExtension implements Extension {
     Log.verbose(LOG_SOURCE, LOG_TAG, "onRegister() - Registering Media extension.");
     this._isActive = true;
     this.container = extensionContainer;
+    this.serviceLookup = serviceLookup;
     this.registerListeners();
   }
 
@@ -75,12 +77,12 @@ export class MediaExtension implements Extension {
   }
 
   /**
-   * Registers the listeners for the Edge extension.
+   * Registers the listeners for the Media extension.
    */
   private registerListeners() {}
 
   /**
-   * Un-registers the Edge extension.
+   * Un-registers the Media extension.
    */
   onUnregister(): void {
     this._isActive = false;

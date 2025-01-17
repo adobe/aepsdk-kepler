@@ -13,4 +13,30 @@ export const MediaConstants = {
   EXTENSION_NAME: "com.adobe.edge.media",
   FRIENDLY_NAME: "Media",
   EXTENSION_VERSION: "1.0.0-beta.1",
-};
+
+  EventDataKeys: {
+    XDM: "xdm",
+    EVENT_TYPE: "eventType",
+  },
+
+  EventType: {
+    SESSION_START: "media.sessionStart",
+    PLAY: "media.play",
+    PING: "media.ping",
+    BITRATE_CHANGE: "media.bitrateChange",
+    BUFFER_START: "media.bufferStart",
+    PAUSE_START: "media.pauseStart",
+    AD_BREAK_START: "media.adBreakStart",
+    AD_START: "media.adStart",
+    AD_COMPLETE: "media.adComplete",
+    AD_SKIP: "media.adSkip",
+    AD_BREAK_COMPLETE: "media.adBreakComplete",
+    CHAPTER_START: "media.chapterStart",
+    CHAPTER_COMPLETE: "media.chapterComplete",
+    CHAPTER_SKIP: "media.chapterSkip",
+    ERROR: "media.error",
+    STATES_UPDATE: "media.statesUpdate",
+    SESSION_END: "media.sessionEnd",
+    SESSION_COMPLETE: "media.sessionComplete",
+  },
+} as const;

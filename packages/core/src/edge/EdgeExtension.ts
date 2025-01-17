@@ -114,8 +114,6 @@ export class EdgeExtension implements Extension {
       });
   }
 
-
-
   /**
    * Creates the shared state with the provided data for the Edge extension.
    * @param data Data
@@ -268,6 +266,10 @@ export class EdgeExtension implements Extension {
     this.startHitProcessingTimer();
   }
 
+  /**
+   * Returns the status of the Edge extension.
+   * @returns boolean true if the extension is active, false otherwise.
+   */
   isActive(): boolean {
     return this._isActive;
   }

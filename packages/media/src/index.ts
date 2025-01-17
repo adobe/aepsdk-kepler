@@ -10,20 +10,115 @@ governing permissions and limitations under the License.
 */
 
 import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
-import { getEventDispatcher } from "@adobe/kepler-aepcore/dist/core";
-import { Event, EventType, EventSource } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { getEventDispatcher } from "@adobe/kepler-aepcore/dist/Core";
+import { Event, EventType, EventSource, EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
 import { Extension } from "@adobe/kepler-aepcore/dist/core/extension";
-import { Media } from "./Media";
+import { safeStringify } from "@adobe/kepler-aepcore/dist/core/utils/common";
+import { MediaInterface } from "./MediaInterface";
 import { MediaConstants } from "./MediaConstants";
 import { MediaExtension } from "./MediaExtension";
+import { isValidMediaXDMData } from "./MediaAPIHelper";
 
 const LOG_EXTENSION = MediaConstants.EXTENSION_NAME;
 const LOG_TAG = "MediaAPI";
 
-export class MediaAPI implements Media {
+const DEFAULT_PLAYER_ID: string = "defaultPlayer";
+
+class MediaAPI implements MediaInterface {
   readonly EXTENSION: Extension = new MediaExtension();
 
   // public APIs
+
+  /**
+   * Creates a new media session with the given XDM data.
+   * The configuration object can be used to override the
+   * global values passed via "updateConfiguration" API.
+   *
+   * @param data the XDM data of type "media.sessionStart".
+   * @param configuration The session level configuration.
+   */
+  createMediaSession(
+    data: Record<string, unknown>,
+    configuration: Record<string, unknown> = {}
+  ): void {
+    Log.verbose(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `createMediaSession() API called with data: \n ${safeStringify(
+        data,
+        null,
+        2
+      )} \nand configuration: ${safeStringify(configuration, null, 2)}`
+    );
+
+    const eventData = EventData.buildFrom(data);
+
+    if (!isValidMediaXDMData(eventData)) {
+      Log.error(
+        LOG_EXTENSION,
+        LOG_TAG,
+        `createMediaSession() - Invalid event data: ${safeStringify(
+          eventData,
+          null,
+          2
+        )} passed.`
+      );
+      return;
+    }
+
+    // Add internal sessionId to the event data
+    eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
+
+    const event = Event.builder(
+      "createMediaSession",
+      EventType.MEDIA,
+      EventSource.REQUEST_CONTENT,
+      eventData
+    ).build();
+
+    getEventDispatcher().dispatch(event);
+  }
+
+  /**
+   * Sends a media event for the currently active media session.
+   * Calling createMediaSession() API is required before calling this API.
+   *
+   * @param data the XDM data of the Media event.
+   */
+  sendMediaEvent(data: Record<string, unknown>): void {
+    Log.verbose(
+      LOG_EXTENSION,
+      LOG_TAG,
+      `sendMediaEvent() API called with data: \n ${safeStringify(data, null, 2)} `
+    );
+
+    const eventData = EventData.buildFrom(data);
+
+    if (!isValidMediaXDMData(eventData)) {
+      Log.error(
+        LOG_EXTENSION,
+        LOG_TAG,
+        `sendMediaEvent() - Invalid event data: ${safeStringify(
+          eventData,
+          null,
+          2
+        )} passed.`
+      );
+      return;
+    }
+
+    // Add internal sessionId to the event data
+    eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
+
+    const event = Event.builder(
+      "sendMediaEvent",
+      EventType.MEDIA,
+      EventSource.REQUEST_CONTENT,
+      eventData
+    ).build();
+
+    getEventDispatcher().dispatch(event);
+  }
 }
 
-export const media: Media = new MediaAPI();
+export const Media: MediaInterface = new MediaAPI();

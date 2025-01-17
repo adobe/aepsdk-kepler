@@ -39,7 +39,7 @@ export const Link = ({linkText, onPress, testID}: LinkProps) => {
 
 const styles = StyleSheet.create({
   linkContainer: {
-    width: 700,
+    width: 800,
     paddingBottom: 10,
     borderBottomWidth: 5,
     borderBottomColor: 'transparent',
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     marginLeft: 200,
-    width: 500,
+    width: 600,
   },
   linkText: {
     color: 'white',

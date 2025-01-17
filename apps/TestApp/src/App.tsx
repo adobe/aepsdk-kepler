@@ -11,6 +11,7 @@ import {Link} from './components/Link';
 import {AEPSDK} from '@adobe/kepler-aepcore';
 import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
 import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+import { Media } from '@adobe/kepler-aepmedia';
 
 const images = {
   aep: require('./assets/aepsdk-black.png'),
@@ -78,7 +79,8 @@ export const App = () => {
     AEPSDK.initialize(
     {
       config: sdkConfig,
-      logLevel: LogLevel.VERBOSE
+      logLevel: LogLevel.VERBOSE,
+      extensions: [Media.EXTENSION]
     });
   }
 
@@ -156,6 +158,24 @@ export const App = () => {
       });
   };
 
+  const createMediaSession = () => {
+    Media.createMediaSession({
+      "xdm": {
+        "eventType": "media.sessionStart",
+        "xdmKey": "xdmVal"
+      },
+    }, {})
+  };
+
+  const sendMediaEvent = () => {
+    Media.sendMediaEvent({
+      "xdm": {
+        "eventType": "media.play",
+        "xdmKey": "xdmVal"
+      },
+    })
+  };
+
   return (
     <ImageBackground
       source={require('./assets/aep_bg.png')}
@@ -192,7 +212,7 @@ export const App = () => {
             </Text>
           </View>
           <Link
-            linkText={'Get ECID'}
+            linkText={'getExperienceCloudId( )'}
             onPress={() => {
               {
                 console.log('##Getting ECID');
@@ -201,33 +221,45 @@ export const App = () => {
             }}
           />
           <Link
-            linkText={'SendEvent'}
+            linkText={'sendEvent( )'}
             onPress={() => {
               sendEvent();
             }}
           />
           <Link
-            linkText={'SendEventWithResponse'}
+            linkText={'sendEventWithResponse( )'}
             onPress={() => {
               sendEventWithResponse();
             }}
           />
           <Link
-            linkText={'Set Consent (y)'}
+            linkText={'setConsent(y)'}
             onPress={() => {
               setConsent('y')
             }}
           />
           <Link
-            linkText={'Set Consent (n)'}
+            linkText={'setConsent(n)'}
             onPress={() => {
               setConsent('n')
             }}
           />
           <Link
-            linkText={'Set Consent (p)'}
+            linkText={'setConsent(p)'}
             onPress={() => {
               setConsent('p')
+            }}
+          />
+          <Link
+            linkText={'createMediaSession( )'}
+            onPress={() => {
+              createMediaSession();
+            }}
+          />
+          <Link
+            linkText={'sendMediaEvent( )'}
+            onPress={() => {
+              sendMediaEvent();
             }}
           />
         </View>

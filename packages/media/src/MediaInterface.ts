@@ -12,7 +12,10 @@ governing permissions and limitations under the License.
 
 import { Extension } from "@adobe/kepler-aepcore/dist/core/extension";
 
-export interface Media {
+export interface MediaInterface {
   readonly EXTENSION: Extension;
+
   // public APIs
+  createMediaSession(data: Record<string, unknown>, configuration: Record<string, unknown>): void;
+  sendMediaEvent(data: Record<string, unknown>): void;
 }

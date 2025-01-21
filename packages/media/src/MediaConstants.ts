@@ -14,6 +14,12 @@ export const MediaConstants = {
   FRIENDLY_NAME: "Media",
   EXTENSION_VERSION: "1.0.0-beta.1",
 
+  Media: {
+    EVENT_NAME_CREATE_SESSION: "createMediaSession",
+    EVENT_NAME_SEND_MEDIA_EVENT: "sendMediaEvent",
+    EVENT_SOURCE_CREATE_SESSION: "com.adobe.eventSource.createSession",
+  },
+
   EventDataKeys: {
     XDM: "xdm",
     EVENT_TYPE: "eventType",

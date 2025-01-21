@@ -23,6 +23,7 @@ const LOG_EXTENSION = MediaConstants.EXTENSION_NAME;
 const LOG_TAG = "MediaAPI";
 
 const DEFAULT_PLAYER_ID: string = "defaultPlayer";
+const MEDIA = MediaConstants.Media;
 
 class MediaAPI implements MediaInterface {
   readonly EXTENSION: Extension = new MediaExtension();
@@ -57,11 +58,7 @@ class MediaAPI implements MediaInterface {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `createMediaSession() - Invalid event data: ${safeStringify(
-          eventData,
-          null,
-          2
-        )} passed.`
+        `createMediaSession() - Invalid event data: ${safeStringify(eventData, null, 2)} passed.`
       );
       return;
     }
@@ -70,9 +67,9 @@ class MediaAPI implements MediaInterface {
     eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
 
     const event = Event.builder(
-      "createMediaSession",
+      MEDIA.EVENT_NAME_CREATE_SESSION,
       EventType.MEDIA,
-      EventSource.REQUEST_CONTENT,
+      MEDIA.EVENT_SOURCE_CREATE_SESSION,
       eventData
     ).build();
 
@@ -98,11 +95,7 @@ class MediaAPI implements MediaInterface {
       Log.error(
         LOG_EXTENSION,
         LOG_TAG,
-        `sendMediaEvent() - Invalid event data: ${safeStringify(
-          eventData,
-          null,
-          2
-        )} passed.`
+        `sendMediaEvent() - Invalid event data: ${safeStringify(eventData, null, 2)} passed.`
       );
       return;
     }
@@ -111,7 +104,7 @@ class MediaAPI implements MediaInterface {
     eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
 
     const event = Event.builder(
-      "sendMediaEvent",
+      MEDIA.EVENT_NAME_SEND_MEDIA_EVENT,
       EventType.MEDIA,
       EventSource.REQUEST_CONTENT,
       eventData

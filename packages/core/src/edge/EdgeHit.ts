@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DataObject } from "../core/eventhub/EventData";
+import { DataObject, DataType } from "../core/eventhub/EventData";
 
 export class EdgeHit {
   readonly requestId: string = "";
@@ -20,6 +20,7 @@ export class EdgeHit {
   readonly type: EdgeHitType = EdgeHitType.EDGE;
   readonly xdm: DataObject | null = null;
   readonly data: DataObject | null = null;
+  readonly datastreamIdOverride: string | null = null;
 
   // Public constructor to be called by the builder
   constructor(builder: EdgeHitBuilder) {
@@ -30,6 +31,7 @@ export class EdgeHit {
     this.type = builder.type;
     this.xdm = builder.xdm;
     this.data = builder.data;
+    this.datastreamIdOverride = builder.datastreamIdOverride;
   }
 
   // Static method to initialize the builder
@@ -46,6 +48,7 @@ export class EdgeHitBuilder {
   private _type: EdgeHitType = EdgeHitType.EDGE;
   private _xdm: DataObject | null = null;
   private _data: DataObject | null = null;
+  private _datastreamIdOverride: string | null = null;
 
   get requestId(): string {
     return this._requestId;
@@ -75,6 +78,15 @@ export class EdgeHitBuilder {
     return this._data;
   }
 
+  get datastreamIdOverride(): string | null {
+    return this._datastreamIdOverride;
+  }
+
+  setDatastreamIdOverride(datastreamId: string): EdgeHitBuilder {
+    this._datastreamIdOverride = datastreamId;
+    return this;
+  }
+
   // Method to set requestId
   setRequestId(requestId: string): EdgeHitBuilder {
     this._requestId = requestId;
@@ -87,9 +99,11 @@ export class EdgeHitBuilder {
     return this;
   }
 
-  // Method to set meta
-  setMeta(meta: DataObject | null): EdgeHitBuilder {
-    this._meta = meta;
+  addMeta(key: string, value: DataType): EdgeHitBuilder {
+    if (!this._meta) {
+      this._meta = {};
+    }
+    this._meta[key] = value;
     return this;
   }
 

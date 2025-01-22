@@ -198,6 +198,8 @@ const ecid = await AEPSDK.getExperienceCloudId()
 ```typescript
 sendEvent(data: Record<string, any>): void
 ```
+> **Note**
+> SendEvent now supports datasream overrides. To Learn more about how to override datastream Id and/or datastream configuration refer [Sending Datastream overrides using sendEvent API](Tutorials/send-overrides-sendevent.md)
 
 #### Example
 ```typescript

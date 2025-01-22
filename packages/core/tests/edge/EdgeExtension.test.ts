@@ -20,7 +20,6 @@ jest.mock("../../src/core/extension/ExtensionContainer");
 jest.mock("../../src/core/services");
 jest.mock("../../src/edge/EdgeResponseManager");
 jest.mock("../../src/edge/EdgeStateManager");
-
 describe("EdgeExtension tests", () => {
   let mockExtensionContainer: jest.Mocked<ExtensionContainer>;
   let mockServiceLookup: jest.Mocked<ServiceLookup>;
@@ -98,8 +97,8 @@ describe("EdgeExtension tests", () => {
 
   test("EdgeExtension should have the correct name and version", () => {
     const edgeExtension: Extension = new EdgeExtension();
-    expect(edgeExtension.name).toBe("com.adobe.marketing.edge");
-    expect(edgeExtension.version).toBe("1.0.0");
+    expect(edgeExtension.name).toBe("com.adobe.edge");
+    expect(edgeExtension.version).toBe("1.0.0-beta.1");
   });
 
   test("EdgeExtension onRegister should boot up edgeStateManager, edgeResponseManager, register listeners and start hit processing timer", () => {

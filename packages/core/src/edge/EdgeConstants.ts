@@ -93,6 +93,8 @@ export const EdgeConstants = {
         KEY: "meta",
         ENTRIES: "entries",
         STATE: "state",
+        CONFIG_OVERRIDES: "configOverrides",
+        SDK_CONFIG: "sdkConfig",
       },
       Query: {
         KEY: "query",

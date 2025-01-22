@@ -187,7 +187,7 @@ export class EdgeAPI implements Edge {
 
 function sanitizeEventDataForSendEvent(data: Record<string, unknown>): Record<string, unknown> {
   // remove any keys that are not allowed
-  const allowedKeys = ["xdm", "data", "query"];
+  const allowedKeys = ["xdm", "data", "query", "config"];
 
   Object.keys(data).forEach((key) => {
     if (!allowedKeys.includes(key)) {

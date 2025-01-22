@@ -25,7 +25,7 @@ import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, EventData } from "../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { safeStringify } from "../core/utils/common";
-import { getNumber } from "../core/utils/DataObjectUtil";
+import { getNumber, getDataObject, getString } from "../core/utils/DataObjectUtil";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
@@ -211,8 +211,13 @@ export class EdgeExtension implements Extension {
     );
 
     const xdm = eventData.getDataObject("xdm") ?? {};
+    const config = eventData.getDataObject("config") ?? {};
+    eventData.removeData("config");
 
+    const datastreamConfigOverride = getDataObject(config, "datastreamConfigOverride");
+    const datastreamIdOverride = getString(config, "datastreamIdOverride");
     let hitTimestamp = getNumber(xdm, "timestamp");
+
     if (!hitTimestamp) {
       Log.verbose(
         LOG_SOURCE,
@@ -223,13 +228,20 @@ export class EdgeExtension implements Extension {
       xdm["timestamp"] = hitTimestamp;
     }
 
-    const edgeHit = EdgeHit.builder()
+    const edgeHitBuilder = EdgeHit.builder()
       .setRequestId(event.uuid)
       .setData(eventData.getData())
-      .setTimestamp(hitTimestamp)
-      .build();
+      .setTimestamp(hitTimestamp);
 
-    this.processHitAndStartTimer(edgeHit);
+    if (datastreamConfigOverride) {
+      edgeHitBuilder.addMeta("configOverrides", datastreamConfigOverride);
+    }
+
+    if (datastreamIdOverride) {
+      edgeHitBuilder.setDatastreamIdOverride(datastreamIdOverride);
+    }
+
+    this.processHitAndStartTimer(edgeHitBuilder.build());
   }
 
   /**
@@ -260,6 +272,11 @@ export class EdgeExtension implements Extension {
   }
 
   private processHitAndStartTimer(hit: EdgeHit): void {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `processHitAndStartTimer() - queue hit: (${JSON.stringify(hit)})`
+    );
     this.hitProcessor?.queueHit(hit);
     this.hitProcessor?.process();
 

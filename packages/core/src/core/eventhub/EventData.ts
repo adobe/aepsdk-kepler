@@ -119,8 +119,21 @@ export class EventData {
     current[key[key.length - 1]] = value;
   }
 
-  //TODO: let's add this method if we have a specific use case for it.
-  // public removeData(key: string): void {}
+  /**
+   * This method removes the data that is stored in the given path.
+   *
+   * @param key The path to the data that needs to be removed.
+   */
+  public removeData(...key: string[]): void {
+    let current = this.data;
+    for (let i = 0; i < key.length - 1; i++) {
+      if (current[key[i]] === undefined) {
+        return;
+      }
+      current = current[key[i]] as DataObject;
+    }
+    delete current[key[key.length - 1]];
+  }
 
   /**
    *

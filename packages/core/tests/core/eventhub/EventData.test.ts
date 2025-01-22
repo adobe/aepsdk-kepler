@@ -357,3 +357,47 @@ describe("test EventData class", () => {
     expect(data.getString("emptyParent", "newKey")).toEqual("newValue");
   });
 });
+test("removeData() - should remove the specified key from the data", () => {
+  const jsonObj = {
+    key1: "value1",
+    key2: "value2",
+  };
+  const data = EventData.buildFrom(jsonObj) as EventData;
+  data.removeData("key1");
+
+  expect(data.getString("key1")).toBeUndefined();
+  expect(data.getString("key2")).toEqual("value2");
+});
+
+test("removeData() - should do nothing if the key does not exist", () => {
+  const jsonObj = {
+    key1: "value1",
+    key2: "value2",
+  };
+  const data = EventData.buildFrom(jsonObj) as EventData;
+  data.removeData("key3");
+  expect(data.getString("key1")).toEqual("value1");
+  expect(data.getString("key2")).toEqual("value2");
+});
+
+test("removeData() - should remove nested keys correctly", () => {
+  const jsonObj = {
+    key1: {
+      nestedKey1: "nestedValue1",
+      nestedKey2: "nestedValue2",
+    },
+    key2: "value2",
+  };
+  const data = EventData.buildFrom(jsonObj) as EventData;
+  data.removeData("key1", "nestedKey1");
+  expect(data.getString("key1", "nestedKey1")).toBeUndefined();
+  expect(data.getString("key1", "nestedKey2")).toEqual("nestedValue2");
+  expect(data.getString("key2")).toEqual("value2");
+});
+
+test("removeData() - should handle removing keys from an empty object", () => {
+  const jsonObj = {};
+  const data = EventData.buildFrom(jsonObj) as EventData;
+  data.removeData("key1");
+  expect(data.getString("key1")).toBeUndefined();
+});

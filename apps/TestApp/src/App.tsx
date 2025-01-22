@@ -133,6 +133,47 @@ export const App = () => {
     });
   }
 
+  const sendEvent2 = () => {
+    AEPSDK.sendEvent({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
+      config:{
+        datastreamConfigOverride:{
+          com_adobe_experience_platform: {
+            datasets: {
+              event: {
+                datasetId: "dataset_id_new",
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  const sendEvent3 = () => {
+    AEPSDK.sendEvent({
+      xdm: {
+        xdmKey: 'xdmVal',
+      },
+      data: {
+        freeformKey: 'freeformVal',
+      },
+      query: {
+        queryKey: 'queryVal',
+      },
+      config:{
+        datastreamIdOverride: "datastream_id_override",
+      }
+    });
+  }
+
   const sendEventWithResponse = () => {
     AEPSDK.sendEventWithResponse({
       xdm: {
@@ -224,6 +265,18 @@ export const App = () => {
             linkText={'sendEvent( )'}
             onPress={() => {
               sendEvent();
+            }}
+          />
+          <Link
+            linkText={'SendEvent(datastream config override)'}
+            onPress={() => {
+              sendEvent2();
+            }}
+          />
+          <Link
+            linkText={'SendEvent(datastream id override)'}
+            onPress={() => {
+              sendEvent3();
             }}
           />
           <Link

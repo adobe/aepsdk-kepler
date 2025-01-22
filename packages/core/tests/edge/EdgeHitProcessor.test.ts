@@ -949,6 +949,305 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
   });
 
+  test("process should override the datastream id if presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .setTimestamp(testTS)
+      .setDatastreamIdOverride("newDatastreamId")
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    console.log(actualUrl);
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=newDatastreamId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}}}`
+    );
+  });
+
+  test("process should override the datastream config if presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .addMeta("configOverrides", {
+        com_adobe_experience_platform: {
+          datasets: {
+            event: {
+              datasetId: "new_dataset_id",
+            },
+          },
+        },
+      })
+      .setTimestamp(testTS)
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    console.log(actualUrl);
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=mockConfigId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}}}`
+    );
+  });
+
+  test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .setTimestamp(testTS)
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockAsyncRequest
+      .mockResolvedValueOnce({
+        responseCode: 500,
+        bodyAsText: "Internal Server Error",
+      })
+      .mockResolvedValueOnce({
+        responseCode: 200,
+        bodyAsText: "{}",
+      });
+
+    await edgeHitProcessor.process();
+    // async request should not be called the second time
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1);
+
+    // Simulate the retry timeout
+    // wait for 25 seconds
+    jest.advanceTimersByTime(25000);
+    await edgeHitProcessor.process();
+
+    // async request should not be called the second time
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1); // edgeHit is still in the queue to be retried
+
+    // wait for 5 more seconds (total 30 seconds)
+    jest.advanceTimersByTime(5000);
+    await edgeHitProcessor.process();
+
+    expect(mockAsyncRequest).toHaveBeenCalledTimes(2); // 1 for the first call and 1 for the retry
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(2);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(2);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(2);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(2);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+  });
+
+  test("process should override the datastream config if presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .addMeta("configOverrides", {
+        com_adobe_experience_platform: {
+          datasets: {
+            event: {
+              datasetId: "new_dataset_id",
+            },
+          },
+        },
+      })
+      .setTimestamp(testTS)
+      // .setDatastreamIdOverride("newDatastreamId")
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    console.log(actualUrl);
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=mockConfigId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}}}`
+    );
+  });
+
+  test("process should override the datastream config and the datastream id if both presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder()
+      .setRequestId("requestId1")
+      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+      .setDatastreamIdOverride("newDatastreamId")
+      .addMeta("configOverrides", {
+        com_adobe_experience_platform: {
+          datasets: {
+            event: {
+              datasetId: "new_dataset_id",
+            },
+          },
+        },
+      })
+      .setTimestamp(testTS)
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=newDatastreamId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}}}`
+    );
+  });
+
   test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 

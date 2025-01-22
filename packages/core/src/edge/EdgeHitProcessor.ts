@@ -157,6 +157,15 @@ export class EdgeHitProcessor {
 
         meta = this.appendStateToMeta(meta, stateStore);
 
+        if (hit.datastreamIdOverride) {
+          // append the original datastream id to the meta object
+          meta[META.SDK_CONFIG] = {
+            datastream: {
+              original: this.edgeStateManager.getDatastreamId(),
+            },
+          };
+        }
+
         const requestBody =
           hit.type === EdgeHitType.EDGE
             ? this.createEdgeRequestBody(hit, identity, meta)
@@ -474,7 +483,11 @@ export class EdgeHitProcessor {
       `getURLForHit() - configID: ${this.edgeStateManager.getDatastreamId()}`
     );
 
-    const query = `?configId=${this.edgeStateManager.getDatastreamId()}&requestId=${requestId}`;
+    let query = `?configId=${this.edgeStateManager.getDatastreamId()}&requestId=${requestId}`;
+
+    if (hit.datastreamIdOverride) {
+      query = `?configId=${hit.datastreamIdOverride}&requestId=${requestId}`;
+    }
 
     url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
 

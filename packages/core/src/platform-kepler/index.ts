@@ -13,10 +13,12 @@ import { registerService } from "../core/services";
 import { KeplerDataStore } from "./DataStore";
 import { Log } from "../core/utils/Log";
 import { LOG_EXTENSION } from "./Constants";
+import { CryptoService } from "./Crypto";
 
 const LOG_TAG = "registerPlatformService";
 
 export function registerPlatformService(): void {
   Log.debug(LOG_EXTENSION, LOG_TAG, "registerPlatformService() - Registering KeplerDataStore");
   registerService("dataStore", new KeplerDataStore());
+  registerService("crypto", new CryptoService());
 }

@@ -110,8 +110,10 @@ describe("EdgeHitProcessor tests", () => {
   test("should queue edge and consent hits correctly", async () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
-    const edgeHit = EdgeHit.builder().setType(EdgeHitType.EDGE).build();
-    const consentHit = EdgeHit.builder().setType(EdgeHitType.CONSENT).build();
+    const edgeHit = EdgeHit.builder("requestId1", {}, Date.now()).setType(EdgeHitType.EDGE).build();
+    const consentHit = EdgeHit.builder("requestId2", {}, Date.now())
+      .setType(EdgeHitType.CONSENT)
+      .build();
 
     edgeHitProcessor.queueHit(edgeHit);
     edgeHitProcessor.queueHit(consentHit);
@@ -124,11 +126,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -180,11 +182,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -225,29 +227,28 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
-
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
     edgeHitProcessor.queueHit(edgeHit);
 
     const testTS2 = Date.now();
-    const edgeHit2 = EdgeHit.builder()
-      .setRequestId("requestId2")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS2 })
-      .setTimestamp(testTS2)
-      .build();
+    const edgeHit2 = EdgeHit.builder(
+      "requestId2",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS2 },
+      testTS2
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit2);
 
     const testTS3 = Date.now();
-    const edgeHit3 = EdgeHit.builder()
-      .setRequestId("requestId3")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS3 })
-      .setTimestamp(testTS3)
-      .build();
+    const edgeHit3 = EdgeHit.builder(
+      "requestId3",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS3 },
+      testTS3
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit3);
 
@@ -270,9 +271,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -287,8 +288,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -341,9 +343,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -358,8 +360,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -403,17 +406,17 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("edgeRequestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "edgeRequestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    const consentHit = EdgeHit.builder()
-      .setRequestId("consentRequestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "consentRequestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -428,8 +431,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -472,17 +476,17 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("edgeRequestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "edgeRequestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    const consentHit = EdgeHit.builder()
-      .setRequestId("consentRequestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "consentRequestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -497,8 +501,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -541,15 +546,13 @@ describe("EdgeHitProcessor tests", () => {
     jest.spyOn(edgeHitProcessor, "queueHit");
 
     for (let i = 0; i < 100; i++) {
-      const edgeHit = EdgeHit.builder()
-        .setRequestId(`requestId${i + 1}`)
-        .build();
+      const edgeHit = EdgeHit.builder(`requestId${i + 1}`, {}, Date.now()).build();
       edgeHitProcessor.queueHit(edgeHit);
     }
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(100);
 
-    const edgeHit101 = EdgeHit.builder().setRequestId(`requestId101`).build();
+    const edgeHit101 = EdgeHit.builder("requestId101", {}, Date.now()).build();
     edgeHitProcessor.queueHit(edgeHit101);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(100);
@@ -563,8 +566,7 @@ describe("EdgeHitProcessor tests", () => {
     jest.spyOn(edgeHitProcessor, "queueHit");
 
     for (let i = 0; i < 100; i++) {
-      const consentHit = EdgeHit.builder()
-        .setRequestId(`requestId${i + 1}`)
+      const consentHit = EdgeHit.builder(`requestId${i + 1}`, {}, Date.now())
         .setType(EdgeHitType.CONSENT)
         .build();
       edgeHitProcessor.queueHit(consentHit);
@@ -572,8 +574,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(edgeHitProcessor.getConsentQueueSize()).toBe(100);
 
-    const consentHit101 = EdgeHit.builder()
-      .setRequestId(`requestId101`)
+    const consentHit101 = EdgeHit.builder("requestId101", {}, Date.now())
       .setType(EdgeHitType.CONSENT)
       .build();
     edgeHitProcessor.queueHit(consentHit101);
@@ -587,11 +588,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -636,9 +637,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -653,8 +654,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -700,11 +702,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -753,9 +755,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -770,8 +772,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -823,11 +826,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -880,9 +883,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -897,8 +900,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -953,10 +957,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
       .setDatastreamIdOverride("newDatastreamId")
       .build();
 
@@ -1009,9 +1014,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
       .addMeta("configOverrides", {
         com_adobe_experience_platform: {
           datasets: {
@@ -1021,7 +1028,6 @@ describe("EdgeHitProcessor tests", () => {
           },
         },
       })
-      .setTimestamp(testTS)
       .build();
 
     edgeHitProcessor.queueHit(edgeHit);
@@ -1073,11 +1079,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -1123,9 +1129,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
       .addMeta("configOverrides", {
         com_adobe_experience_platform: {
           datasets: {
@@ -1135,7 +1143,6 @@ describe("EdgeHitProcessor tests", () => {
           },
         },
       })
-      .setTimestamp(testTS)
       // .setDatastreamIdOverride("newDatastreamId")
       .build();
 
@@ -1188,9 +1195,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
       .setDatastreamIdOverride("newDatastreamId")
       .addMeta("configOverrides", {
         com_adobe_experience_platform: {
@@ -1201,7 +1210,6 @@ describe("EdgeHitProcessor tests", () => {
           },
         },
       })
-      .setTimestamp(testTS)
       .build();
 
     edgeHitProcessor.queueHit(edgeHit);
@@ -1252,11 +1260,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -1302,11 +1310,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 

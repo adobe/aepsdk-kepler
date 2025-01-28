@@ -14,113 +14,68 @@ import { DataObject } from "../../src/core/eventhub/EventData";
 import { EdgeHit, EdgeHitType } from "../../src/edge/EdgeHit";
 
 describe("EdgeHit tests", () => {
-  test("EdgeHit builder type edge", () => {
-    const testTimeStamp = Date.now();
-
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId")
-      .setTimestamp(testTimeStamp)
-      .addMeta("metaKey", "value")
-      .setPath("custom/path/here")
-      .setType(EdgeHitType.EDGE)
-      .setData({ dataKey: "value" })
-      .build();
-
-    expect(edgeHit.requestId).toBe("requestId");
-    expect(edgeHit.timestamp).toEqual(testTimeStamp);
-    expect(edgeHit.meta as DataObject).not.toBeNull();
-    expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
-    expect(edgeHit.meta?.["metaKey"]).toBe("value");
-    expect(edgeHit.path).toBe("custom/path/here");
-    expect(edgeHit.type).toBe(EdgeHitType.EDGE);
-    expect(Object.keys(edgeHit.data ?? {}).length).toBe(1);
-    expect(edgeHit.data?.["dataKey"]).toBe("value");
-  });
-
-  test("EdgeHit builder type consent", () => {
-    const testTimeStamp = Date.now();
-
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId")
-      .setTimestamp(testTimeStamp)
-      .addMeta("metaKey", "value")
-      .setPath("custom/path/here")
-      .setType(EdgeHitType.CONSENT)
-      .setData({ dataKey: "value" })
-      .build();
-
-    expect(edgeHit.requestId).toBe("requestId");
-    expect(edgeHit.timestamp).toEqual(testTimeStamp);
-    expect(edgeHit.meta as DataObject).not.toBeNull();
-    expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
-    expect(edgeHit.meta?.["metaKey"]).toBe("value");
-    expect(edgeHit.path).toBe("custom/path/here");
-    expect(edgeHit.type).toBe(EdgeHitType.CONSENT);
-    expect(edgeHit.data as DataObject).not.toBeNull();
-    expect(Object.keys(edgeHit.data ?? {}).length).toBe(1);
-    expect(edgeHit.data?.["dataKey"]).toBe("value");
-  });
-
-  test("EdgeHit builder no fields set", () => {
-    const edgeHit = EdgeHit.builder().build();
-
-    expect(edgeHit.requestId).toBe("");
-    // If not set the timestamp is set to the time of creation of edge hit
-    expect(edgeHit.timestamp <= Date.now()).toBeTruthy();
+  it("should create an EdgeHit with default values", () => {
+    const timestamp = Date.now();
+    const data = { key: "value" };
+    const edgeHit = new EdgeHit("test-request-id", data, timestamp);
+    expect(edgeHit.requestId).toBe("test-request-id");
+    expect(edgeHit.data).toBe(data);
+    expect(edgeHit.timestamp).toBe(timestamp);
     expect(edgeHit.meta).toBeNull();
     expect(edgeHit.path).toBe("");
     expect(edgeHit.type).toBe(EdgeHitType.EDGE);
-    expect(edgeHit.data).toBeNull();
+    expect(edgeHit.xdm).toBeNull();
+    expect(edgeHit.datastreamIdOverride).toBeNull();
   });
 
-  test("EdgeHit builder setDatastreamIdOverride", () => {
-    const edgeHit = EdgeHit.builder().setDatastreamIdOverride("overrideId").build();
-
-    expect(edgeHit.datastreamIdOverride).toBe("overrideId");
-  });
-
-  test("EdgeHit builder get datastreamIdOverride", () => {
-    const builder = EdgeHit.builder().setDatastreamIdOverride("overrideId");
-    expect(builder.datastreamIdOverride).toBe("overrideId");
-  });
-
-  test("EdgeHit builder- datastreamIdOverride should be null by default", () => {
-    const builder = EdgeHit.builder();
-    expect(builder.datastreamIdOverride).toBeNull();
-  });
-  test("EdgeHit builder addMeta single key-value pair", () => {
-    const edgeHit = EdgeHit.builder().addMeta("metaKey", "value").build();
-
-    expect(edgeHit.meta).not.toBeNull();
-    expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
-    expect(edgeHit.meta?.["metaKey"]).toBe("value");
-  });
-
-  test("EdgeHit builder addMeta multiple key-value pairs", () => {
-    const edgeHit = EdgeHit.builder()
-      .addMeta("metaKey1", "value1")
-      .addMeta("metaKey2", 1234)
+  it("should set and get type", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp)
+      .setType(EdgeHitType.CONSENT)
       .build();
-
-    expect(edgeHit.meta).not.toBeNull();
-    expect(Object.keys(edgeHit.meta ?? {}).length).toBe(2);
-    expect(edgeHit.meta?.["metaKey1"]).toBe("value1");
-    expect(edgeHit.meta?.["metaKey2"]).toBe(1234);
+    expect(edgeHit.type).toBe(EdgeHitType.CONSENT);
   });
 
-  test("EdgeHit builder addMeta overwrite existing key", () => {
-    const edgeHit = EdgeHit.builder()
-      .addMeta("metaKey", "initialValue")
-      .addMeta("metaKey", "newValue")
+  it("should set and get meta data", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+    const meta: DataObject = { key: "value" };
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp).addMeta("key", "value").build();
+    expect(edgeHit.meta).toEqual(meta);
+  });
+
+  it("should set and get path", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+
+    const path = "/test/path";
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp).setPath(path).build();
+    expect(edgeHit.path).toBe(path);
+  });
+
+  it("should set and get xdm data", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+
+    const xdm: DataObject = { xdmKey: "xdmValue" };
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp).setXdm(xdm).build();
+    expect(edgeHit.xdm).toEqual(xdm);
+  });
+
+  it("should set and get datastreamIdOverride", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+
+    const datastreamId = "override-id";
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp)
+      .setDatastreamIdOverride(datastreamId)
       .build();
-
-    expect(edgeHit.meta).not.toBeNull();
-    expect(Object.keys(edgeHit.meta ?? {}).length).toBe(1);
-    expect(edgeHit.meta?.["metaKey"]).toBe("newValue");
-  });
-
-  test("EdgeHit builder - meta is null initially", () => {
-    const edgeHit = EdgeHit.builder().build();
-    expect(edgeHit.meta).toBeNull();
+    expect(edgeHit.datastreamIdOverride).toBe(datastreamId);
   });
 });

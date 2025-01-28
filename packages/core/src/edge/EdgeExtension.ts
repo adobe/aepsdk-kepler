@@ -228,10 +228,7 @@ export class EdgeExtension implements Extension {
       xdm["timestamp"] = hitTimestamp;
     }
 
-    const edgeHitBuilder = EdgeHit.builder()
-      .setRequestId(event.uuid)
-      .setData(eventData.getData())
-      .setTimestamp(hitTimestamp);
+    const edgeHitBuilder = EdgeHit.builder(event.uuid, eventData.getData(), hitTimestamp);
 
     if (datastreamConfigOverride) {
       edgeHitBuilder.addMeta("configOverrides", datastreamConfigOverride);
@@ -262,10 +259,8 @@ export class EdgeExtension implements Extension {
       "setConsent() - Received event with data: " + eventData.toString()
     );
 
-    const consentHit = EdgeHit.builder()
-      .setData(eventData.getData())
+    const consentHit = EdgeHit.builder(event.uuid, eventData.getData(), Date.now())
       .setType(EdgeHitType.CONSENT)
-      .setRequestId(event.uuid)
       .build();
 
     this.processHitAndStartTimer(consentHit);
@@ -322,10 +317,8 @@ export class EdgeExtension implements Extension {
       LOG_TAG,
       `sendEventForIdentity() - Sending edge request (requestId:${requestEventId}) to fetch Identity.`
     );
-    const identityHit = EdgeHit.builder()
+    const identityHit = EdgeHit.builder(requestEventId, {}, Date.now())
       .setType(EdgeHitType.EDGE)
-      .setTimestamp(Date.now())
-      .setRequestId(requestEventId)
       .build();
 
     // add the event to the list of events waiting for identity response

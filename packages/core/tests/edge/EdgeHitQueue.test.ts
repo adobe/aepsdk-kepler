@@ -25,10 +25,10 @@ describe("EdgeHitQueue tests", () => {
 
   test("EdgeHitQueue queue valid hit, will add it to the back of the queue", () => {
     const edgeHitQueue = new EdgeHitQueue();
-    const edgeHit1 = EdgeHit.builder().setRequestId("requestId1").build();
+    const edgeHit1 = EdgeHit.builder("requestId1", {}, Date.now()).build();
     edgeHitQueue.push(edgeHit1);
 
-    const edgeHit2 = EdgeHit.builder().setRequestId("requestId2").build();
+    const edgeHit2 = EdgeHit.builder("requestId2", {}, Date.now()).build();
     edgeHitQueue.push(edgeHit2);
 
     expect(edgeHitQueue.peek()).toBe(edgeHit1);
@@ -43,7 +43,7 @@ describe("EdgeHitQueue tests", () => {
 
   test("EdgeHitQueue popFront returns the hit and removes it from the queue.", () => {
     const edgeHitQueue = new EdgeHitQueue();
-    const edgeHit = EdgeHit.builder().setRequestId("requestId1").build();
+    const edgeHit = EdgeHit.builder("requestId1", {}, Date.now()).build();
 
     edgeHitQueue.push(edgeHit);
     expect(edgeHitQueue.size()).toBe(1);
@@ -60,7 +60,7 @@ describe("EdgeHitQueue tests", () => {
 
   test("EdgeHitQueue peek with multiple hits, returns the first hit without removing it from the queue", () => {
     const edgeHitQueue = new EdgeHitQueue();
-    const edgeHit = EdgeHit.builder().setRequestId("requestId1").build();
+    const edgeHit = EdgeHit.builder("requestId1", {}, Date.now()).build();
 
     edgeHitQueue.push(edgeHit);
     expect(edgeHitQueue.peek()).toBe(edgeHit);

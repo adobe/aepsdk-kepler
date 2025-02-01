@@ -18,6 +18,7 @@ import {
   getBoolean,
   getNull,
   getArray,
+  getDataObjectFromArray,
 } from "../../../src/core/utils/DataObjectUtil";
 describe("test DataObjectUtil class", () => {
   beforeEach(() => {});
@@ -298,5 +299,50 @@ describe("test DataObjectUtil class", () => {
     const value: boolean | undefined = getNull(data, "obj", "key3");
     expect(value).toBeUndefined();
     expect(getNull(data)).toBeFalsy();
+  });
+
+  test("getDataObjectFromArray() - should return the DataObject at the given index", () => {
+    const dataArray = [{ name: "Object 1" }, { name: "Object 2" }, { name: "Object 3" }];
+
+    const result = getDataObjectFromArray(dataArray, 1);
+    expect(result).toEqual({ name: "Object 2" });
+  });
+
+  test("getDataObjectFromArray() - should return undefined if the index is out of bounds", () => {
+    const dataArray = [{ name: "Object 1" }, { name: "Object 2" }];
+
+    const result1 = getDataObjectFromArray(dataArray, -1);
+    expect(result1).toBeUndefined();
+
+    const result2 = getDataObjectFromArray(dataArray, 3);
+    expect(result2).toBeUndefined();
+  });
+
+  test("getDataObjectFromArray() - should return undefined if the value at the index is not a DataObject", () => {
+    const dataArray = [{ name: "Object 1" }, "Not an Object", { name: "Object 3" }];
+
+    const result = getDataObjectFromArray(dataArray, 1);
+    expect(result).toBeUndefined();
+  });
+
+  test("getDataObjectFromArray() - should return undefined if dataArray is null", () => {
+    const dataArray = null;
+
+    const result = getDataObjectFromArray(dataArray, 0);
+    expect(result).toBeUndefined();
+  });
+
+  test("getDataObjectFromArray() - should return undefined if dataArray is undefined", () => {
+    const dataArray = undefined;
+
+    const result = getDataObjectFromArray(dataArray, 0);
+    expect(result).toBeUndefined();
+  });
+
+  test("getDataObjectFromArray() - should handle an empty array and return undefined", () => {
+    const dataArray: DataArray = [];
+
+    const result = getDataObjectFromArray(dataArray, 0);
+    expect(result).toBeUndefined();
   });
 });

@@ -12,163 +12,363 @@ governing permissions and limitations under the License.
 import { MediaSessionManager } from "../src/MediaSessionManager";
 import { MediaHit } from "../src/MediaHit";
 
+const mockDispatchFn = jest.fn();
+
 describe("MediaSessionManager tests", () => {
   test("MediaSessionManager should be defined", () => {
-    const mediaSessionManager = new MediaSessionManager();
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
     expect(mediaSessionManager).toBeDefined();
   });
 
-  test("startSession - should start a new session", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    expect(mediaSessionManager.startSession("sessionId", {})).toBe(true);
-    expect(mediaSessionManager.activeSessions["sessionId"]).toBeDefined();
-    expect(mediaSessionManager.getSession("sessionId")).toBeDefined();
+  test("startSession - should start a new session with session start event", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        sessionId: "testSessionId",
+        xdm: {
+          key: "value",
+        },
+      }
+    );
+
+    // Starting the session with the event
+    expect(mediaSessionManager.startSession(sessionStartHit, {})).toBe(true);
+    const session = mediaSessionManager.getSession("testSessionId");
+    expect(session).toBeDefined();
+    expect(session?.getClientSessionId()).toBe("testSessionId");
   });
 
   test("startSession - should not start a new session if session already exists", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    expect(mediaSessionManager.startSession("sessionId", {})).toBe(true);
-    expect(mediaSessionManager.startSession("sessionId", {})).toBe(false);
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    // Building the session start event data
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        sessionId: "testSessionId",
+        xdm: {
+          key: "value",
+        },
+      }
+    );
+
+    // Starting the session with the event
+    expect(mediaSessionManager.startSession(sessionStartHit, {})).toBe(true);
+    // Trying to start the same session again
+    expect(mediaSessionManager.startSession(sessionStartHit, {})).toBe(false);
   });
 
-  test("queue - should queue a media hit with the session", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId", {});
+  test("process - should queue a media hit with the session", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
 
-    const mediaSession = mediaSessionManager.getSession("sessionId");
+    // Start a session
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: {
+          key: "value",
+        },
+        config: {
+          key: "value",
+        },
+      }
+    );
+
+    mediaSessionManager.startSession(sessionStartHit, {});
+
+    const mediaSession = mediaSessionManager.getSession("testSessionId");
     jest.spyOn(mediaSession!, "process");
 
-    const hit = new MediaHit("uuid", "eventType", 123456, { xdm: "data" });
-    mediaSessionManager.queue("sessionId", hit);
+    mediaSessionManager.process(sessionStartHit);
 
     expect(mediaSession!.process).toHaveBeenCalledTimes(1);
-    expect(mediaSession!.process).toHaveBeenCalledWith(hit);
+    expect(mediaSession!.process).toHaveBeenCalledWith(sessionStartHit);
   });
 
-  test("queue - should queue multiple media hits with different session", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId1", {});
-    mediaSessionManager.startSession("sessionId2", {});
-    mediaSessionManager.startSession("sessionId3", {});
+  test("process - Called with multiple media events should queue all media hits with the session", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
 
-    const mediaSession1 = mediaSessionManager.getSession("sessionId1");
-    jest.spyOn(mediaSession1!, "process");
-    const mediaSession2 = mediaSessionManager.getSession("sessionId2");
-    jest.spyOn(mediaSession2!, "process");
-    const mediaSession3 = mediaSessionManager.getSession("sessionId3");
-    jest.spyOn(mediaSession3!, "process");
+    // Start a session
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: {
+          key: "value",
+        },
+        config: {
+          key: "value",
+        },
+      }
+    );
+    mediaSessionManager.startSession(sessionStartHit, {});
 
-    const hit1 = new MediaHit("uuid1", "eventType1", 123456, { xdm: "data1" });
-    const hit2 = new MediaHit("uuid2", "eventType2", 123456, { xdm: "data2" });
-    const hit3 = new MediaHit("uuid3", "eventType3", 123456, { xdm: "data3" });
+    const playHit = new MediaHit("testSessionId", "testParentId", "media.play", 123457, {
+      xdm: {
+        eventType: "media.play",
+        key: "value",
+      },
+      data: {
+        key: "value",
+      },
+      config: {
+        key: "value",
+      },
+    });
 
-    mediaSessionManager.queue("sessionId1", hit1);
-    mediaSessionManager.queue("sessionId1", hit2);
-    mediaSessionManager.queue("sessionId2", hit2);
-    mediaSessionManager.queue("sessionId2", hit3);
-    mediaSessionManager.queue("sessionId3", hit3);
-    mediaSessionManager.queue("sessionId3", hit1);
+    const sessionCompleteHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionComplete",
+      123458,
+      {
+        xdm: {
+          eventType: "media.sessionComplete",
+          key: "value",
+        },
+        data: {
+          key: "value",
+        },
+        config: {
+          key: "value",
+        },
+      }
+    );
 
-    expect(mediaSession1!.process).toHaveBeenCalledTimes(2);
-    expect(mediaSession1!.process).toHaveBeenNthCalledWith(1, hit1);
-    expect(mediaSession1!.process).toHaveBeenNthCalledWith(2, hit2);
+    const mediaSession = mediaSessionManager.getSession("testSessionId");
+    jest.spyOn(mediaSession!, "process");
 
-    expect(mediaSession2!.process).toHaveBeenCalledTimes(2);
-    expect(mediaSession2!.process).toHaveBeenNthCalledWith(1, hit2);
-    expect(mediaSession2!.process).toHaveBeenNthCalledWith(2, hit3);
+    mediaSessionManager.process(sessionStartHit);
+    mediaSessionManager.process(playHit);
+    mediaSessionManager.process(sessionCompleteHit);
 
-    expect(mediaSession3!.process).toHaveBeenCalledTimes(2);
-    expect(mediaSession3!.process).toHaveBeenNthCalledWith(1, hit3);
-    expect(mediaSession3!.process).toHaveBeenNthCalledWith(2, hit1);
+    expect(mediaSession!.process).toHaveBeenCalledTimes(3);
+    expect(mediaSession!.process).toHaveBeenNthCalledWith(1, sessionStartHit);
+    expect(mediaSession!.process).toHaveBeenNthCalledWith(2, playHit);
+    expect(mediaSession!.process).toHaveBeenNthCalledWith(3, sessionCompleteHit);
   });
 
-  test("queue - should not queue hit if the session is inactive or does not exist", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    const hit = new MediaHit("uuid", "eventType", 123456, { xdm: "data" });
+  test("process - when sessionComplete event is received, should end the session", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
 
-    expect(mediaSessionManager.queue("sessionId", hit)).toBe(false);
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+
+    const sessionCompleteHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionComplete",
+      123457,
+      {
+        xdm: {
+          eventType: "media.sessionComplete",
+          key: "value",
+        },
+      }
+    );
+
+    // start the session
+    mediaSessionManager.startSession(sessionStartHit, {});
+
+    const mediaSession = mediaSessionManager.getSession("testSessionId");
+    jest.spyOn(mediaSession!, "process");
+
+    mediaSessionManager.process(sessionStartHit);
+
+    mediaSessionManager.process(sessionCompleteHit);
+
+    expect(mediaSession!.process).toHaveBeenCalledTimes(2);
+    expect(mediaSession!.process).toHaveBeenNthCalledWith(2, sessionCompleteHit);
+    expect(mediaSessionManager.getSession("testSessionId")).toBe(null);
+  });
+
+  test("process - when sessionEnd event is received, should end the session", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    // Start a session
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+
+    const sessionEndHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionEnd",
+      123457,
+      {
+        xdm: {
+          eventType: "media.sessionEnd",
+          key: "value",
+        },
+      }
+    );
+
+    mediaSessionManager.startSession(sessionStartHit, {});
+
+    const mediaSession = mediaSessionManager.getSession("testSessionId");
+    jest.spyOn(mediaSession!, "process");
+
+    mediaSessionManager.process(sessionStartHit);
+
+    mediaSessionManager.process(sessionEndHit);
+
+    expect(mediaSession!.process).toHaveBeenCalledTimes(2);
+    expect(mediaSession!.process).toHaveBeenNthCalledWith(2, sessionEndHit);
+    expect(mediaSessionManager.getSession("testSessionId")).toBe(null);
+  });
+
+  test("process - should not queue hit if the session is inactive or does not exist", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+
+    // Trying to queue hit for non-existing session
+    expect(mediaSessionManager.process(sessionStartHit)).toBe(false);
   });
 
   test("endSession - should end the session and remove from active session map", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId", {});
-    expect(mediaSessionManager.endSession("sessionId")).toBe(true);
-    expect(mediaSessionManager.getSession("sessionId")).toBe(null);
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+
+    mediaSessionManager.startSession(sessionStartHit, {});
+
+    // End the session
+    expect(mediaSessionManager.endSession("testSessionId")).toBe(true);
+    expect(mediaSessionManager.getSession("testSessionId")).toBe(null);
   });
 
   test("endSession - should not end the session if it is not active", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    expect(mediaSessionManager.endSession("sessionId")).toBe(false);
-  });
-
-  test("endSession - should not end the session if it does not exist", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId1", {});
-
-    expect(mediaSessionManager.endSession("sessionId2")).toBe(false);
-  });
-
-  test("endSession - with multiple sessions present, should not affect other sessions", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId1", {});
-    mediaSessionManager.startSession("sessionId2", {});
-    mediaSessionManager.startSession("sessionId3", {});
-
-    mediaSessionManager.endSession("sessionId2");
-
-    expect(mediaSessionManager.getSession("sessionId1")).toBeDefined();
-    expect(mediaSessionManager.getSession("sessionId2")).toBe(null);
-    expect(mediaSessionManager.getSession("sessionId3")).toBeDefined();
-  });
-
-  test("endAllSessions - should end all active sessions", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId1", {});
-    mediaSessionManager.startSession("sessionId2", {});
-    mediaSessionManager.startSession("sessionId3", {});
-
-    mediaSessionManager.endAllSessions();
-
-    expect(mediaSessionManager.getSession("sessionId1")).toBe(null);
-    expect(mediaSessionManager.getSession("sessionId2")).toBe(null);
-    expect(mediaSessionManager.getSession("sessionId3")).toBe(null);
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+    expect(mediaSessionManager.endSession("sessionStart event")).toBe(false);
   });
 
   test("getSession - should return session if it exists", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId", {});
-    expect(mediaSessionManager.getSession("sessionId")).toBeDefined();
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+
+    // Start a session
+    const sessionStartHit = new MediaHit(
+      "testSessionId",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+
+    mediaSessionManager.startSession(sessionStartHit, {});
+
+    // Check the session
+    expect(mediaSessionManager.getSession("testSessionId")).toBeDefined();
   });
 
-  test("getSession - should return undefined if session does not exist", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    expect(mediaSessionManager.getSession("sessionId")).toBe(null);
+  test("getSession - should return null if session does not exist", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
+    expect(mediaSessionManager.getSession("testSessionId")).toBe(null);
   });
 
-  test("deleteSession - should delete session if it exists", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId", {});
-    mediaSessionManager.deleteSession("sessionId");
-    expect(mediaSessionManager.getSession("sessionId")).toBe(null);
-  });
+  test("endAllSessions - should end all active sessions", () => {
+    const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
 
-  test("deleteSession - should not crash if session does not exist", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.deleteSession("sessionId");
-    expect(mediaSessionManager.getSession("sessionId")).toBe(null);
-  });
+    // Start multiple sessions
+    const sessionStartHit1 = new MediaHit(
+      "testSessionId1",
+      "testParentId",
+      "media.sessionStart",
+      123456,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+    mediaSessionManager.startSession(sessionStartHit1, {});
 
-  test("isSessionActive - should return true if session is active", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    mediaSessionManager.startSession("sessionId", {});
-    expect(mediaSessionManager.isSessionActive("sessionId")).toBe(true);
-  });
+    const sessionStartHit2 = new MediaHit(
+      "testSessionId2",
+      "testParentId",
+      "media.sessionStart",
+      123457,
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+      }
+    );
+    mediaSessionManager.startSession(sessionStartHit2, {});
 
-  test("isSessionActive - should return false if session is not active", () => {
-    const mediaSessionManager = new MediaSessionManager();
-    expect(mediaSessionManager.isSessionActive("sessionId")).toBe(false);
-  });
+    // End all sessions
+    mediaSessionManager.endAllSessions();
 
-  // TODO: Add tests for methods like notifySessionUpdate, notifyErrorResponse etc.
-  // TODO: update tests to add check for proper methods being called for MediaSession
+    expect(mediaSessionManager.getSession("testSessionId1")).toBe(null);
+    expect(mediaSessionManager.getSession("testSessionId2")).toBe(null);
+  });
 });

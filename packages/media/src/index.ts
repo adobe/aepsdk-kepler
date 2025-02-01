@@ -22,8 +22,9 @@ import { isValidMediaXDMData } from "./MediaAPIHelper";
 const LOG_EXTENSION = MediaConstants.EXTENSION_NAME;
 const LOG_TAG = "MediaAPI";
 
-const DEFAULT_PLAYER_ID: string = "defaultPlayer";
+const DEFAULT_SESSION_ID: string = "default";
 const MEDIA = MediaConstants.Media;
+const EVENT_DATA_KEYS = MediaConstants.EventDataKeys;
 
 class MediaAPI implements MediaInterface {
   readonly EXTENSION: Extension = new MediaExtension();
@@ -64,7 +65,7 @@ class MediaAPI implements MediaInterface {
     }
 
     // Add internal sessionId to the event data
-    eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
+    eventData?.updateData([EVENT_DATA_KEYS.SESSION_ID], DEFAULT_SESSION_ID);
 
     const event = Event.builder(
       MEDIA.EVENT_NAME_CREATE_SESSION,
@@ -101,7 +102,7 @@ class MediaAPI implements MediaInterface {
     }
 
     // Add internal sessionId to the event data
-    eventData?.updateData(["playerId"], DEFAULT_PLAYER_ID);
+    eventData?.updateData([EVENT_DATA_KEYS.SESSION_ID], DEFAULT_SESSION_ID);
 
     const event = Event.builder(
       MEDIA.EVENT_NAME_SEND_MEDIA_EVENT,

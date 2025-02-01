@@ -94,7 +94,7 @@ describe("EdgeAPI tests", () => {
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.createSession",
         data: EventData.buildFrom({
-          playerId: "defaultPlayer",
+          sessionId: "default",
           xdm: {
             eventType: "media.sessionStart",
             key: "value",
@@ -157,14 +157,14 @@ describe("EdgeAPI tests", () => {
     expect(getEventDispatcher).toHaveBeenCalledTimes(1);
     expect(mockEventDispatcher.dispatch).toHaveBeenCalledTimes(1);
 
-    //dispatched event should have the correct event data including the playerId automatically added by the API
+    //dispatched event should have the correct event data including the sessionId automatically added by the API
     expect(mockEventDispatcher.dispatch).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "sendMediaEvent",
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.requestContent",
         data: EventData.buildFrom({
-          playerId: "defaultPlayer",
+          sessionId: "default",
           xdm: {
             eventType: "media.play",
             key: "value",
@@ -180,6 +180,6 @@ describe("EdgeAPI tests", () => {
     // TODO: discuss the format of the dispatched event
     // data.data.*
     // expect(dispatchedEvent.data.data.xdm.eventType).toBe("media.play");
-    // expect(dispatchedEvent.data.data.playerId).toBe("defaultPlayer");
+    // expect(dispatchedEvent.data.data.sessionId).toBe("default");
   });
 });

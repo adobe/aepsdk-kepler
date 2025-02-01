@@ -152,3 +152,19 @@ export function getArray(data: DataObject, ...key: string[]): DataArray | undefi
   }
   return undefined;
 }
+
+/**
+ * Returns the DataObject from the DataArray at the given index.
+ * @param dataArray The DataArray that needs to be accessed.
+ * @param index The index of the DataObject that needs to be retrieved.
+ * @returns The DataObject at the given index, otherwise undefined.
+ */
+export function getDataObjectFromArray(
+  dataArray: DataArray | null | undefined,
+  index: number
+): DataObject | undefined {
+  if (!dataArray || index < 0 || index >= dataArray.length) {
+    return undefined;
+  }
+  return isObject(dataArray[index]) ? (dataArray[index] as DataObject) : undefined;
+}

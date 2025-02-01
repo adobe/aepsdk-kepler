@@ -9,6 +9,7 @@ import {Image, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
 interface LinkProps {
   linkText: string;
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   onPress: Function;
   testID?: string;
 }

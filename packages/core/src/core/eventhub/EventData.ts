@@ -21,6 +21,7 @@ import {
   getBoolean,
   getNull,
   getArray,
+  buildDataObject,
 } from "../utils/DataObjectUtil";
 
 const LOG_TAG = "EventData";
@@ -80,8 +81,17 @@ export class EventData {
     }
   }
 
-  public getData(): DataObject {
-    return this.data;
+  public getData(): DataObject | undefined | null {
+    try {
+      const deepCopy = JSON.parse(this.convertToJSONString());
+      return deepCopy;
+    } catch (error) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `Failed to get the data object, error: ${(error as Error).message}`
+      );
+    }
   }
 
   /**

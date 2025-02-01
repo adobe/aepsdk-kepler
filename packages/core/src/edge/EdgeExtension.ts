@@ -228,7 +228,7 @@ export class EdgeExtension implements Extension {
       xdm["timestamp"] = hitTimestamp;
     }
 
-    const edgeHitBuilder = EdgeHit.builder(event.uuid, eventData.getData(), hitTimestamp);
+    const edgeHitBuilder = EdgeHit.builder(event.uuid, eventData.getData() ?? {}, hitTimestamp);
 
     if (datastreamConfigOverride) {
       edgeHitBuilder.addMeta("configOverrides", datastreamConfigOverride);
@@ -259,7 +259,7 @@ export class EdgeExtension implements Extension {
       "setConsent() - Received event with data: " + eventData.toString()
     );
 
-    const consentHit = EdgeHit.builder(event.uuid, eventData.getData(), Date.now())
+    const consentHit = EdgeHit.builder(event.uuid, eventData.getData() ?? {}, Date.now())
       .setType(EdgeHitType.CONSENT)
       .build();
 

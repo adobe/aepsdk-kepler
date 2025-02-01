@@ -18,11 +18,33 @@ export const MediaConstants = {
     EVENT_NAME_CREATE_SESSION: "createMediaSession",
     EVENT_NAME_SEND_MEDIA_EVENT: "sendMediaEvent",
     EVENT_SOURCE_CREATE_SESSION: "com.adobe.eventSource.createSession",
+    EVENT_SOURCE_MEDIA_EDGE_SESSION: "media-analytics:new-session",
   },
 
   EventDataKeys: {
     XDM: "xdm",
     EVENT_TYPE: "eventType",
+    SESSION_ID: "sessionId",
+  },
+
+  Edge: {
+    EventData: {
+      PAYLOAD: "payload",
+      SESSION_ID: "sessionId",
+      PATH: "path",
+      REQUEST_ID: "requestId",
+      REQUEST: "request",
+    },
+
+    ErrorKeys: {
+      STATUS: "status",
+      TYPE: "type",
+    },
+
+    ErrorData: {
+      ERROR_CODE_400: 400,
+      ERROR_TYPE_VA_EDGE_400: "https://ns.adobe.com/aep/errors/va-edge-0400-400",
+    },
   },
 
   EventType: {

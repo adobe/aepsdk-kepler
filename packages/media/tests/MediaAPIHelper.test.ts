@@ -35,35 +35,33 @@ describe("test MediaAPIHelper class", () => {
   test("isValidMediaEvent() - should return true if the input is a valid media event", () => {
     const validMediaEvents = [
       "media.sessionStart",
-      "media.sessionEnd",
-      "media.adBreakStart",
-      "media.adBreakEnd",
-      "media.adStart",
-      "media.adEnd",
-      "media.adProgress",
-      "media.bufferStart",
-      "media.bufferEnd",
-      "media.bitrateChange",
-      "media.error",
-      "media.complete",
-      "media.seekStart",
-      "media.seekEnd",
-      "media.pause",
       "media.play",
-      "media.trackStart",
-      "media.trackComplete",
-      "media.trackSkip",
-      "media.trackError",
-      "media.segmentStart",
-      "media.segmentEnd",
-      "media.segmentSkip",
-      "media.segmentError",
+      "media.ping",
       "media.bitrateChange",
-      "media.bitrateChange",
+      "media.bufferStart",
+      "media.pauseStart",
+      "media.adBreakStart",
+      "media.adStart",
+      "media.adComplete",
+      "media.adSkip",
+      "media.adBreakComplete",
+      "media.chapterStart",
+      "media.chapterComplete",
+      "media.chapterSkip",
+      "media.error",
+      "media.statesUpdate",
+      "media.sessionEnd",
+      "media.sessionComplete",
     ];
 
     validMediaEvents.forEach((eventType) => {
-      expect(isValidMediaEvent(eventType)).toBe(true);
+      try {
+        expect(isValidMediaEvent(eventType)).toBe(true);
+      } catch (error) {
+        throw new Error(
+          `Expected event type "${eventType}" to be valid, but it was not. Error: ${error}`
+        );
+      }
     });
   });
 });

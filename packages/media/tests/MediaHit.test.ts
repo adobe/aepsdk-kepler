@@ -13,11 +13,14 @@ import { MediaHit } from "../src/MediaHit";
 
 describe("MediaHit tests", () => {
   test("MediaHit should be defined", () => {
-    const mediaHit = new MediaHit("uuid", "eventType", 123456, { xdm: "data" });
+    const mediaHit = new MediaHit("testSessionId", "testParentId", "testEventType", 123456, {
+      xdm: "data",
+    });
     expect(mediaHit).toBeDefined();
-    expect(mediaHit.uuid).toBe("uuid");
-    expect(mediaHit.eventType).toBe("eventType");
+    expect(mediaHit.sessionId).toBe("testSessionId");
+    expect(mediaHit.parentId).toBe("testParentId");
+    expect(mediaHit.eventType).toBe("testEventType");
     expect(mediaHit.timestamp).toBe(123456);
-    expect(mediaHit.xdmData).toEqual({ xdm: "data" });
+    expect(mediaHit.data).toEqual({ xdm: "data" });
   });
 });

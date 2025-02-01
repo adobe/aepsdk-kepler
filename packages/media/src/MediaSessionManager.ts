@@ -14,12 +14,15 @@ import { MediaConstants } from "./MediaConstants";
 import { MediaSession } from "./MediaSession";
 import { MediaHit } from "./MediaHit";
 import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
+import { DispatchFn } from "./MediaExtension";
 
 const LOG_SOURCE = MediaConstants.EXTENSION_NAME;
 const LOG_TAG = "MediaSessionManager";
 
 export class MediaSessionManager {
-  private _activeSessions: Record<string, MediaSession> = {};
+  private _activeSessions: Map<string, MediaSession> = new Map();
+
+  constructor(private dispatchFn: DispatchFn) {}
 
   /**
    * Creates a new media session with the given session ID and configuration.
@@ -28,38 +31,42 @@ export class MediaSessionManager {
    * @param config - The configuration for the session.
    * @returns boolean - True if the session was created successfully, false otherwise.
    */
-  public startSession(sessionId: string, config: DataObject): boolean {
-    if (this.isSessionActive(sessionId)) {
+  public startSession(hit: MediaHit, config: DataObject = {}): boolean {
+    const session = this.getSession(hit.sessionId);
+    if (session) {
       Log.debug(
         MediaConstants.EXTENSION_NAME,
         "MediaSessionManager",
-        `Media session with ID: ${sessionId} is already active.`
+        `Media session with ID:(${hit.sessionId}) is already active.`
       );
       return false;
     }
 
-    this.createSession(sessionId, config);
+    this.createSession(hit.sessionId, this.dispatchFn, config);
 
-    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} created.`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID:(${hit.sessionId}) created.`);
     return true;
   }
 
   /**
-   * Queues a media hit for processing in the media session with the given session ID.
-   * @params
-   * sessionId - The session ID to queue the hit to.
-   * hit - The media hit to be queued.
-   * @returns boolean - True if the hit was queued successfully, false otherwise.
+   * Processes the media event and sends the hit to the respective media session if active.
+   * @param hit - The media hit to process.
+   * @returns boolean - True if the event was processed successfully, false otherwise.
    */
-  public queue(sessionId: string, hit: MediaHit): boolean {
-    if (!this.isSessionActive(sessionId)) {
-      Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} is not active.`);
-      return false;
+  public process(hit: MediaHit): boolean {
+    Log.debug(LOG_SOURCE, LOG_TAG, `Processing media event: ${JSON.stringify(hit)}`);
+
+    const session = this.getSession(hit.sessionId);
+
+    // Process the hits
+    session?.process(hit);
+
+    // End the session if the event is a session complete or session end event and remove the session from the active sessions.
+    if (this.isSessionEndOrComplete(hit)) {
+      this.endSession(hit.sessionId);
     }
 
-    const session = this.getSession(sessionId);
-    session?.process(hit);
-    return session !== null;
+    return session ? true : false;
   }
 
   /**
@@ -68,13 +75,18 @@ export class MediaSessionManager {
    * @returns boolean - True if the session was ended successfully, false otherwise.
    */
   public endSession(sessionId: string): boolean {
-    if (!this.isSessionActive(sessionId)) {
-      Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} is not active.`);
+    const session = this.getSession(sessionId);
+
+    if (!session) {
+      Log.debug(
+        LOG_SOURCE,
+        LOG_TAG,
+        `Media session with ID:(${sessionId}) not found or is inactive.`
+      );
       return false;
     }
 
-    const session = this.getSession(sessionId);
-    session?.end();
+    session.end();
 
     this.deleteSession(sessionId);
 
@@ -86,9 +98,9 @@ export class MediaSessionManager {
    * Ends all active media sessions.
    */
   public endAllSessions(): void {
-    // call abort for all active sessions
-    this._activeSessions = {};
+    this.forAllSessions((session) => session.end());
     Log.debug(LOG_SOURCE, LOG_TAG, `All media sessions have been ended.`);
+    this._activeSessions.clear();
   }
 
   /**
@@ -96,14 +108,8 @@ export class MediaSessionManager {
    * @param requestId - The request ID of the error response.
    * @param data - The error response data.
    */
-  notifyErrorResponse(requestId: string, data: Record<string, unknown>): void {
-    for (const sessionId in this._activeSessions) {
-      if (!this.isSessionActive(sessionId)) {
-        continue;
-      }
-
-      this.getSession(sessionId)?.handleErrorResponse(requestId, data);
-    }
+  public notifyErrorResponse(requestId: string, data: DataObject): void {
+    this.forAllSessions((session) => session.handleErrorResponse(requestId, data));
   }
 
   /**
@@ -112,13 +118,7 @@ export class MediaSessionManager {
    * @param backendSessionId - The backend session ID returned by the server.
    */
   public notifyBackendSessionId(requestId: string, backendSessionId: string): void {
-    for (const sessionId in this._activeSessions) {
-      if (!this.isSessionActive(sessionId)) {
-        continue;
-      }
-
-      this.getSession(sessionId)?.handleSessionUpdate(requestId, backendSessionId);
-    }
+    this.forAllSessions((session) => session.handleSessionUpdate(requestId, backendSessionId));
   }
 
   /**
@@ -126,13 +126,14 @@ export class MediaSessionManager {
    */
   // TODO: check if this is needed
   public notifyStateUpdate(): void {
-    for (const sessionId in this._activeSessions) {
-      if (!this.isSessionActive(sessionId)) {
-        continue;
-      }
+    this.forAllSessions((session) => session.handleStateUpdate());
+  }
 
-      this.getSession(sessionId)?.handleStateUpdate();
-    }
+  /**
+   * Invokes all active sessions using a callback.
+   */
+  private forAllSessions(callback: (session: MediaSession) => void): void {
+    Object.values(this._activeSessions).forEach(callback);
   }
 
   /**
@@ -140,8 +141,8 @@ export class MediaSessionManager {
    * @param sessionId
    * @param config
    */
-  private createSession(sessionId: string, config: DataObject): void {
-    this._activeSessions[sessionId] = new MediaSession(sessionId, config);
+  private createSession(sessionId: string, dispatchFn: DispatchFn, config: DataObject): void {
+    this._activeSessions.set(sessionId, new MediaSession(sessionId, dispatchFn, config));
   }
 
   /**
@@ -149,26 +150,33 @@ export class MediaSessionManager {
    * @param sessionId - The session ID of the media session.
    * @returns MediaSession | null - The media session if it is active, null otherwise.
    */
-  getSession(sessionId: string): MediaSession | null {
-    return this._activeSessions[sessionId] ?? null;
+  public getSession(sessionId: string): MediaSession | null {
+    const session = this._activeSessions.get(sessionId);
+    if (!session || !session.isActive()) {
+      Log.verbose(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} is not active.`);
+      return null;
+    }
+
+    return session;
   }
 
   /**
    * Deletes the media session with the given session ID.
    * @param sessionId - The session ID of the media session to delete.
    */
-  deleteSession(sessionId: string): void {
-    delete this._activeSessions[sessionId];
+  private deleteSession(sessionId: string): void {
+    this._activeSessions.delete(sessionId);
   }
 
   /**
-   * Checks if the media session with the given session ID is active.
-   * @param sessionId - The session ID of the media session.
-   * @returns boolean - True if the session is active, false otherwise.
+   * Checks if the given event is a session end event.
+   * @param event - The event to check.
+   * @returns boolean - True if the event is a session end event, false otherwise.
    */
-  isSessionActive(sessionId: string): boolean {
-    const session = this.getSession(sessionId);
-
-    return session != null && session.isActive;
+  private isSessionEndOrComplete(hit: MediaHit): boolean {
+    return (
+      hit.eventType === MediaConstants.EventType.SESSION_COMPLETE ||
+      hit.eventType === MediaConstants.EventType.SESSION_END
+    );
   }
 }

@@ -106,6 +106,34 @@ describe("test EventData class", () => {
     expect(data.toString().includes("newValue")).toBeFalsy();
   });
 
+  test("getData() - should return the deep copy of the data object", () => {
+    const jsonObj = {
+      key1: "value",
+      key2: 1,
+      key3: true,
+      key4: null,
+      key5: {
+        key6: "value",
+      },
+      key7: ["value1", "value2"],
+    };
+
+    const eventData = EventData.buildFrom(jsonObj) as EventData;
+    const deepCopy = eventData.getData();
+    expect(deepCopy).toEqual(jsonObj);
+    expect(deepCopy === jsonObj).toBeFalsy();
+
+    // modify the data object should not mutate the deep copy, and vice versa
+    eventData.updateData(["key1"], "newValue");
+    delete deepCopy!["key5"];
+
+    expect(eventData.getString("key1")).toEqual("newValue");
+    expect(deepCopy!["key1"]).toEqual("value");
+
+    expect(deepCopy!["key5"]).toBeUndefined();
+    expect(eventData.getDataObject("key5")).toEqual({ key6: "value" });
+  });
+
   test("getString() - should retrieve string from a given path", () => {
     const jsonObj = {
       key1: "value1",

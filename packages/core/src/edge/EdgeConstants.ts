@@ -14,6 +14,10 @@ export const EdgeConstants = {
   FRIENDLY_NAME: "Edge",
   EXTENSION_VERSION: "1.0.0-beta.1",
 
+  Service: {
+    DATASTORE: "dataStore",
+  },
+
   Event: {
     Name: {
       SEND_EVENT: "AEP Send Event Request",
@@ -59,6 +63,13 @@ export const EdgeConstants = {
   EventData: {
     Keys: {
       ECID: "ecid",
+      TIMESTAMP: "timestamp",
+      XDM: "xdm",
+      CONFIG: "config",
+      REQUEST: "request",
+      PATH: "path",
+      DATASTREAM_ID_OVERRIDE: "datastreamIdOverride",
+      DATASTREAM_CONFIG_OVERRIDE: "datastreamConfigOverride",
     },
   },
 

@@ -1256,6 +1256,129 @@ describe("EdgeHitProcessor tests", () => {
     );
   });
 
+  test("process should send edge hit with custom path when overwrite path is present", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "mediaRequestId",
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: { key: "value" },
+        timestamp: testTS,
+      },
+      testTS
+    )
+      .setPath("/va/v1/sessionStart")
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/va/v1/sessionStart?configId=mockConfigId&requestId=mediaRequestId"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
+  test("process should send edge hit with custom path and location hint when both are set", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "mediaRequestId",
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: { key: "value" },
+        timestamp: testTS,
+      },
+      testTS
+    )
+      .setPath("/va/v1/sessionStart")
+      .build();
+
+    mockEdgeResponseManager.getLocationHint.mockReturnValue("mockLocationHint");
+    edgeHitProcessor.queueHit(edgeHit);
+
+    // mock ECID presence
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/mockLocationHint/va/v1/sessionStart?configId=mockConfigId&requestId=mediaRequestId"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
   test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 

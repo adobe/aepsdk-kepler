@@ -34,6 +34,10 @@ const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeExtension";
 const HIT_PROCESSING_TIMER_INTERVAL_MS = 500;
 
+const SERVICE = EdgeConstants.Service;
+const EVENT_DATA_KEYS = EdgeConstants.EventData.Keys;
+const META = EdgeConstants.Request.Data.Meta;
+
 // Implementation
 export class EdgeExtension implements Extension {
   private _isActive: boolean = false;
@@ -73,7 +77,7 @@ export class EdgeExtension implements Extension {
     this.createSharedState = this.createXDMSharedState.bind(this);
 
     this.serviceLookup = serviceLookup;
-    this.dataStore = serviceLookup.getService("dataStore");
+    this.dataStore = serviceLookup.getService(SERVICE.DATASTORE);
 
     this.consentManager = new ConsentManager(this.dataStore, this.dispatchFn);
     this.identityManager = new IdentityManager(
@@ -210,13 +214,23 @@ export class EdgeExtension implements Extension {
       "sendEvent() - Received event with data: " + eventData.toString()
     );
 
-    const xdm = eventData.getDataObject("xdm") ?? {};
-    const config = eventData.getDataObject("config") ?? {};
-    eventData.removeData("config");
+    const xdm = eventData.getDataObject(EVENT_DATA_KEYS.XDM) ?? {};
+    const config = eventData.getDataObject(EVENT_DATA_KEYS.CONFIG) ?? {};
+    // Remove the config object from the event data
+    eventData.removeData(EVENT_DATA_KEYS.CONFIG);
 
-    const datastreamConfigOverride = getDataObject(config, "datastreamConfigOverride");
-    const datastreamIdOverride = getString(config, "datastreamIdOverride");
-    let hitTimestamp = getNumber(xdm, "timestamp");
+    const request = eventData.getDataObject(EVENT_DATA_KEYS.REQUEST) ?? {};
+    const path = getString(request, EVENT_DATA_KEYS.PATH);
+
+    // Remove the request object from the event data
+    eventData.removeData(EVENT_DATA_KEYS.REQUEST);
+
+    const datastreamConfigOverride = getDataObject(
+      config,
+      EVENT_DATA_KEYS.DATASTREAM_CONFIG_OVERRIDE
+    );
+    const datastreamIdOverride = getString(config, EVENT_DATA_KEYS.DATASTREAM_ID_OVERRIDE);
+    let hitTimestamp = getNumber(xdm, EVENT_DATA_KEYS.TIMESTAMP);
 
     if (!hitTimestamp) {
       Log.verbose(
@@ -225,13 +239,17 @@ export class EdgeExtension implements Extension {
         "sendEvent() - Adding timestamp to the event data, since timestamp not present."
       );
       hitTimestamp = Date.now();
-      xdm["timestamp"] = hitTimestamp;
+      xdm[EVENT_DATA_KEYS.TIMESTAMP] = hitTimestamp;
     }
 
     const edgeHitBuilder = EdgeHit.builder(event.uuid, eventData.getData() ?? {}, hitTimestamp);
 
+    if (!isNullOrEmptyString(path)) {
+      edgeHitBuilder.setPath(path!);
+    }
+
     if (datastreamConfigOverride) {
-      edgeHitBuilder.addMeta("configOverrides", datastreamConfigOverride);
+      edgeHitBuilder.addMeta(META.CONFIG_OVERRIDES, datastreamConfigOverride);
     }
 
     if (datastreamIdOverride) {

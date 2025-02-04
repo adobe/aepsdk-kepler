@@ -15,11 +15,18 @@ import { DataStore, serviceLookup, ServiceLookup } from "../../src/core/services
 import { Logging } from "../../src/core/services";
 import { EdgeStateManager } from "../../src/edge/EdgeStateManager";
 import { EdgeResponseManager } from "../../src/edge/EdgeResponseManager";
+import { EdgeHitProcessor } from "../../src/edge/EdgeHitProcessor";
+import { ConsentManager, ConsentValue } from "../../src/edge/consent/ConsentManager";
 
 jest.mock("../../src/core/extension/ExtensionContainer");
 jest.mock("../../src/core/services");
 jest.mock("../../src/edge/EdgeResponseManager");
 jest.mock("../../src/edge/EdgeStateManager");
+jest.mock("../../src/edge/EdgeHitProcessor");
+jest.mock("../../src/edge/consent/ConsentManager");
+
+jest.useFakeTimers();
+
 describe("EdgeExtension tests", () => {
   let mockExtensionContainer: jest.Mocked<ExtensionContainer>;
   let mockServiceLookup: jest.Mocked<ServiceLookup>;
@@ -27,6 +34,8 @@ describe("EdgeExtension tests", () => {
   let mockDataStore: jest.Mocked<DataStore>;
   let mockEdgeResponseManager: jest.Mocked<EdgeResponseManager>;
   let mockEdgeStateManager: jest.Mocked<EdgeStateManager>;
+  let mockEdgeHitProcessor: jest.Mocked<EdgeHitProcessor>;
+  let mockConsentManager: jest.Mocked<ConsentManager>;
 
   beforeEach(() => {
     mockExtensionContainer = {
@@ -44,6 +53,7 @@ describe("EdgeExtension tests", () => {
     mockLogging = {
       setDebugEnabled: jest.fn(),
       debug: jest.fn(),
+      verbose: jest.fn(),
       info: jest.fn(),
       warn: jest.fn(),
       error: jest.fn(),
@@ -76,6 +86,18 @@ describe("EdgeExtension tests", () => {
       updateSharedStateIfChanged: jest.fn(),
     } as unknown as jest.Mocked<EdgeStateManager>;
 
+    mockEdgeHitProcessor = {
+      process: jest.fn(),
+      isQueueEmpty: jest.fn(),
+    } as unknown as jest.Mocked<EdgeHitProcessor>;
+
+    mockConsentManager = {
+      bootUp: jest.fn(),
+      processConfigurationEvent: jest.fn(),
+      processEdgeResponse: jest.fn(),
+      getCollectConsent: jest.fn(),
+    } as unknown as jest.Mocked<ConsentManager>;
+
     jest.spyOn(serviceLookup, "getService").mockImplementation((serviceName: string) => {
       if (serviceName === "logging") {
         return mockLogging;
@@ -87,6 +109,7 @@ describe("EdgeExtension tests", () => {
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
     jest.clearAllMocks();
   });
 
@@ -110,5 +133,39 @@ describe("EdgeExtension tests", () => {
     expect(mockExtensionContainer.registerEventListener).toHaveBeenCalledTimes(4);
 
     expect(mockServiceLookup.getService).toHaveBeenCalledWith("dataStore");
+  });
+
+  test("startHitProcessingTimer initializes the timer correctly", () => {
+    jest.spyOn(EdgeHitProcessor.prototype, "isQueueEmpty").mockReturnValue(false);
+
+    const edgeExtension: EdgeExtension = new EdgeExtension();
+
+    // activate the extension
+    edgeExtension.onRegister(mockExtensionContainer, mockServiceLookup);
+
+    // Call the method to test
+    edgeExtension.startHitProcessingTimer();
+
+    // Fast-forward timers
+    jest.advanceTimersByTime(500);
+    expect(EdgeHitProcessor.prototype.process).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(500);
+    expect(EdgeHitProcessor.prototype.process).toHaveBeenCalledTimes(2);
+  });
+
+  test("startHitProcessingTimer does not create multiple timers if already active", () => {
+    jest.spyOn(EdgeHitProcessor.prototype, "isQueueEmpty").mockReturnValue(false);
+    mockConsentManager.getCollectConsent.mockReturnValue(ConsentValue.YES);
+
+    const edgeExtension: EdgeExtension = new EdgeExtension();
+    // activate the extension
+    edgeExtension.onRegister(mockExtensionContainer, mockServiceLookup);
+
+    // Start the timer multiple times
+    edgeExtension.startHitProcessingTimer();
+    edgeExtension.startHitProcessingTimer();
+
+    jest.advanceTimersByTime(501);
+    expect(EdgeHitProcessor.prototype.process).toHaveBeenCalledTimes(1);
   });
 });

@@ -122,14 +122,6 @@ export class MediaSessionManager {
   }
 
   /**
-   * Notifies all active media sessions of a state update.
-   */
-  // TODO: check if this is needed
-  public notifyStateUpdate(): void {
-    this.forAllSessions((session) => session.handleStateUpdate());
-  }
-
-  /**
    * Invokes all active sessions using a callback.
    */
   private forAllSessions(callback: (session: MediaSession) => void): void {

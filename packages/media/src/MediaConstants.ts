@@ -23,8 +23,12 @@ export const MediaConstants = {
 
   EventDataKeys: {
     XDM: "xdm",
+    MEDIA_COLLECTION: "mediaCollection",
+    TIMESTAMP: "timestamp",
     EVENT_TYPE: "eventType",
     SESSION_ID: "sessionId",
+    REQUEST: "request",
+    PATH: "path",
   },
 
   Edge: {
@@ -36,14 +40,11 @@ export const MediaConstants = {
       REQUEST: "request",
     },
 
-    ErrorKeys: {
+    Error: {
       STATUS: "status",
       TYPE: "type",
-    },
-
-    ErrorData: {
-      ERROR_CODE_400: 400,
-      ERROR_TYPE_VA_EDGE_400: "https://ns.adobe.com/aep/errors/va-edge-0400-400",
+      CODE_400: 400,
+      TYPE_VA_EDGE_400: "https://ns.adobe.com/aep/errors/va-edge-0400-400",
     },
   },
 

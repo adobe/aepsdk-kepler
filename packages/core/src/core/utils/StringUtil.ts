@@ -19,3 +19,7 @@ import { isString } from "./TypeCheck";
 export const isNullOrEmptyString = (str: string | null | undefined): boolean => {
   return !str || !isString(str) || str.trim().length === 0;
 };
+
+export const caseInsensitiveEquals = (str1: string, str2: string): boolean => {
+  return str1.toLowerCase() === str2.toLowerCase();
+};

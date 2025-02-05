@@ -17,7 +17,7 @@ import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
 export function getEventType(event: Event): string | null {
   const eventData = event.data?.getData() ?? {};
   const xdmData = getDataObject(eventData, MediaConstants.EventDataKeys.XDM) ?? {};
-  const eventType = getString(xdmData, MediaConstants.EventDataKeys.EVENT_TYPE) ?? "";
+  const eventType = getString(xdmData, MediaConstants.EventDataKeys.EVENT_TYPE) ?? null;
 
   return eventType;
 }

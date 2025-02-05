@@ -28,7 +28,7 @@ describe("MediaEventHelper tests", () => {
     expect(getEventType(event)).toBe("media.sessionStart");
   });
 
-  test("getEventType() - should return an empty string if the event type is not present", () => {
+  test("getEventType() - should return null if the event type is not present", () => {
     const eventData = EventData.buildFrom({ xdm: { key: "value", key1: 1 } });
     const event = Event.builder(
       "testEvent",
@@ -36,17 +36,17 @@ describe("MediaEventHelper tests", () => {
       MediaConstants.Media.EVENT_SOURCE_CREATE_SESSION,
       eventData
     ).build();
-    expect(getEventType(event)).toBe("");
+    expect(getEventType(event)).toBe(null);
   });
 
-  test("getEventType() - should return an empty string if the event data is not present", () => {
+  test("getEventType() - should return null if the event data is not present", () => {
     const event = Event.builder(
       "testEvent",
       EventType.MEDIA,
       MediaConstants.Media.EVENT_SOURCE_CREATE_SESSION,
       null
     ).build();
-    expect(getEventType(event)).toBe("");
+    expect(getEventType(event)).toBe(null);
   });
 
   test("getEventData() - should return the event data", () => {

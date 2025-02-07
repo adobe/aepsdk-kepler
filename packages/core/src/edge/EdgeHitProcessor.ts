@@ -345,6 +345,8 @@ export class EdgeHitProcessor {
             LOG_TAG,
             `process() - Request failed with unrecoverable error response code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
           );
+
+          this.edgeResponseManager.handleEdgeErrorResponse(requestId);
           return true; // Do not retry
         }
       })

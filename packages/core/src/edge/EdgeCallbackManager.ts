@@ -81,7 +81,7 @@ export class EdgeCallbackManager {
     Log.verbose(LOG_SOURCE, LOG_TAG, `Unregistering callback for event ID: ${requestEventId}`);
     const callback = this.callbacks[requestEventId];
     if (callback) {
-      callback(this.edgeEventHandles[requestEventId] ?? []);
+      callback(this.edgeEventHandles[requestEventId] ?? new Array<EventData>());
     } else {
       Log.verbose(LOG_SOURCE, LOG_TAG, `No callback registered for event ID: ${requestEventId}`);
     }

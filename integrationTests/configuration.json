@@ -1,0 +1,23 @@
+{
+    "edge.configId": "<YOUR_DATASTREAM_ID>",
+    "edge.domain": "<YOUR_DOMAIN>",
+    "consent.default": {
+      "consents": {
+        "collect": {
+          "val": "y"
+        }
+      }
+    },
+    "invalidDatastreamId": "invalidDatastreamId",
+    "datastreamIdOverride": "<YOUR_DATASTREAM_ID_OVERRIDE>",
+    "datasetIdOverride": "<YOUR_DATASET_ID_OVERRIDE>",
+    "datastreamConfigOverride": {
+      "com_adobe_experience_platform": {
+        "datasets": {
+          "event": {
+            "datasetId": "<YOUR_DATASET_ID_OVERRIDE>"
+          }
+        }
+      }
+    }
+  }

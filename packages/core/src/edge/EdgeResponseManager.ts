@@ -127,9 +127,16 @@ export class EdgeResponseManager {
       EdgeCallbackManager.getInstance().addEventHandle(requestId, EventData.buildFrom(handle));
     }
 
+    // unregister the callback for the requestId which will return the response to the caller
     EdgeCallbackManager.getInstance().unregisterCallback(requestId);
     // After all the responses are processed,
     // update the shared state if it has changed.
     this.edgeStateManager.updateSharedStateIfChanged();
+  }
+
+  handleEdgeErrorResponse(requestId: string) {
+    Log.debug(LOG_SOURCE, LOG_TAG, `handleEdgeErrorResponse() -  Request ID: ${requestId} failed.`);
+
+    EdgeCallbackManager.getInstance().unregisterCallback(requestId);
   }
 }

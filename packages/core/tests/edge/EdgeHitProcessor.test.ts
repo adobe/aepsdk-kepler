@@ -159,9 +159,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -320,9 +320,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -392,15 +392,15 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
   });
 
-  test("process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n", async () => {
+  test("process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is 'n'", async () => {
     jest.spyOn(mockEdgeStateManager, "getCollectConsent").mockReturnValue(ConsentValue.NO);
 
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
@@ -462,9 +462,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -532,9 +532,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -625,9 +625,9 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/interact?configId"
     );
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -690,9 +690,9 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/privacy/set-consent?configId"
     );
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -814,9 +814,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -871,9 +871,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -945,9 +945,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -1006,7 +1006,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}}}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1019,7 +1019,7 @@ describe("EdgeHitProcessor tests", () => {
       { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
       testTS
     )
-      .addMeta("configOverrides", {
+      .setDatastreamConfigOverride({
         com_adobe_experience_platform: {
           datasets: {
             event: {
@@ -1071,123 +1071,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}}}`
-    );
-  });
-
-  test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
-    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
-
-    const testTS = Date.now();
-    const edgeHit = EdgeHit.builder(
-      "requestId1",
-      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
-      testTS
-    ).build();
-
-    edgeHitProcessor.queueHit(edgeHit);
-
-    mockAsyncRequest
-      .mockResolvedValueOnce({
-        responseCode: 500,
-        bodyAsText: "Internal Server Error",
-      })
-      .mockResolvedValueOnce({
-        responseCode: 200,
-        bodyAsText: "{}",
-      });
-
-    await edgeHitProcessor.process();
-    // async request should not be called the second time
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
-    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1);
-
-    // Simulate the retry timeout
-    // wait for 25 seconds
-    jest.advanceTimersByTime(25000);
-    await edgeHitProcessor.process();
-
-    // async request should not be called the second time
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(1);
-    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(1); // edgeHit is still in the queue to be retried
-
-    // wait for 5 more seconds (total 30 seconds)
-    jest.advanceTimersByTime(5000);
-    await edgeHitProcessor.process();
-
-    expect(mockAsyncRequest).toHaveBeenCalledTimes(2); // 1 for the first call and 1 for the retry
-
-    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(2);
-    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(2);
-    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(2);
-    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(2);
-
-    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
-  });
-
-  test("process should override the datastream config if presented", async () => {
-    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
-
-    const testTS = Date.now();
-    const edgeHit = EdgeHit.builder(
-      "requestId1",
-      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
-      testTS
-    )
-      .addMeta("configOverrides", {
-        com_adobe_experience_platform: {
-          datasets: {
-            event: {
-              datasetId: "new_dataset_id",
-            },
-          },
-        },
-      })
-      // .setDatastreamIdOverride("newDatastreamId")
-      .build();
-
-    edgeHitProcessor.queueHit(edgeHit);
-
-    mockEdgeStateManager.getIdentityMap.mockReturnValue({
-      ECID: [
-        {
-          authenticatedState: "ambiguous",
-          id: "mockECID",
-          primary: true,
-        },
-      ],
-    });
-
-    mockAsyncRequest.mockResolvedValue({
-      responseCode: 200,
-      bodyAsText: "{}",
-    });
-
-    const success = await edgeHitProcessor.process();
-    expect(success).toBe(true);
-
-    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
-    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
-    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
-    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
-
-    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
-    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
-
-    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
-    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
-    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
-    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
-
-    console.log(actualUrl);
-    expect(actualUrl).toEqual(
-      "https://edge.adobedc.net/ee/v1/interact?configId=mockConfigId&requestId=requestId1"
-    );
-    expect(actualMethod).toEqual("POST");
-    expect(actualTimeout).toEqual(5000);
-    console.log(actualBody);
-    expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}}}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1201,7 +1085,7 @@ describe("EdgeHitProcessor tests", () => {
       testTS
     )
       .setDatastreamIdOverride("newDatastreamId")
-      .addMeta("configOverrides", {
+      .setDatastreamConfigOverride({
         com_adobe_experience_platform: {
           datasets: {
             event: {
@@ -1252,7 +1136,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}],"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}}}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 

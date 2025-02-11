@@ -19,26 +19,24 @@ import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { Log } from "../core/utils/Log";
 import { asyncRequest, HttpConnection, HttpMethod } from "../core/utils/networking";
 import { DataObject, DataArray } from "../core/eventhub/EventData";
-import { getAsDataArray, getAsDataObject, isNullOrEmptyObject } from "../core/utils/DataTypeUtil";
 import { EdgeStateManager } from "./EdgeStateManager";
-import { getDataObject } from "../core/utils/DataObjectUtil";
+import { safeStringify } from "../core/utils/common";
+import { createConsentRequestBody } from "./network-handling/RequestHelper";
+import { createEdgeRequestBody } from "./network-handling/RequestHelper";
+import { getURLForHit } from "./network-handling/UrlHelper";
+import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeHitProcessor";
 
 const REQUEST = EdgeConstants.Request;
-const PATH = EdgeConstants.Request.Path;
-const URL = EdgeConstants.Request.Url;
 const RETRY = EdgeConstants.Request.Retry;
-const DATA = EdgeConstants.Request.Data;
-const QUERY = EdgeConstants.Request.Data.Query;
 const META = EdgeConstants.Request.Data.Meta;
-const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
 const RECOVERABLE_ERRORS = EdgeConstants.Request.RecoverableStatusCodes;
-const SUCCESS_RESPONSE_CODE = 200;
 
 const MAX_QUEUE_SIZE = 100;
 const INVALID_TIMESTAMP = -1;
+const STATUS_CODE = EdgeConstants.Request.StatusCode;
 
 export class EdgeHitProcessor {
   private hitQueue: EdgeHitQueue;
@@ -114,7 +112,10 @@ export class EdgeHitProcessor {
 
     try {
       while (!this.hitQueue.isEmpty() || !this.consentHitQueue.isEmpty()) {
-        if (isNullOrEmptyString(this.edgeStateManager.getDatastreamId())) {
+        const datastreamId = this.edgeStateManager.getDatastreamId() ?? "";
+        const domain = this.edgeStateManager.getEdgeDomain() ?? "";
+
+        if (isNullOrEmptyString(datastreamId)) {
           Log.error(
             LOG_SOURCE,
             LOG_TAG,
@@ -150,28 +151,17 @@ export class EdgeHitProcessor {
           continue;
         }
 
-        let meta = hit.meta;
         const identity = this.edgeStateManager.getIdentityMap();
         const locationHint = this.edgeResponseManager.getLocationHint();
-        const stateStore = this.edgeResponseManager.getStateStore();
-
-        meta = this.appendStateToMeta(meta, stateStore);
-
-        if (hit.datastreamIdOverride) {
-          // append the original datastream id to the meta object
-          meta[META.SDK_CONFIG] = {
-            datastream: {
-              original: this.edgeStateManager.getDatastreamId(),
-            },
-          };
-        }
+        const stateStore = this.edgeResponseManager.getStateStore() ?? [];
+        const meta = this.createMetaPayload(hit, datastreamId, stateStore);
 
         const requestBody =
           hit.type === EdgeHitType.EDGE
-            ? this.createEdgeRequestBody(hit, identity, meta)
-            : this.createConsentRequestBody(hit, identity, meta);
+            ? createEdgeRequestBody(hit, identity, meta)
+            : createConsentRequestBody(hit, identity, meta);
 
-        const url = this.getURLForHit(hit, locationHint);
+        const url = getURLForHit(datastreamId, hit, domain, locationHint);
 
         Log.verbose(
           LOG_SOURCE,
@@ -219,25 +209,37 @@ export class EdgeHitProcessor {
   }
 
   /**
-   * Appends the state store to the meta object.
-   * @param meta DataObject The meta object to append the state store to.
-   * @param stateStore DataArray The state store to append to the meta object.
-   * @returns DataObject The updated meta object.
+   * Create the meta payload for the hit.
+   * @param hit EdgeHit The hit to create the meta payload for.
+   * @param datastreamId string The datastream id.
+   * @param stateStore DataArray The state store.
+   * @returns DataObject The meta payload.
    */
-  private appendStateToMeta(meta: DataObject | null, stateStore: DataArray | null): DataObject {
-    const updatedMeta = getAsDataObject(meta) ?? {};
-    const stateMetadata: DataObject = {};
-    const stateStoreArr = getAsDataArray(stateStore) ?? [];
+  createMetaPayload(hit: EdgeHit, datastreamId: string, stateStore: DataArray): DataObject {
+    const meta = hit.meta ?? {};
 
-    if (stateStoreArr.length > 0) {
-      stateMetadata[META.ENTRIES] = stateStore;
+    // Add state entries if present
+    if (stateStore.length > 0) {
+      meta[META.STATE] = {
+        [META.ENTRIES]: stateStore,
+      };
     }
 
-    if (!isNullOrEmptyObject(stateMetadata)) {
-      updatedMeta[META.STATE] = stateMetadata;
+    // Append datastream config override if present
+    if (hit.datastreamConfigOverride) {
+      meta[META.CONFIG_OVERRIDES] = hit.datastreamConfigOverride;
     }
 
-    return updatedMeta;
+    // Append datastream id override if present
+    if (hit.datastreamIdOverride) {
+      meta[META.SDK_CONFIG] = {
+        [META.DATASTREAM]: {
+          [META.ORIGINAL]: datastreamId,
+        },
+      };
+    }
+
+    return meta;
   }
 
   /**
@@ -308,45 +310,20 @@ export class EdgeHitProcessor {
       timeout: REQUEST.TIMEOUT,
     })
       .then((response: HttpConnection) => {
-        if (response.responseCode === SUCCESS_RESPONSE_CODE) {
-          Log.debug(
-            LOG_SOURCE,
-            LOG_TAG,
-            `process() - Hit sent successfully with response \n code: ${
-              response.responseCode
-            }, \n body: ${JSON.stringify(JSON.parse(response.bodyAsText ?? ""), undefined, 2)}`
-          );
+        const responseCode = response.responseCode;
 
-          // Reset the last failed hit timestamp
-          this.lastFailedHitTs = INVALID_TIMESTAMP;
-
-          const responseBody = response.bodyAsText ?? "";
-          const responseObj = JSON.parse(responseBody);
-          this.edgeResponseManager.handleEdgeResponse(responseObj, requestId);
-
+        if (
+          responseCode === STATUS_CODE.SUCCESS ||
+          responseCode === STATUS_CODE.MULTI_STATUS ||
+          responseCode === STATUS_CODE.NO_CONTENT
+        ) {
+          this.handleSuccessResponse(response, requestId);
           return true;
-        } else if (this.isRecoverableError(response.responseCode)) {
-          // Set the last failed hit timestamp
-          this.lastFailedHitTs = Date.now();
-
-          Log.error(
-            LOG_SOURCE,
-            LOG_TAG,
-            `process() - Request failed with recoverable response code: (${response.responseCode}) \n message: ${response.bodyAsText}. Request will be retried in ${this.retryTimeout}ms.`
-          );
-
+        } else if (this.isRecoverableError(responseCode)) {
+          this.handleRecoverableError(response, requestId);
           return false;
         } else {
-          // Reset the last failed hit timestamp
-          this.lastFailedHitTs = INVALID_TIMESTAMP;
-
-          Log.error(
-            LOG_SOURCE,
-            LOG_TAG,
-            `process() - Request failed with unrecoverable error response code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
-          );
-
-          this.edgeResponseManager.handleEdgeErrorResponse(requestId);
+          this.handleUnrecoverableError(response, requestId);
           return true; // Do not retry
         }
       })
@@ -354,6 +331,80 @@ export class EdgeHitProcessor {
         Log.error(LOG_SOURCE, LOG_TAG, `process() - Failed to send hit with error: \n (${error})`);
         return false;
       });
+  }
+
+  private handleSuccessResponse(response: HttpConnection, requestId: string) {
+    const responseCode = response.responseCode;
+    let msgPrefix = "";
+    let responseObj = {};
+    try {
+      switch (responseCode) {
+        case STATUS_CODE.MULTI_STATUS:
+          msgPrefix = "Hit was sent successfully, but encountered non-fatal errors/warnings";
+          responseObj = JSON.parse(response.bodyAsText ?? "{}");
+          break;
+        case STATUS_CODE.NO_CONTENT:
+          msgPrefix = "Hit was sent successfully, but no content returned";
+          break;
+        default:
+          msgPrefix = "Hit was sent successfully";
+          responseObj = JSON.parse(response.bodyAsText ?? "{}");
+          break;
+      }
+    } catch (error) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `handleSuccessResponse() - Failed to parse response body. Error: ${error}`
+      );
+    }
+
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `handleSuccessResponse() - ${msgPrefix} \n response code:(${responseCode}), \n body: ${safeStringify(
+        response.bodyAsText ?? "",
+        undefined,
+        2
+      )}`
+    );
+
+    // Reset the last failed hit timestamp
+    this.lastFailedHitTs = INVALID_TIMESTAMP;
+
+    if (isEmptyDataObject(responseObj)) {
+      Log.debug(
+        LOG_SOURCE,
+        LOG_TAG,
+        `handleSuccessResponse() - Empty response body. No response object to handle.`
+      );
+      return;
+    }
+
+    this.edgeResponseManager.handleEdgeResponse(responseObj, requestId);
+  }
+
+  private handleRecoverableError(response: HttpConnection, requestId: string) {
+    Log.error(
+      LOG_SOURCE,
+      LOG_TAG,
+      `handleRecoverableError() - Request with id:(${requestId}) failed with recoverable response code: (${response.responseCode}) \n message: ${response.bodyAsText}. Request will be retried in ${this.retryTimeout}ms.`
+    );
+    // Set the last failed hit timestamp
+    this.lastFailedHitTs = Date.now();
+  }
+
+  private handleUnrecoverableError(response: HttpConnection, requestId: string) {
+    Log.error(
+      LOG_SOURCE,
+      LOG_TAG,
+      `handleUnrecoverableError() - Request failed with unrecoverable error response code: ${response.responseCode} \n message: ${response.bodyAsText}. Request will not be retried.`
+    );
+
+    // Reset the last failed hit timestamp
+    this.lastFailedHitTs = INVALID_TIMESTAMP;
+
+    this.edgeResponseManager.handleEdgeErrorResponse(requestId);
   }
 
   /**
@@ -364,173 +415,4 @@ export class EdgeHitProcessor {
   private isRecoverableError(errorCode: number): boolean {
     return RECOVERABLE_ERRORS.includes(errorCode as 408 | 500 | 503);
   }
-
-  /**
-   *
-   * @param hit EdgeHit to be processed
-   * @param identityMap DataObject to be sent in the request body
-   * @returns requestBody string
-   */
-  private createConsentRequestBody(
-    hit: EdgeHit,
-    identityMap: DataObject | null,
-    meta: DataObject | null
-  ): string {
-    // TODO: Add timestamp to the hitE
-    const consentData = (hit.data?.consent as DataArray) ?? [];
-
-    const requestObj: DataObject = {
-      consent: consentData,
-      query: {
-        [QUERY.CONSENT]: {
-          operation: QUERY.UPDATE,
-        },
-      },
-      xdm: {
-        implementationDetails: this.getImplementationDetails(),
-      },
-    };
-
-    if (identityMap) {
-      const xdmData = getDataObject(requestObj, DATA.XDM) ?? {};
-      xdmData[DATA.IDENTITY_MAP] = identityMap;
-      requestObj[DATA.XDM] = xdmData;
-    } else {
-      const queryData = getDataObject(requestObj, QUERY.KEY) ?? {};
-      queryData[QUERY.IDENTITY] = this.getECIDQueryPayload();
-      requestObj[QUERY.KEY] = queryData;
-    }
-
-    if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
-
-    const requestBody = JSON.stringify(requestObj);
-
-    Log.verbose(
-      LOG_SOURCE,
-      LOG_TAG,
-      "createConsentRequestBody() - RequestBody: " + JSON.stringify(requestBody)
-    );
-
-    return requestBody;
-  }
-
-  /**
-   *
-   * @param hit EdgeHit to be processed
-   * @param identityMap DataObject to be sent in the request body
-   * @returns requestBody string
-   */
-  private createEdgeRequestBody(
-    hit: EdgeHit,
-    identityMap: DataObject | null,
-    meta: DataObject | null
-  ): string {
-    const requestObj: DataObject = {
-      xdm: {
-        implementationDetails: this.getImplementationDetails(),
-      },
-      events: [],
-    };
-
-    // TODO Add xdm and data individually to the request object
-    requestObj.events = [hit.data ?? {}];
-
-    if (identityMap) {
-      const xdmData = getDataObject(requestObj, DATA.XDM) ?? {};
-      xdmData[DATA.IDENTITY_MAP] = identityMap;
-      requestObj[DATA.XDM] = xdmData;
-    } else {
-      const queryData = getDataObject(requestObj, QUERY.KEY) ?? {};
-      queryData[QUERY.IDENTITY] = this.getECIDQueryPayload();
-      requestObj[QUERY.KEY] = queryData;
-    }
-
-    if (!isNullOrEmptyObject(meta)) requestObj[META.KEY] = meta;
-
-    const requestBody = JSON.stringify(requestObj);
-
-    Log.verbose(LOG_SOURCE, LOG_TAG, `createEdgeRequestBody() - RequestBody: ${requestBody}`);
-
-    return requestBody;
-  }
-
-  /**
-   * Returns the implementation details object.
-   * @returns DataObject
-   */
-  private getImplementationDetails(): DataObject {
-    return {
-      name: IMPLEMENTATION_DETAILS.NAME,
-      version: EdgeConstants.EXTENSION_VERSION, //Edge and core will be of same version always
-      environment: IMPLEMENTATION_DETAILS.ENVIRONMENT,
-    };
-  }
-
-  /**
-   * Returns the URL for the hit based on the hit type.
-   * @param hit EdgeHit
-   * @param locationHint LocationHintValue
-   * @returns string The URL for the hit.
-   */
-  private getURLForHit(hit: EdgeHit, locationHint: string | null = null): string {
-    const customDomain = this.edgeStateManager.getEdgeDomain();
-    const domain = isNullOrEmptyString(customDomain) ? URL.DEFAULT : customDomain;
-
-    let url = domain + PATH.PREFIX;
-    const requestId = hit.requestId;
-
-    Log.verbose(
-      LOG_SOURCE,
-      LOG_TAG,
-      `getURLForHit() - configID: ${this.edgeStateManager.getDatastreamId()}`
-    );
-
-    let query = `?configId=${this.edgeStateManager.getDatastreamId()}&requestId=${requestId}`;
-
-    if (hit.datastreamIdOverride) {
-      query = `?configId=${hit.datastreamIdOverride}&requestId=${requestId}`;
-    }
-
-    url += isNullOrEmptyString(locationHint) ? "" : `/${locationHint}`;
-
-    const overridePath = hit.path;
-
-    if (hit.type === EdgeHitType.CONSENT) {
-      url += isNullOrEmptyString(overridePath) ? PATH.CONSENT : overridePath;
-    } else {
-      url += isNullOrEmptyString(overridePath) ? PATH.INTERACT : overridePath;
-    }
-
-    url += query;
-
-    return url;
-  }
-
-  /**
-   * Returns the query payload for fetching ECID.
-   * @returns DataObject The query payload for fetching ECID.
-   */
-  private getECIDQueryPayload(): DataObject {
-    return { fetch: [EdgeConstants.IdentityMap.NameSpace.ECID] };
-  }
-}
-
-/**
- * The allowed values for the location hint.
- */
-export enum LocationHintValue {
-  /// Oregon, USA
-  or2 = "or2",
-  /// Virginia, USA
-  va6 = "va6",
-  /// Ireland
-  irl1 = "irl1",
-  /// India
-  ind1 = "ind1",
-  /// Japan
-  jpn3 = "jpn3",
-  /// Singapore
-  sgp3 = "sgp3",
-  /// Australia
-  aus3 = "aus3",
 }

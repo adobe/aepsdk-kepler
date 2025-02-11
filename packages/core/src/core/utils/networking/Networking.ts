@@ -17,7 +17,7 @@ import { NetworkRequest, HttpConnection } from "./";
 import { DEFAULT_HEADER, DEFAULT_TIMEOUT, ERROR_CONNECTION } from "./Constants";
 import { safeStringify } from "../common";
 import { EXTENSION_NAME } from "../Constants";
-
+import { isValidHttpsURL } from "./UrlUtil";
 const LOG_TAG = "Networking";
 const LOG_SOURCE = EXTENSION_NAME;
 
@@ -25,11 +25,12 @@ const LOG_SOURCE = EXTENSION_NAME;
  * Initiates an asynchronous network connection
  */
 export async function asyncRequest(request: NetworkRequest): Promise<HttpConnection> {
-  if (!request.url.toLowerCase().startsWith("https://")) {
+  const url = request.url;
+  if (!isValidHttpsURL(url)) {
     Log.error(
       LOG_SOURCE,
       LOG_TAG,
-      `asyncRequest() - Invalid URL ${request.url}, only HTTPS protocol is supported`
+      `asyncRequest() - Invalid URL ${request.url}. Verify the URL is a valid HTTPS URL.`
     );
     return ERROR_CONNECTION;
   }

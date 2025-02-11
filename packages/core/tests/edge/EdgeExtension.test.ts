@@ -14,16 +14,19 @@ import { Extension, ExtensionContainer } from "../../src/core/extension";
 import { DataStore, serviceLookup, ServiceLookup } from "../../src/core/services";
 import { Logging } from "../../src/core/services";
 import { EdgeStateManager } from "../../src/edge/EdgeStateManager";
-import { EdgeResponseManager } from "../../src/edge/EdgeResponseManager";
 import { EdgeHitProcessor } from "../../src/edge/EdgeHitProcessor";
 import { ConsentManager, ConsentValue } from "../../src/edge/consent/ConsentManager";
-
+import { Event } from "../../src/core/eventhub/Event";
+import { EventData, EventType, EventSource } from "../../src/core/eventhub";
+import { Crypto } from "../../src/core/services/Crypto";
+import { EdgeHitType } from "../../src/edge/EdgeHit";
 jest.mock("../../src/core/extension/ExtensionContainer");
 jest.mock("../../src/core/services");
 jest.mock("../../src/edge/EdgeResponseManager");
 jest.mock("../../src/edge/EdgeStateManager");
-jest.mock("../../src/edge/EdgeHitProcessor");
 jest.mock("../../src/edge/consent/ConsentManager");
+jest.mock("../../src/core/services/Crypto");
+jest.mock("../../src/core/utils/Log");
 
 jest.useFakeTimers();
 
@@ -31,10 +34,8 @@ describe("EdgeExtension tests", () => {
   let mockExtensionContainer: jest.Mocked<ExtensionContainer>;
   let mockServiceLookup: jest.Mocked<ServiceLookup>;
   let mockLogging: jest.Mocked<Logging>;
+  let mockCrypto: jest.Mocked<Crypto>;
   let mockDataStore: jest.Mocked<DataStore>;
-  let mockEdgeResponseManager: jest.Mocked<EdgeResponseManager>;
-  let mockEdgeStateManager: jest.Mocked<EdgeStateManager>;
-  let mockEdgeHitProcessor: jest.Mocked<EdgeHitProcessor>;
   let mockConsentManager: jest.Mocked<ConsentManager>;
 
   beforeEach(() => {
@@ -51,13 +52,17 @@ describe("EdgeExtension tests", () => {
     } as jest.Mocked<ServiceLookup>;
 
     mockLogging = {
-      setDebugEnabled: jest.fn(),
-      debug: jest.fn(),
+      setLogLevel: jest.fn(),
+      getLogLevel: jest.fn(),
       verbose: jest.fn(),
-      info: jest.fn(),
-      warn: jest.fn(),
+      debug: jest.fn(),
+      warning: jest.fn(),
       error: jest.fn(),
     } as unknown as jest.Mocked<Logging>;
+
+    mockCrypto = {
+      randomUUID: jest.fn().mockReturnValue("test-uuid"),
+    } as unknown as jest.Mocked<Crypto>;
 
     mockDataStore = {
       setItem: jest.fn(),
@@ -65,31 +70,6 @@ describe("EdgeExtension tests", () => {
       removeItem: jest.fn(),
       getKeys: jest.fn(),
     } as unknown as jest.Mocked<DataStore>;
-
-    mockEdgeResponseManager = {
-      handleEdgeResponse: jest.fn(),
-      bootUp: jest.fn(),
-      getLocationHint: jest.fn(),
-      getStateStore: jest.fn(),
-    } as unknown as jest.Mocked<EdgeResponseManager>;
-
-    mockEdgeStateManager = {
-      process: jest.fn(),
-      bootUp: jest.fn(),
-      handleConfigurationUpdate: jest.fn(),
-      getEdgeDomain: jest.fn(),
-      getDatastreamId: jest.fn(),
-      getDefaultConsent: jest.fn(),
-      getEcid: jest.fn(),
-      getIdentityMap: jest.fn(),
-      getCollectConsent: jest.fn(),
-      updateSharedStateIfChanged: jest.fn(),
-    } as unknown as jest.Mocked<EdgeStateManager>;
-
-    mockEdgeHitProcessor = {
-      process: jest.fn(),
-      isQueueEmpty: jest.fn(),
-    } as unknown as jest.Mocked<EdgeHitProcessor>;
 
     mockConsentManager = {
       bootUp: jest.fn(),
@@ -99,11 +79,15 @@ describe("EdgeExtension tests", () => {
     } as unknown as jest.Mocked<ConsentManager>;
 
     jest.spyOn(serviceLookup, "getService").mockImplementation((serviceName: string) => {
-      if (serviceName === "logging") {
-        return mockLogging;
-      } else {
-        //if (serviceName === "datastore") {
-        return mockDataStore;
+      switch (serviceName) {
+        case "logging":
+          return mockLogging;
+        case "crypto":
+          return mockCrypto;
+        case "datastore":
+          return mockDataStore;
+        default:
+          return mockDataStore; // provide a default return value
       }
     });
   });
@@ -137,7 +121,7 @@ describe("EdgeExtension tests", () => {
 
   test("startHitProcessingTimer initializes the timer correctly", () => {
     jest.spyOn(EdgeHitProcessor.prototype, "isQueueEmpty").mockReturnValue(false);
-
+    jest.spyOn(EdgeHitProcessor.prototype, "process");
     const edgeExtension: EdgeExtension = new EdgeExtension();
 
     // activate the extension
@@ -155,6 +139,7 @@ describe("EdgeExtension tests", () => {
 
   test("startHitProcessingTimer does not create multiple timers if already active", () => {
     jest.spyOn(EdgeHitProcessor.prototype, "isQueueEmpty").mockReturnValue(false);
+    jest.spyOn(EdgeHitProcessor.prototype, "process");
     mockConsentManager.getCollectConsent.mockReturnValue(ConsentValue.YES);
 
     const edgeExtension: EdgeExtension = new EdgeExtension();
@@ -167,5 +152,72 @@ describe("EdgeExtension tests", () => {
 
     jest.advanceTimersByTime(501);
     expect(EdgeHitProcessor.prototype.process).toHaveBeenCalledTimes(1);
+  });
+
+  test("sendEvent should create an edge hit with the correct data", () => {
+    jest.spyOn(EdgeHitProcessor.prototype, "queueHit");
+    jest
+      .spyOn(EdgeStateManager.prototype, "getDatastreamId")
+      .mockReturnValue("originalDatastreamId");
+
+    const edgeExtension: EdgeExtension = new EdgeExtension();
+    edgeExtension.onRegister(mockExtensionContainer, mockServiceLookup);
+
+    const eventData = EventData.buildFrom({
+      xdm: {
+        eventType: "testEvent",
+        key: "value",
+      },
+      data: {
+        key: "value",
+      },
+      query: {
+        key: "value",
+      },
+      config: {
+        datastreamIdOverride: "testDatastreamId",
+        datastreamConfigOverride: {
+          key: "value",
+          key2: "value2",
+        },
+      },
+    });
+    const event = Event.builder(
+      "testEvent",
+      EventType.EDGE,
+      EventSource.REQUEST_CONTENT,
+      eventData
+    ).build();
+
+    edgeExtension.sendEvent(event);
+
+    expect(EdgeHitProcessor.prototype.queueHit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _datastreamIdOverride: "testDatastreamId",
+        _datastreamConfigOverride: {
+          key: "value",
+          key2: "value2",
+        },
+        _path: "",
+        _type: EdgeHitType.EDGE,
+        _xdm: null,
+        requestId: "test-uuid",
+        timestamp: expect.any(Number),
+        data: {
+          xdm: {
+            eventType: "testEvent",
+            key: "value",
+            timestamp: expect.any(String), // extension adds timestamp if not present
+          },
+          data: {
+            key: "value",
+          },
+          query: {
+            key: "value",
+          },
+        },
+        _meta: null,
+      })
+    );
   });
 });

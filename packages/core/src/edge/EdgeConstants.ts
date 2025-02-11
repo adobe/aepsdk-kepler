@@ -106,6 +106,8 @@ export const EdgeConstants = {
         STATE: "state",
         CONFIG_OVERRIDES: "configOverrides",
         SDK_CONFIG: "sdkConfig",
+        DATASTREAM: "datastream",
+        ORIGINAL: "original",
       },
       Query: {
         KEY: "query",
@@ -124,11 +126,17 @@ export const EdgeConstants = {
       CONSENT: "/v1/privacy/set-consent",
     },
     Url: {
-      DEFAULT: "https://edge.adobedc.net",
+      SCHEME: "https://",
+      DEFAULT: "edge.adobedc.net",
     },
     Retry: {
       TIMEOUT: 30000,
     },
     RecoverableStatusCodes: [408, 500, 503],
+    StatusCode: {
+      SUCCESS: 200,
+      MULTI_STATUS: 207,
+      NO_CONTENT: 204,
+    },
   },
 } as const;

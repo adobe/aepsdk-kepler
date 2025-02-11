@@ -207,3 +207,24 @@ export class LocationHintManager {
     return null;
   }
 }
+
+// TODO: check if this is needed to verify the location hint value
+/**
+ * The allowed values for the location hint.
+ */
+export enum LocationHintValue {
+  /// Oregon, USA
+  or2 = "or2",
+  /// Virginia, USA
+  va6 = "va6",
+  /// Ireland
+  irl1 = "irl1",
+  /// India
+  ind1 = "ind1",
+  /// Japan
+  jpn3 = "jpn3",
+  /// Singapore
+  sgp3 = "sgp3",
+  /// Australia
+  aus3 = "aus3",
+}

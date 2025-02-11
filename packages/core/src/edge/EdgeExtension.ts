@@ -25,7 +25,8 @@ import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, EventData } from "../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { safeStringify } from "../core/utils/common";
-import { getNumber, getDataObject, getString } from "../core/utils/DataObjectUtil";
+import { getDataObject, getString } from "../core/utils/DataObjectUtil";
+import { convertToISOString } from "../core/utils/DateUtil";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
@@ -36,7 +37,6 @@ const HIT_PROCESSING_TIMER_INTERVAL_MS = 500;
 
 const SERVICE = EdgeConstants.Service;
 const EVENT_DATA_KEYS = EdgeConstants.EventData.Keys;
-const META = EdgeConstants.Request.Data.Meta;
 
 // Implementation
 export class EdgeExtension implements Extension {
@@ -202,61 +202,80 @@ export class EdgeExtension implements Extension {
    */
   sendEvent(event: Event): void {
     const eventData = event.data;
-
     if (!eventData) {
       Log.error(LOG_SOURCE, LOG_TAG, `sendEvent() - Event data(${eventData}) is invalid.`);
       return;
     }
 
-    Log.debug(
-      LOG_SOURCE,
-      LOG_TAG,
-      "sendEvent() - Received event with data: " + eventData.toString()
-    );
-
+    // Add timestamp to the event data XDM object
     const xdm = eventData.getDataObject(EVENT_DATA_KEYS.XDM) ?? {};
+    xdm[EVENT_DATA_KEYS.TIMESTAMP] = convertToISOString(event.timestamp);
+
+    const { config, request } = this.extractEventComponents(eventData);
+
+    // Create the edge hit
+    const edgeHit = this.createEdgeHit(event, eventData, config, request);
+
+    this.processHitAndStartTimer(edgeHit);
+  }
+
+  /**
+   * Extracts the event components from the event data.
+   * @param eventData EventData
+   * @returns { xdm: DataObject, config: DataObject, request: DataObject } The extracted components.
+   */
+  private extractEventComponents(eventData: EventData): {
+    config: DataObject;
+    request: DataObject;
+  } {
     const config = eventData.getDataObject(EVENT_DATA_KEYS.CONFIG) ?? {};
-    // Remove the config object from the event data
-    eventData.removeData(EVENT_DATA_KEYS.CONFIG);
-
     const request = eventData.getDataObject(EVENT_DATA_KEYS.REQUEST) ?? {};
-    const path = getString(request, EVENT_DATA_KEYS.PATH);
 
-    // Remove the request object from the event data
+    // Remove processed objects from event data
+    eventData.removeData(EVENT_DATA_KEYS.CONFIG);
     eventData.removeData(EVENT_DATA_KEYS.REQUEST);
 
+    return { config, request };
+  }
+
+  /**
+   * Creates the edge hit.
+   * @param event Event The event.
+   * @param cleanEventData EventData The clean event data.
+   * @param config DataObject The config object from the event data.
+   * @param request DataObject The request object from the event data.
+   * @returns EdgeHit The edge hit.
+   */
+  private createEdgeHit(
+    event: Event,
+    cleanEventData: EventData,
+    config: DataObject,
+    request: DataObject
+  ): EdgeHit {
+    const path = getString(request, EVENT_DATA_KEYS.PATH);
     const datastreamConfigOverride = getDataObject(
       config,
       EVENT_DATA_KEYS.DATASTREAM_CONFIG_OVERRIDE
     );
     const datastreamIdOverride = getString(config, EVENT_DATA_KEYS.DATASTREAM_ID_OVERRIDE);
-    let hitTimestamp = getNumber(xdm, EVENT_DATA_KEYS.TIMESTAMP);
 
-    if (!hitTimestamp) {
-      Log.verbose(
-        LOG_SOURCE,
-        LOG_TAG,
-        "sendEvent() - Adding timestamp to the event data, since timestamp not present."
-      );
-      hitTimestamp = Date.now();
-      xdm[EVENT_DATA_KEYS.TIMESTAMP] = hitTimestamp;
-    }
-
-    const edgeHitBuilder = EdgeHit.builder(event.uuid, eventData.getData() ?? {}, hitTimestamp);
+    const edgeHitBuilder = EdgeHit.builder(
+      event.uuid,
+      cleanEventData.getData() ?? {},
+      event.timestamp
+    );
 
     if (!isNullOrEmptyString(path)) {
       edgeHitBuilder.setPath(path!);
     }
-
     if (datastreamConfigOverride) {
-      edgeHitBuilder.addMeta(META.CONFIG_OVERRIDES, datastreamConfigOverride);
+      edgeHitBuilder.setDatastreamConfigOverride(datastreamConfigOverride);
     }
-
     if (datastreamIdOverride) {
       edgeHitBuilder.setDatastreamIdOverride(datastreamIdOverride);
     }
 
-    this.processHitAndStartTimer(edgeHitBuilder.build());
+    return edgeHitBuilder.build();
   }
 
   /**

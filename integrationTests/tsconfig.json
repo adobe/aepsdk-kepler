@@ -3,7 +3,10 @@
   "compilerOptions": {
     "sourceMap": true,
     "noEmit": false,
-    "outDir": "./dist"
+    "lib": [
+      "dom", // added to mock the fetch API
+      "esnext"
+    ]
   },
   "exclude": ["tests", "dist"]
 }

@@ -14,7 +14,7 @@ import { DataObject } from "../../src/core/eventhub/EventData";
 import { EdgeHit, EdgeHitType } from "../../src/edge/EdgeHit";
 
 describe("EdgeHit tests", () => {
-  it("should create an EdgeHit with default values", () => {
+  test("should create an EdgeHit with default values", () => {
     const timestamp = Date.now();
     const data = { key: "value" };
     const edgeHit = new EdgeHit("test-request-id", data, timestamp);
@@ -26,9 +26,10 @@ describe("EdgeHit tests", () => {
     expect(edgeHit.type).toBe(EdgeHitType.EDGE);
     expect(edgeHit.xdm).toBeNull();
     expect(edgeHit.datastreamIdOverride).toBeNull();
+    expect(edgeHit.datastreamConfigOverride).toBeNull();
   });
 
-  it("should set and get type", () => {
+  test("should set and get type", () => {
     const requestId = "12345";
     const data = { key: "value" };
     const timestamp = 1620000000000;
@@ -38,16 +39,16 @@ describe("EdgeHit tests", () => {
     expect(edgeHit.type).toBe(EdgeHitType.CONSENT);
   });
 
-  it("should set and get meta data", () => {
+  test("should set and get meta data", () => {
     const requestId = "12345";
     const data = { key: "value" };
     const timestamp = 1620000000000;
     const meta: DataObject = { key: "value" };
-    const edgeHit = EdgeHit.builder(requestId, data, timestamp).addMeta("key", "value").build();
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp).setMeta(meta).build();
     expect(edgeHit.meta).toEqual(meta);
   });
 
-  it("should set and get path", () => {
+  test("should set and get path", () => {
     const requestId = "12345";
     const data = { key: "value" };
     const timestamp = 1620000000000;
@@ -57,7 +58,7 @@ describe("EdgeHit tests", () => {
     expect(edgeHit.path).toBe(path);
   });
 
-  it("should set and get xdm data", () => {
+  test("should set and get xdm data", () => {
     const requestId = "12345";
     const data = { key: "value" };
     const timestamp = 1620000000000;
@@ -67,7 +68,7 @@ describe("EdgeHit tests", () => {
     expect(edgeHit.xdm).toEqual(xdm);
   });
 
-  it("should set and get datastreamIdOverride", () => {
+  test("should set and get datastreamIdOverride", () => {
     const requestId = "12345";
     const data = { key: "value" };
     const timestamp = 1620000000000;
@@ -77,5 +78,17 @@ describe("EdgeHit tests", () => {
       .setDatastreamIdOverride(datastreamId)
       .build();
     expect(edgeHit.datastreamIdOverride).toBe(datastreamId);
+  });
+
+  test("should set and get datastreamConfigOverride", () => {
+    const requestId = "12345";
+    const data = { key: "value" };
+    const timestamp = 1620000000000;
+
+    const datastreamConfigOverride: DataObject = { key: "value" };
+    const edgeHit = EdgeHit.builder(requestId, data, timestamp)
+      .setDatastreamConfigOverride(datastreamConfigOverride)
+      .build();
+    expect(edgeHit.datastreamConfigOverride).toEqual(datastreamConfigOverride);
   });
 });

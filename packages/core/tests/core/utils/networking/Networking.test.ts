@@ -43,6 +43,37 @@ describe("test asyncRequest", () => {
     });
   });
 
+  it("should return ERROR_CONNECTION for invalid HTTPS URL", async () => {
+    const invalidUrls = [
+      // no protocol
+      "example.com",
+      // no https protocol
+      "http://example.com",
+      // no valid domain
+      "https://",
+      "https://example/invalid",
+    ];
+
+    invalidUrls.forEach(async (url) => {
+      const request: NetworkRequest = {
+        url: url,
+        method: HttpMethod.GET,
+        headers: {},
+        timeout: 1000,
+      };
+
+      const result = await asyncRequest(request);
+
+      try {
+        expect(result.responseCode).toEqual(-1);
+      } catch (error) {
+        throw new Error(
+          `Error: URL:(${url}) should return ERROR_CONNECTION but returned:(${result}). Error:(${error})`
+        );
+      }
+    });
+  });
+
   it("should merge headers correctly", async () => {
     const request: NetworkRequest = {
       url: "https://example.com",

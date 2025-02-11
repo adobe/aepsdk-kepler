@@ -22,6 +22,7 @@ export class EdgeHit {
   private _xdm: DataObject | null = null;
 
   private _datastreamIdOverride: string | null = null;
+  private _datastreamConfigOverride: DataObject | null = null;
 
   constructor(requestId: string, data: DataObject, timestamp: number) {
     this.requestId = requestId;
@@ -49,6 +50,10 @@ export class EdgeHit {
     return this._datastreamIdOverride;
   }
 
+  get datastreamConfigOverride(): DataObject | null {
+    return this._datastreamConfigOverride;
+  }
+
   private static EdgeHitBuilderInternal = class implements EdgeHitBuilder {
     private edgeHit: EdgeHit;
 
@@ -61,11 +66,13 @@ export class EdgeHit {
       return this;
     }
 
-    addMeta(key: string, value: DataType): EdgeHitBuilder {
-      if (!this.edgeHit._meta) {
-        this.edgeHit._meta = {};
-      }
-      this.edgeHit._meta[key] = value;
+    setDatastreamConfigOverride(datastreamConfigOverride: DataObject): EdgeHitBuilder {
+      this.edgeHit._datastreamConfigOverride = datastreamConfigOverride;
+      return this;
+    }
+
+    setMeta(meta: DataObject): EdgeHitBuilder {
+      this.edgeHit._meta = meta;
       return this;
     }
 
@@ -96,7 +103,8 @@ export class EdgeHit {
 
 export interface EdgeHitBuilder {
   setDatastreamIdOverride(datastreamId: string): EdgeHitBuilder;
-  addMeta(key: string, value: DataType): EdgeHitBuilder;
+  setDatastreamConfigOverride(datastreamConfigOverride: DataObject): EdgeHitBuilder;
+  setMeta(meta: DataObject): EdgeHitBuilder;
   setPath(path: string): EdgeHitBuilder;
   setType(type: EdgeHitType): EdgeHitBuilder;
   setXdm(xdm: DataObject): EdgeHitBuilder;

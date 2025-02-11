@@ -13,7 +13,7 @@ governing permissions and limitations under the License.
 jest.mock("@adobe/kepler-aepcore/src/platform-kepler");
 import { AEPSDK } from "@adobe/kepler-aepcore";
 import { resetSDK } from "../src/test-utils/resetSDK";
-
+import { assertEdgeHandles } from "../src/test-utils/assertUtil";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const sdkConfiguration = require('../configuration.json');
 
@@ -68,29 +68,6 @@ describe("test Edge public APIs", () => {
         "config": {
             "datastreamConfigOverride": sdkConfiguration["datastreamConfigOverride"]
         }
-    }
-
-    function assertEdgeHandles(expectedHandleTypes: Array<string>, responseHandles: Array<Record<string, unknown>>) {
-        const expectedHandleMap: { [key: string]: boolean } = {}
-        expectedHandleTypes.forEach(type => {
-            expectedHandleMap[type] = false;
-        });
-
-        responseHandles.forEach(handle => {
-            const handleType = handle.type as string;
-            expect(handleType).toBeDefined();
-            if (expectedHandleMap[handleType] !== undefined) {
-                expectedHandleMap[handleType] = true;
-            }
-        });
-
-        expectedHandleTypes.forEach(type => {
-            try {
-                expect(expectedHandleMap[type]).toBe(true);
-            } catch (error) {
-                throw new Error(`Expected handle type ${type} not found in response. ${error}`);
-            }
-        });
     }
 
     beforeEach(() => {
@@ -152,7 +129,7 @@ describe("test Edge public APIs", () => {
                 {
                     "xdm": {
                         "eventType": "KeplerIntegrationTest::testSendEvent",
-                        "timestamp": 123456789
+                        "timestamp": expect.any(String)
                     },
                     "data": {
                         "key": "value"
@@ -224,7 +201,7 @@ describe("test Edge public APIs", () => {
                 {
                     "xdm": {
                         "eventType": "KeplerIntegrationTest::testSendEventWithDatastreamIdOverride",
-                        "timestamp": 123456789
+                        "timestamp": expect.any(String)
                     },
                     "data": {
                         "key": "value"
@@ -300,7 +277,7 @@ describe("test Edge public APIs", () => {
                 {
                     "xdm": {
                         "eventType": "KeplerIntegrationTest::testSendEventWithDatastreamConfigOverride",
-                        "timestamp": 123456789
+                        "timestamp": expect.any(String)
                     },
                     "data": {
                         "key": "value"
@@ -378,7 +355,7 @@ describe("test Edge public APIs", () => {
                 {
                     "xdm": {
                         "eventType": "KeplerIntegrationTest::testSendEvent",
-                        "timestamp": 123456789
+                        "timestamp": expect.any(String)
                     },
                     "data": {
                         "key": "value"

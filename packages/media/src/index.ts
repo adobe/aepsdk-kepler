@@ -65,7 +65,7 @@ class MediaAPI implements MediaInterface {
     }
 
     // Add internal sessionId to the event data
-    eventData?.updateData([EVENT_DATA_KEYS.SESSION_ID], DEFAULT_SESSION_ID);
+    eventData?.updateData([EVENT_DATA_KEYS.CLIENT_SESSION_ID], DEFAULT_SESSION_ID);
 
     const event = Event.builder(
       MEDIA.EVENT_NAME_CREATE_SESSION,
@@ -102,7 +102,7 @@ class MediaAPI implements MediaInterface {
     }
 
     // Add internal sessionId to the event data
-    eventData?.updateData([EVENT_DATA_KEYS.SESSION_ID], DEFAULT_SESSION_ID);
+    eventData?.updateData([EVENT_DATA_KEYS.CLIENT_SESSION_ID], DEFAULT_SESSION_ID);
 
     const event = Event.builder(
       MEDIA.EVENT_NAME_SEND_MEDIA_EVENT,

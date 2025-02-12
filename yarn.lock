@@ -7059,6 +7059,7 @@ __metadata:
   resolution: "integration-tests@workspace:integrationTests"
   dependencies:
     "@adobe/kepler-aepcore": "npm:^1.0.0-beta.1"
+    "@adobe/kepler-aepmedia": "npm:^1.0.0-beta.1"
   languageName: unknown
   linkType: soft
 

@@ -10,6 +10,12 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+/*
+******************************************************
+* Assert Utils
+******************************************************
+*/
+
 export function assertEdgeHandles(expectedHandleTypes: Array<string>, responseHandles: Array<Record<string, unknown>>) {
     const expectedHandleMap: { [key: string]: boolean } = {}
     expectedHandleTypes.forEach(type => {
@@ -31,4 +37,14 @@ export function assertEdgeHandles(expectedHandleTypes: Array<string>, responseHa
             throw new Error(`Expected handle type ${type} not found in response. ${error}`);
         }
     });
+}
+
+export function assertRequestUrl(url: URL, expectedHostname: string, expectedPath: string, expectedDatastreamId: string) {
+    const requestId = url.searchParams.get('requestId');
+    const configId = url.searchParams.get('configId');
+
+    expect(url.hostname).toEqual(expectedHostname);
+    expect(url.pathname).toEqual(expectedPath);
+    expect(configId).toEqual(expectedDatastreamId);
+    expect(requestId).toBeDefined();
 }

@@ -30,14 +30,14 @@ export function getEventData(event: Event): DataObject | null {
 
 export function getEventDataWithoutSessionId(event: Event): DataObject | null {
   const eventData = getEventData(event) ?? {};
-  delete eventData[MediaConstants.EventDataKeys.SESSION_ID];
+  delete eventData[MediaConstants.EventDataKeys.CLIENT_SESSION_ID];
 
   return eventData;
 }
 
 export function getSessionId(event: Event): string {
   const eventData = event.data?.getData() ?? {};
-  const sessionId = getString(eventData, MediaConstants.EventDataKeys.SESSION_ID) ?? "";
+  const sessionId = getString(eventData, MediaConstants.EventDataKeys.CLIENT_SESSION_ID) ?? "";
 
   return sessionId;
 }

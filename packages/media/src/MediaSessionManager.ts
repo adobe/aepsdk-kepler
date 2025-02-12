@@ -43,6 +43,7 @@ export class MediaSessionManager {
     }
 
     this.createSession(hit.sessionId, this.dispatchFn, config);
+    this.process(hit);
 
     Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID:(${hit.sessionId}) created.`);
     return true;
@@ -98,7 +99,9 @@ export class MediaSessionManager {
    * Ends all active media sessions.
    */
   public endAllSessions(): void {
-    this.forAllSessions((session) => session.end());
+    for (const session of this._activeSessions.values()) {
+      session.end();
+    }
     Log.debug(LOG_SOURCE, LOG_TAG, `All media sessions have been ended.`);
     this._activeSessions.clear();
   }
@@ -109,7 +112,9 @@ export class MediaSessionManager {
    * @param data - The error response data.
    */
   public notifyErrorResponse(requestId: string, data: DataObject): void {
-    this.forAllSessions((session) => session.handleErrorResponse(requestId, data));
+    for (const session of this._activeSessions.values()) {
+      session.handleErrorResponse(requestId, data);
+    }
   }
 
   /**
@@ -118,14 +123,9 @@ export class MediaSessionManager {
    * @param backendSessionId - The backend session ID returned by the server.
    */
   public notifyBackendSessionId(requestId: string, backendSessionId: string): void {
-    this.forAllSessions((session) => session.handleSessionUpdate(requestId, backendSessionId));
-  }
-
-  /**
-   * Invokes all active sessions using a callback.
-   */
-  private forAllSessions(callback: (session: MediaSession) => void): void {
-    Object.values(this._activeSessions).forEach(callback);
+    for (const session of this._activeSessions.values()) {
+      session.handleSessionUpdate(requestId, backendSessionId);
+    }
   }
 
   /**

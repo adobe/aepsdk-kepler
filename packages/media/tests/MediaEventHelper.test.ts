@@ -76,7 +76,7 @@ describe("MediaEventHelper tests", () => {
 
   test("getEventDataWithoutSessionId() - should return the event data without the session ID", () => {
     const eventData = EventData.buildFrom({
-      sessionId: "testSessionId",
+      clientSessionId: "testSessionId",
       xdm: { eventType: "media.sessionStart", key: "value", key1: 1 },
     });
     const event = Event.builder(

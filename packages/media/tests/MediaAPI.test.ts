@@ -15,7 +15,7 @@ import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
 
 jest.mock("@adobe/kepler-aepcore/dist/Core");
 
-describe("EdgeAPI tests", () => {
+describe("MediaAPI tests", () => {
   let mockEventDispatcher: {
     dispatch: jest.Mock;
     dispatchWithResponse: jest.Mock;
@@ -94,7 +94,7 @@ describe("EdgeAPI tests", () => {
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.createSession",
         data: EventData.buildFrom({
-          sessionId: "default",
+          clientSessionId: "default",
           xdm: {
             eventType: "media.sessionStart",
             key: "value",
@@ -164,7 +164,7 @@ describe("EdgeAPI tests", () => {
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.requestContent",
         data: EventData.buildFrom({
-          sessionId: "default",
+          clientSessionId: "default",
           xdm: {
             eventType: "media.play",
             key: "value",

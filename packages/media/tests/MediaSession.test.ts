@@ -263,7 +263,7 @@ describe("MediaSession tests", () => {
               eventType: EVENT_TYPE.PLAY,
               key: "value",
               mediaCollection: {
-                sessionId: "testBackendSessionId",
+                sessionID: "testBackendSessionId",
               },
               timestamp: 123456789,
             },

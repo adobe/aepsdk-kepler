@@ -42,4 +42,8 @@ export class Queue<T> {
   size(): number {
     return this.items.length;
   }
+
+  clear(): void {
+    this.items = [];
+  }
 }

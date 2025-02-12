@@ -13,9 +13,9 @@ import { MediaExtension } from "../src/MediaExtension";
 import { ExtensionContainer } from "@adobe/kepler-aepcore/dist/core/extension";
 import { ServiceLookup } from "@adobe/kepler-aepcore/dist/core/services";
 import { Event, EventType, EventSource } from "@adobe/kepler-aepcore/dist/core/eventhub";
-import { MediaSessionManager } from "../src/MediaSessionManager";
 import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
 import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
+import { MediaSessionManager } from "../src/MediaSessionManager";
 import { MediaHit } from "../src/MediaHit";
 import { MediaConstants } from "../src/MediaConstants";
 
@@ -85,7 +85,7 @@ describe("MediaExtension tests", () => {
     mediaExtension["mediaSessionManager"] = new MediaSessionManager(mockDispatchFn);
 
     const eventData = EventData.buildFrom({
-      sessionId: "testSessionId",
+      clientSessionId: "testSessionId",
       xdm: { eventType: MediaConstants.EventType.SESSION_START, key: "value", key1: 1 },
     });
     const event = Event.builder(
@@ -135,7 +135,7 @@ describe("MediaExtension tests", () => {
     mediaExtension["mediaSessionManager"] = new MediaSessionManager(mockDispatchFn);
 
     const eventData = EventData.buildFrom({
-      sessionId: "testSessionId",
+      clientSessionId: "testSessionId",
       xdm: {
         eventType: MediaConstants.EventType.PLAY,
         key: "value",

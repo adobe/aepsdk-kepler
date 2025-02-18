@@ -13,32 +13,7 @@ governing permissions and limitations under the License.
 import { getDataObject } from "@adobe/kepler-aepcore/src/core/utils/DataObjectUtil";
 import { DataObject } from "@adobe/kepler-aepcore/src/core/eventhub/EventData";
 import { isNullOrEmptyString } from "@adobe/kepler-aepcore/src/core/utils/StringUtil";
-
-// TODO: update the implementation details to use the Kepler SDK
-const testFetchECIDQuery = {
-    "identity": {
-        "fetch": [
-            "ECID",
-        ],
-    },
-}
-
-const testImplementationDetails = {
-    "environment": "app",
-    "name": "https://ns.adobe.com/experience/mobilesdk/roku",
-    "version": "1.0.0-beta.1"
-}
-
-const testIdentityMap = {
-    "ECID": [
-        {
-            "authenticatedState": "ambiguous",
-            "id": expect.any(String),
-            "primary": true,
-        }
-    ]
-}
-
+import { testFetchECIDQuery, testImplementationDetails, testIdentityMap } from "./testData";
 /*
 ******************************************************
 * Assert Utils

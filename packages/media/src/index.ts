@@ -33,24 +33,13 @@ class MediaAPI implements MediaInterface {
 
   /**
    * Creates a new media session with the given XDM data.
-   * The configuration object can be used to override the
-   * global values passed via "updateConfiguration" API.
-   *
    * @param data the XDM data of type "media.sessionStart".
-   * @param configuration The session level configuration.
    */
-  createMediaSession(
-    data: Record<string, unknown>,
-    configuration: Record<string, unknown> = {}
-  ): void {
+  createMediaSession(data: Record<string, unknown>): void {
     Log.verbose(
       LOG_EXTENSION,
       LOG_TAG,
-      `createMediaSession() API called with data: \n ${safeStringify(
-        data,
-        null,
-        2
-      )} \nand configuration: ${safeStringify(configuration, null, 2)}`
+      `createMediaSession() API called with data: \n ${safeStringify(data, null, 2)} \n}`
     );
 
     const eventData = EventData.buildFrom(data);

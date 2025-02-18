@@ -17,7 +17,11 @@
           "event": {
             "datasetId": "<YOUR_DATASET_ID_OVERRIDE>"
           }
+    "pendingConsent": {
+        "consents": {
+            "collect": {
+                "val": "p"
+            }
         }
-      }
     }
-  }
+}

@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { EdgeHitQueue } from "./EdgeHitQueue";
+import { Queue } from "../core/utils/Queue";
 import { ConsentValue } from "./consent/ConsentManager";
 import { EdgeResponseManager } from "./EdgeResponseManager";
 import { EdgeHit, EdgeHitType } from "./EdgeHit";
@@ -39,8 +39,8 @@ const INVALID_TIMESTAMP = -1;
 const STATUS_CODE = EdgeConstants.Request.StatusCode;
 
 export class EdgeHitProcessor {
-  private hitQueue: EdgeHitQueue;
-  private consentHitQueue: EdgeHitQueue;
+  private hitQueue: Queue<EdgeHit>;
+  private consentHitQueue: Queue<EdgeHit>;
   private retryTimeout: number = RETRY.TIMEOUT;
   private isProcessing: boolean = false;
   private lastFailedHitTs: number = INVALID_TIMESTAMP;
@@ -49,8 +49,8 @@ export class EdgeHitProcessor {
     private edgeResponseManager: EdgeResponseManager,
     private edgeStateManager: EdgeStateManager
   ) {
-    this.hitQueue = new EdgeHitQueue();
-    this.consentHitQueue = new EdgeHitQueue();
+    this.hitQueue = new Queue<EdgeHit>();
+    this.consentHitQueue = new Queue<EdgeHit>();
   }
 
   /**
@@ -61,9 +61,9 @@ export class EdgeHitProcessor {
     this.checkHitQueueSize(hit);
 
     if (hit.type === EdgeHitType.CONSENT) {
-      this.consentHitQueue.push(hit);
+      this.consentHitQueue.enqueue(hit);
     } else {
-      this.hitQueue.push(hit);
+      this.hitQueue.enqueue(hit);
     }
   }
 
@@ -81,7 +81,7 @@ export class EdgeHitProcessor {
         LOG_TAG,
         "checkHitQueueSize() - Edge hit queue has reached max size. Dropping the oldest hit."
       );
-      this.hitQueue.popFront();
+      this.hitQueue.dequeue();
     }
 
     if (hit.type === EdgeHitType.CONSENT && this.consentHitQueue.size() >= MAX_QUEUE_SIZE) {
@@ -90,7 +90,7 @@ export class EdgeHitProcessor {
         LOG_TAG,
         "checkHitQueueSize() - Consent hit queue has reached max size. Dropping the oldest hit."
       );
-      this.consentHitQueue.popFront();
+      this.consentHitQueue.dequeue();
     }
   }
 
@@ -189,12 +189,12 @@ export class EdgeHitProcessor {
    * @param collectConsent ConsentValue The collect consent value.
    * @returns EdgeHit The next hit to be processed or null if there are no hits to be processed.
    */
-  private getNextHit(collectConsent: ConsentValue | null): EdgeHit | null {
+  private getNextHit(collectConsent: ConsentValue | null): EdgeHit | undefined {
     const consentHit = this.consentHitQueue.peek();
     const edgeHit = this.hitQueue.peek();
 
     if (!edgeHit && !consentHit) {
-      return null;
+      return undefined;
     }
 
     if (collectConsent === ConsentValue.PENDING) {
@@ -246,11 +246,11 @@ export class EdgeHitProcessor {
    * Removes the hit from the queues based on the hit type.
    * @param hit EdgeHit
    */
-  private popHit(hit: EdgeHit): EdgeHit | null {
+  private popHit(hit: EdgeHit): EdgeHit | undefined {
     if (hit.type === EdgeHitType.CONSENT) {
-      return this.consentHitQueue.popFront();
+      return this.consentHitQueue.dequeue();
     } else {
-      return this.hitQueue.popFront();
+      return this.hitQueue.dequeue();
     }
   }
 

@@ -16,6 +16,6 @@ export interface MediaInterface {
   readonly EXTENSION: Extension;
 
   // public APIs
-  createMediaSession(data: Record<string, unknown>, configuration?: Record<string, unknown>): void;
+  createMediaSession(data: Record<string, unknown>): void;
   sendMediaEvent(data: Record<string, unknown>): void;
 }

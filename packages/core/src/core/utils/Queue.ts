@@ -23,26 +23,49 @@ governing permissions and limitations under the License.
 export class Queue<T> {
   private items: T[] = [];
 
+  /**
+   * Adds an item to the end of the queue.
+   * @param item The item to add to the queue.
+   */
   enqueue(item: T): void {
     this.items.push(item);
   }
 
+  /**
+   * Removes and returns the item at the front of the queue.
+   * @returns The item at the front of the queue, or undefined if the queue is empty.
+   */
   dequeue(): T | undefined {
     return this.items.shift();
   }
 
+  /**
+   * Returns the item at the front of the queue without removing it.
+   * @returns The item at the front of the queue, or undefined if the queue is empty.
+   */
   peek(): T | undefined {
     return this.items[0];
   }
 
+  /**
+   * Returns true if the queue is empty.
+   * @returns True if the queue is empty, false otherwise.
+   */
   isEmpty(): boolean {
     return this.items.length === 0;
   }
 
+  /**
+   * Returns the number of items in the queue.
+   * @returns The number of items in the queue.
+   */
   size(): number {
     return this.items.length;
   }
 
+  /**
+   * Removes all items from the queue.
+   */
   clear(): void {
     this.items = [];
   }

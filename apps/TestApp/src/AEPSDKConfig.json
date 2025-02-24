@@ -1,6 +1,6 @@
 {
-    "edge.configId": "<YOUR_DATASTREAM_ID>",
-    "edge.domain": "<YOUR_DOMAIN>",
+    "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
+    "edge.domain": "<YOUR_EDGE_DOMAIN>",
     "consent.default": {
       "consents": {
         "collect": {
@@ -19,12 +19,5 @@
           }
         }
       }
-    },
-    "pendingConsent": {
-        "consents": {
-            "collect": {
-                "val": "p"
-            }
-        }
     }
-}
+  }

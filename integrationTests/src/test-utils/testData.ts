@@ -25,10 +25,9 @@ export const testSetConsentQuery = {
     }
 }
 
-// TODO: update the implementation details to use the Kepler SDK
 export const testImplementationDetails = {
     "environment": "app",
-    "name": "https://ns.adobe.com/experience/mobilesdk/roku",
+    "name": "https://ns.adobe.com/experience/mobilesdk/kepler",
     "version": "1.0.0-beta.1"
 }
 

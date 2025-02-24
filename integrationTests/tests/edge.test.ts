@@ -14,12 +14,13 @@ jest.mock("@adobe/kepler-aepcore/src/platform-kepler");
 import { AEPSDK } from "@adobe/kepler-aepcore";
 import { resetSDK } from "../src/test-utils/resetSDK";
 import { assertEdgeHandles, assertRequestUrl } from "../src/test-utils/assertUtil";
-import { assertFirstEdgeRequest, assertConsecutiveEdgeRequest, assertEdgeResponse, assertFirstConsentRequest, assertConsecutiveConsentRequest, assertEdgeErrorResponse
+import { assertFirstEdgeRequest, assertConsecutiveEdgeRequest, assertEdgeResponse, assertFirstConsentRequest, assertEdgeErrorResponse
  } from "../src/test-utils/edgeUtil";
 import { getTestConsentData } from "../src/test-utils/testData";
-import { LogLevel } from "@adobe/kepler-aepcore/src/core/services/Logging";
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const sdkConfiguration = require('../configuration.json');
+
 const expectedLocationHint = "or2";
 const expectedEdgeResponseHandlesForFirstRequest = ['identity:result', 'locationHint:result', 'state:store'];
 

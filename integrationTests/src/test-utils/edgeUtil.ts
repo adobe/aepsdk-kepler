@@ -143,6 +143,7 @@ export function assertConsecutiveConsentRequest(request: RequestInit, actualCons
     expect(body).toEqual(expect.objectContaining({
         ...baseExpectation,
         "xdm": {
+            ...baseExpectation.xdm,
             "identityMap": expect.objectContaining(testIdentityMap)
         },
         "query": testSetConsentQuery,

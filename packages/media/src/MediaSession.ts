@@ -49,7 +49,7 @@ export class MediaSession {
   private hasLoggedBackendSessionWait = false;
 
   constructor(
-    private _clientSessionId: string,
+    private _playerId: string,
     private dispatchFn: DispatchFn,
     private configuration: DataObject = {}
   ) {}
@@ -63,11 +63,11 @@ export class MediaSession {
   }
 
   /**
-   * Returns the client session ID.
-   * @returns The client session ID.
+   * Returns the player ID.
+   * @returns The player ID.
    */
-  public getClientSessionId(): string {
-    return this._clientSessionId;
+  public getPlayerId(): string {
+    return this._playerId;
   }
 
   /**
@@ -79,7 +79,7 @@ export class MediaSession {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `Media session (${this.getClientSessionId()}) is not active. Cannot process hits.`
+        `Media session with playerId:(${this.getPlayerId()}) is not active. Cannot process hits.`
       );
       return;
     }
@@ -99,7 +99,7 @@ export class MediaSession {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `end() - Cannot end media session (${this.getClientSessionId()}), as it is not active.`
+        `end() - Cannot end media session with playerId:(${this.getPlayerId()}), as it is not active.`
       );
       return;
     }
@@ -111,13 +111,13 @@ export class MediaSession {
       Log.debug(
         LOG_SOURCE,
         LOG_TAG,
-        `Media session (${this.getClientSessionId()}) has ended successfully.`
+        `Media session with playerId:(${this.getPlayerId()}) has ended successfully.`
       );
     } else {
       Log.warning(
         LOG_SOURCE,
         LOG_TAG,
-        `Media session (${this.getClientSessionId()}) has ended, but all the queued media events could not be dispatched.`
+        `Media session with playerId:(${this.getPlayerId()}) has ended, but all the queued media events could not be dispatched.`
       );
     }
   }
@@ -133,7 +133,7 @@ export class MediaSession {
       Log.error(
         LOG_SOURCE,
         LOG_TAG,
-        `abort() - Cannot abort media session (${this.getClientSessionId()}), as it is not active.`
+        `abort() - Cannot abort media session with playerId:(${this.getPlayerId()}), as it is not active.`
       );
       return;
     }
@@ -155,9 +155,12 @@ export class MediaSession {
     Log.debug(
       LOG_SOURCE,
       LOG_TAG,
-      `Received backend session ID: ${backendSessionId} for client session ID: ${this.getClientSessionId()}`
+      `Received backend session ID: ${backendSessionId} for playerId:(${this.getPlayerId()})`
     );
     this.backendSessionId = backendSessionId;
+
+    // trigger dispatch of queued media events
+    this.tryDispatchMediaEvents();
   }
 
   /**
@@ -186,7 +189,7 @@ export class MediaSession {
       Log.warning(
         LOG_SOURCE,
         LOG_TAG,
-        `handleErrorResponse() - [Session (${this.getClientSessionId()})] - Aborting session as error occurred while creating the session. Error: ${safeStringify(
+        `handleErrorResponse() - [Session with playerId:(${this.getPlayerId()})] - Aborting session as error occurred while creating the session. Error: ${safeStringify(
           data
         )}`
       );

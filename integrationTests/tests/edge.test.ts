@@ -14,66 +14,31 @@ jest.mock("@adobe/kepler-aepcore/src/platform-kepler");
 import { AEPSDK } from "@adobe/kepler-aepcore";
 import { resetSDK } from "../src/test-utils/resetSDK";
 import { assertEdgeHandles, assertRequestUrl } from "../src/test-utils/assertUtil";
-import { assertFirstEdgeRequest, assertConsecutiveEdgeRequest, assertEdgeResponse, assertFirstConsentRequest, assertEdgeErrorResponse
+import { assertFirstEdgeRequest, assertConsecutiveEdgeRequest, assertEdgeResponse, assertFirstConsentRequest, assertEdgeErrorResponse, assertConsecutiveConsentRequest
  } from "../src/test-utils/edgeUtil";
-import { getTestConsentData } from "../src/test-utils/testData";
+import { getTestConsentData, getTestSendEvent } from "../src/test-utils/testData";
+import { expectedEdgeResponseHandlesForFirstRequest, expectedEdgeResponseHandlesForConsecutiveRequest, expectedConsentResponseHandlesForFirstRequest, expectedConsentResponseHandlesForConsecutiveRequest } from "../src/test-utils/testData";
+import { LogLevel } from "@adobe/kepler-aepcore/src/core/services/Logging";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const sdkConfiguration = require('../configuration.json');
 
 const expectedLocationHint = "or2";
-const expectedEdgeResponseHandlesForFirstRequest = ['identity:result', 'locationHint:result', 'state:store'];
-
-const expectedEdgeResponseHandlesForConsecutiveRequest = ['locationHint:result', 'state:store'];
-
-const expectedConsentResponseHandles = ['identity:result', 'locationHint:result', 'state:store', 'consent:preferences'];
 
 describe("Edge Extension Public API Tests", () => {
     const WAIT_TIME_MS = 1000;
     let originalFetch: typeof global.fetch;
     const recordedResponsesFromFetchSpy: Array<Response> = [];
 
-    const testSendEvent = {
-        "xdm": {
-            "eventType": "KeplerIntegrationTest::testSendEvent",
-        },
-        "data": {
-            "key": "value"
-        }
-    }
+    const testSendEvent = getTestSendEvent("testSendEvent");
+    const testSendEvent2 = getTestSendEvent("testSendEvent2");
+    const testSendEvent3 = getTestSendEvent("testSendEvent3");
+    const testSendEvent4 = getTestSendEvent("testSendEvent4");
+    const testSendEvent5 = getTestSendEvent("testSendEvent5");
 
-    const testSendEvent2 = {
-        "xdm": {
-            "eventType": "KeplerIntegrationTest::testSendEvent2",
-        },
-        "data": {
-            "key2": "value2"
-        }
-    }
+    const testSendEventWithDatastreamIdOverride = getTestSendEvent("testSendEventWithDatastreamIdOverride", sdkConfiguration, true);
 
-    const testSendEventWithDatastreamIdOverride = {
-        "xdm": {
-            "eventType": "KeplerIntegrationTest::testSendEventWithDatastreamIdOverride",
-        },
-        "data": {
-            "key": "value"
-        },
-        "config": {
-            "datastreamIdOverride": sdkConfiguration["datastreamIdOverride"]
-        }
-    }
-
-    const testSendEventWithDatastreamConfigOverride = {
-        "xdm": {
-            "eventType": "KeplerIntegrationTest::testSendEventWithDatastreamConfigOverride",
-        },
-        "data": {
-            "key": "value"
-        },
-        "config": {
-            "datastreamConfigOverride": sdkConfiguration["datastreamConfigOverride"]
-        }
-    }
+    const testSendEventWithDatastreamConfigOverride = getTestSendEvent("testSendEventWithDatastreamConfigOverride", sdkConfiguration, false, true);
 
     beforeEach(() => {
         // Save the original fetch to restore it after tests
@@ -103,7 +68,7 @@ describe("Edge Extension Public API Tests", () => {
                 "consent.default": defaultConsent
             },
             // Uncomment to see verbose logs for debugging
-            //logLevel: LogLevel.VERBOSE,
+            logLevel: LogLevel.DEBUG,
         });
     }
 
@@ -259,7 +224,7 @@ describe("Edge Extension Public API Tests", () => {
 
             assertRequestUrl(new URL(fetchArgs[0]), "edge.adobedc.net", "/ee/v1/privacy/set-consent", sdkConfiguration["edge.configId"]);
             assertFirstConsentRequest(fetchArgs[1], consentYes);
-            await assertEdgeResponse(response, expectedConsentResponseHandles);
+            await assertEdgeResponse(response, expectedConsentResponseHandlesForFirstRequest);
         });
     });
 
@@ -288,7 +253,7 @@ describe("Edge Extension Public API Tests", () => {
             const response1 = recordedResponsesFromFetchSpy[0];
             assertRequestUrl(new URL(fetchArgs1[0]), "edge.adobedc.net", "/ee/v1/privacy/set-consent", sdkConfiguration["edge.configId"]);
             assertFirstConsentRequest(fetchArgs1[1], setConsentYes);
-            assertEdgeResponse(response1, expectedConsentResponseHandles);
+            assertEdgeResponse(response1, expectedConsentResponseHandlesForFirstRequest);
 
             // edge request 1
             const fetchArgs2 = (global.fetch as jest.Mock).mock.calls[1];
@@ -304,5 +269,90 @@ describe("Edge Extension Public API Tests", () => {
             assertConsecutiveEdgeRequest(fetchArgs3[1], testSendEvent2);
             assertEdgeResponse(response3, expectedEdgeResponseHandlesForConsecutiveRequest);
         });
+
+        test("When consent is updated from 'p' to 'n', all the queued edge hits should be dropped", async () => {
+            await initializeSDK(sdkConfiguration["edge.configId"], sdkConfiguration["pendingConsent"]);
+
+            AEPSDK.sendEvent(testSendEvent);
+            AEPSDK.sendEvent(testSendEvent2);
+
+            const setConsentNo = getTestConsentData("n");
+            AEPSDK.setConsent(setConsentNo);
+
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+
+            const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+            const response = recordedResponsesFromFetchSpy[0];
+
+            assertRequestUrl(new URL(fetchArgs[0]), "edge.adobedc.net", "/ee/v1/privacy/set-consent", sdkConfiguration["edge.configId"]);
+            assertFirstConsentRequest(fetchArgs[1], setConsentNo);
+            await assertEdgeResponse(response, expectedConsentResponseHandlesForFirstRequest);
+        });
+
+        test("Consent is updated from 'p' to 'y' all the queued edge hits should be sent, and when consent is updated from 'y' to 'n', all the subsequent edge hits should be dropped", async () => {
+            await initializeSDK(sdkConfiguration["edge.configId"], sdkConfiguration["pendingConsent"]);
+
+            AEPSDK.sendEvent(testSendEvent);
+            AEPSDK.sendEvent(testSendEvent2);
+
+            const consentYes = getTestConsentData("y");
+            AEPSDK.setConsent(consentYes);
+            AEPSDK.sendEvent(testSendEvent3);
+            AEPSDK.sendEvent(testSendEvent4);
+
+            const consentNo = getTestConsentData("n");
+            AEPSDK.setConsent(consentNo);
+            AEPSDK.sendEvent(testSendEvent5);
+
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            expect(global.fetch).toHaveBeenCalledTimes(6);
+
+            // request 1 - consent (out of order since default collect consent is 'p')
+            const fetchArgs1 = (global.fetch as jest.Mock).mock.calls[0];
+            const response1 = recordedResponsesFromFetchSpy[0];
+            assertRequestUrl(new URL(fetchArgs1[0]), "edge.adobedc.net", "/ee/v1/privacy/set-consent", sdkConfiguration["edge.configId"]);
+            assertFirstConsentRequest(fetchArgs1[1], consentYes);
+            await assertEdgeResponse(response1, expectedConsentResponseHandlesForFirstRequest);
+
+            // request 2 - edge (in order)
+            const fetchArgs2 = (global.fetch as jest.Mock).mock.calls[1];
+            const response2 = recordedResponsesFromFetchSpy[1];
+            assertRequestUrl(new URL(fetchArgs2[0]), "edge.adobedc.net", `/ee/${expectedLocationHint}/v1/interact`, sdkConfiguration["edge.configId"]);
+            assertConsecutiveEdgeRequest(fetchArgs2[1], testSendEvent);
+            assertEdgeResponse(response2, expectedEdgeResponseHandlesForConsecutiveRequest);
+
+            // request 3 - edge (in order)
+            const fetchArgs3 = (global.fetch as jest.Mock).mock.calls[2];
+            const response3 = recordedResponsesFromFetchSpy[2];
+            assertRequestUrl(new URL(fetchArgs3[0]), "edge.adobedc.net", `/ee/${expectedLocationHint}/v1/interact`, sdkConfiguration["edge.configId"]);
+            assertConsecutiveEdgeRequest(fetchArgs3[1], testSendEvent2);
+            assertEdgeResponse(response3, expectedEdgeResponseHandlesForConsecutiveRequest);
+
+
+            // request 4 - edge (in order) (testSendEvent3)
+            const fetchArgs4 = (global.fetch as jest.Mock).mock.calls[3];
+            const response4 = recordedResponsesFromFetchSpy[3];
+            assertRequestUrl(new URL(fetchArgs4[0]), "edge.adobedc.net", `/ee/${expectedLocationHint}/v1/interact`, sdkConfiguration["edge.configId"]);
+            assertConsecutiveEdgeRequest(fetchArgs4[1], testSendEvent3);
+            assertEdgeResponse(response4, expectedEdgeResponseHandlesForConsecutiveRequest);
+
+            // request 5 - edge (in order) (testSendEvent4)
+            const fetchArgs5 = (global.fetch as jest.Mock).mock.calls[4];
+            const response5 = recordedResponsesFromFetchSpy[4];
+            assertRequestUrl(new URL(fetchArgs5[0]), "edge.adobedc.net", `/ee/${expectedLocationHint}/v1/interact`, sdkConfiguration["edge.configId"]);
+            assertConsecutiveEdgeRequest(fetchArgs5[1], testSendEvent4);
+            assertEdgeResponse(response5, expectedEdgeResponseHandlesForConsecutiveRequest);
+
+
+            // request 6 - consent (in order)
+            const fetchArgs6 = (global.fetch as jest.Mock).mock.calls[5];
+            const response6 = recordedResponsesFromFetchSpy[5];
+            assertRequestUrl(new URL(fetchArgs6[0]), "edge.adobedc.net", `/ee/${expectedLocationHint}/v1/privacy/set-consent`, sdkConfiguration["edge.configId"]);
+            assertConsecutiveConsentRequest(fetchArgs6[1], consentNo);
+            assertEdgeResponse(response6, expectedConsentResponseHandlesForConsecutiveRequest);
+        })
     });
 });

@@ -25,6 +25,8 @@ import {
     assertMediaSessionStartResponse,
     assertSessionStartRequest,
 } from "../src/test-utils/mediaUtil";
+import { expectedConsentResponseHandlesForConsecutiveRequest, expectedConsentResponseHandlesForFirstRequest, getTestConsentData } from "../src/test-utils/testData";
+import { assertConsecutiveConsentRequest, assertEdgeResponse, assertFirstConsentRequest } from "../src/test-utils/edgeUtil";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const sdkConfiguration = require('../configuration.json');
@@ -110,12 +112,13 @@ describe("Media Public APIs", () => {
         recordedResponsesFromFetchSpy.length = 0;
     });
 
-    async function initializeSDK(datastreamId: string) {
+    async function initializeSDK(datastreamId: string, defaultConsent: string = sdkConfiguration["consent.default"]) {
         await AEPSDK.initialize({
             config: {
-                "edge.configId": datastreamId
+                "edge.configId": datastreamId,
+                "consent.default": defaultConsent
             },
-            logLevel: LogLevel.VERBOSE,
+            logLevel: LogLevel.DEBUG,
             extensions: [
                 Media.EXTENSION
             ]
@@ -294,4 +297,77 @@ describe("Media Public APIs", () => {
     });
 
 
+    describe("Media + Consent", () => {
+        test("When consent set to 'n', Media session should not be initiated and no media events should be sent", async () => {
+            const expectedDatastreamId = sdkConfiguration["edge.configId"];
+
+            await initializeSDK(expectedDatastreamId, sdkConfiguration["pendingConsent"]);
+
+            const consentNo = getTestConsentData("n");
+            AEPSDK.setConsent(consentNo);
+
+            Media.createMediaSession(sessionStartEvent);
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            Media.sendMediaEvent(playEvent);
+            Media.sendMediaEvent(pauseEvent);
+            Media.sendMediaEvent(sessionCompleteEvent);
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            expect(global.fetch).toHaveBeenCalledTimes(1);
+
+            const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+
+            assertRequestUrl(new URL(fetchArgs[0]), "edge.adobedc.net", "/ee/v1/privacy/set-consent", expectedDatastreamId);
+            assertFirstConsentRequest(fetchArgs[1], consentNo);
+            await assertEdgeResponse(recordedResponsesFromFetchSpy[0], expectedConsentResponseHandlesForFirstRequest);
+        });
+
+        test("When consent set to 'n', and there is an existing session, it should be ended", async () => {
+            const expectedDatastreamId = sdkConfiguration["edge.configId"];
+
+            await initializeSDK(expectedDatastreamId);
+
+            Media.createMediaSession(sessionStartEvent);
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            Media.sendMediaEvent(playEvent);
+
+            const consentNo = getTestConsentData("n");
+            AEPSDK.setConsent(consentNo);
+            Media.sendMediaEvent(pauseEvent);
+            Media.sendMediaEvent(sessionEndEvent);
+
+            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+
+            expect(global.fetch).toHaveBeenCalledTimes(3);
+
+            const fetchArgs = (global.fetch as jest.Mock).mock.calls[0];
+            const sessionStartResponse = recordedResponsesFromFetchSpy[0];
+
+            assertRequestUrl(new URL(fetchArgs[0]), "edge.adobedc.net", "/ee/va/v1/sessionStart", expectedDatastreamId);
+            assertMediaSessionStartResponse(sessionStartResponse);
+
+            const fetchArgs2 = (global.fetch as jest.Mock).mock.calls[1];
+           const playResponse = recordedResponsesFromFetchSpy[1];
+
+            assertRequestUrl(new URL(fetchArgs2[0]), "edge.adobedc.net", "/ee/or2/va/v1/play", expectedDatastreamId);
+            assertMediaEventResponse(playResponse);
+
+            const fetchArgs3 = (global.fetch as jest.Mock).mock.calls[2];
+            const consentResponse = recordedResponsesFromFetchSpy[2];
+
+            assertRequestUrl(new URL(fetchArgs3[0]), "edge.adobedc.net", "/ee/or2/v1/privacy/set-consent", sdkConfiguration["edge.configId"]);
+            assertConsecutiveConsentRequest(fetchArgs3[1], consentNo);
+            await assertEdgeResponse(consentResponse, expectedConsentResponseHandlesForConsecutiveRequest);
+        });
+
+        test("Media session is allowed to be created if consent is update to 'y' from 'n'", async () => {
+            const expectedDatastreamId = sdkConfiguration["edge.configId"];
+
+            await initializeSDK(expectedDatastreamId);
+
+
+        })
+    });
 })

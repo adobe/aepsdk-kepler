@@ -64,9 +64,9 @@ describe("MediaSession tests", () => {
   });
 
   test("MediaSession should be defined", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     expect(mediaSession).toBeDefined();
-    expect(mediaSession.getClientSessionId()).toBe("testClientSessionId");
+    expect(mediaSession.getPlayerId()).toBe("testPlayerId");
     expect(mediaSession.isActive()).toBe(true);
   });
 
@@ -80,7 +80,7 @@ describe("MediaSession tests", () => {
         tryDispatchMediaEventsCalledTimes++;
       });
 
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     mediaSession.end();
     expect(mediaSession.isActive()).toBe(false);
     expect(tryDispatchMediaEventsCalledTimes).toBe(1);
@@ -115,7 +115,7 @@ describe("MediaSession tests", () => {
       "com.adobe.edge.media",
       "MediaSession",
       expect.stringContaining(
-        `end() - Cannot end media session (${testSessionId}), as it is not active.`
+        `end() - Cannot end media session with playerId:(${testSessionId}), as it is not active.`
       )
     );
     logErrorSpy.mockRestore();
@@ -168,7 +168,7 @@ describe("MediaSession tests", () => {
       "com.adobe.edge.media",
       "MediaSession",
       expect.stringContaining(
-        `abort() - Cannot abort media session (${mediaSession.getClientSessionId()}), as it is not active.`
+        `abort() - Cannot abort media session with playerId:(${mediaSession.getPlayerId()}), as it is not active.`
       )
     );
     logErrorSpy.mockRestore();
@@ -195,7 +195,7 @@ describe("MediaSession tests", () => {
 
   test("process() should ignore the hit if session is inactive (tryDispatchMediaEvents is mocked)", () => {
     const logErrorSpy = jest.spyOn(Log, "error").mockImplementation();
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     mediaSession.end();
 
     mediaSession.process(sessionStartHit);
@@ -205,14 +205,14 @@ describe("MediaSession tests", () => {
       "com.adobe.edge.media",
       "MediaSession",
       expect.stringContaining(
-        `Media session (${mediaSession.getClientSessionId()}) is not active. Cannot process hits.`
+        `Media session with playerId:(${mediaSession.getPlayerId()}) is not active. Cannot process hits.`
       )
     );
     logErrorSpy.mockRestore();
   });
 
   test("process() media.sessionStart event should dispatch the hit if session is active (tryDispatchMediaEvents is not mocked)", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
 
     mediaSession.process(sessionStartHit);
 
@@ -247,7 +247,7 @@ describe("MediaSession tests", () => {
   });
 
   test("process() media.play event should dispatch the hit if session is active and backendSessionId is set (tryDispatchMediaEvents is not mocked)", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     jest.spyOn(mediaSession, "getBackendSessionId").mockReturnValue("testBackendSessionId");
 
     mediaSession.process(playHit);
@@ -278,7 +278,7 @@ describe("MediaSession tests", () => {
 
   test("process() media.play event should not dispatch the hit if session is active but backendSessionId is not set (tryDispatchMediaEvents is not mocked)", () => {
     const logDebugSpy = jest.spyOn(Log, "debug").mockImplementation();
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     jest.spyOn(mediaSession, "getBackendSessionId").mockReturnValue(null);
 
     mediaSession.process(playHit);
@@ -297,7 +297,7 @@ describe("MediaSession tests", () => {
   test("process() should dispatch media event and log a warning if the time difference between events is greater than the maximum ping interval", () => {
     const logWarningSpy = jest.spyOn(Log, "warning").mockImplementation();
 
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
 
     jest.spyOn(mediaSession, "getBackendSessionId").mockReturnValue("testBackendSessionId");
 
@@ -321,7 +321,7 @@ describe("MediaSession tests", () => {
   });
 
   test("handleSessionUpdate() should update the backendSessionId", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
 
     //mock sessionStartRequestId
     jest.spyOn(mediaSession, "getSessionStartRequestId").mockReturnValue("testRequestId");
@@ -331,7 +331,7 @@ describe("MediaSession tests", () => {
   });
 
   test("handleErrorResponse() should not abort the session if the requestId does not match the sessionStartRequestId", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
 
     jest.spyOn(mediaSession, "abort");
     jest
@@ -348,7 +348,7 @@ describe("MediaSession tests", () => {
   });
 
   test("handleErrorResponse() should abort the session if the session creation fails.", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
 
     jest.spyOn(mediaSession, "abort");
 
@@ -366,7 +366,7 @@ describe("MediaSession tests", () => {
   });
 
   test("handleErrorResponse() should not abort the session if the requestId does not match the sessionStartRequestId", () => {
-    const mediaSession = new MediaSession("testClientSessionId", mockDispatchFn);
+    const mediaSession = new MediaSession("testPlayerId", mockDispatchFn);
     jest.spyOn(mediaSession, "abort");
     jest
       .spyOn(mediaSession, "getSessionStartRequestId")

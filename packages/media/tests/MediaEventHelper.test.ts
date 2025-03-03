@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 
 import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
 import { MediaConstants } from "../src/MediaConstants";
-import { getEventType, getEventData, getEventDataWithoutSessionId } from "../src/MediaEventHelper";
+import { getEventType, getEventData, getEventDataWithoutPlayerId } from "../src/MediaEventHelper";
 import { Event, EventType } from "@adobe/kepler-aepcore/dist/core/eventhub";
 
 describe("MediaEventHelper tests", () => {
@@ -74,9 +74,9 @@ describe("MediaEventHelper tests", () => {
     expect(getEventData(event)).toBeNull();
   });
 
-  test("getEventDataWithoutSessionId() - should return the event data without the session ID", () => {
+  test("getEventDataWithoutPlayerId() - should return the event data without the player ID", () => {
     const eventData = EventData.buildFrom({
-      clientSessionId: "testSessionId",
+      playerId: "testPlayerId",
       xdm: { eventType: "media.sessionStart", key: "value", key1: 1 },
     });
     const event = Event.builder(
@@ -86,7 +86,7 @@ describe("MediaEventHelper tests", () => {
       eventData
     ).build();
 
-    expect(getEventDataWithoutSessionId(event)).toEqual({
+    expect(getEventDataWithoutPlayerId(event)).toEqual({
       xdm: { eventType: "media.sessionStart", key: "value", key1: 1 },
     });
   });

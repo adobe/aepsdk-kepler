@@ -14,6 +14,12 @@ export const MediaConstants = {
   FRIENDLY_NAME: "Media",
   EXTENSION_VERSION: "1.0.0-beta.1",
 
+  EDGE_EXTENSION_NAME: "com.adobe.edge",
+
+  SharedState: {
+    KEY_OWNER: "stateowner",
+  },
+
   Media: {
     EVENT_NAME_CREATE_SESSION: "createMediaSession",
     EVENT_NAME_SEND_MEDIA_EVENT: "sendMediaEvent",
@@ -22,11 +28,12 @@ export const MediaConstants = {
   },
 
   EventDataKeys: {
+    CONSENT_COLLECT: "consent.collect",
     XDM: "xdm",
     MEDIA_COLLECTION: "mediaCollection",
     TIMESTAMP: "timestamp",
     EVENT_TYPE: "eventType",
-    CLIENT_SESSION_ID: "clientSessionId",
+    PLAYER_ID: "playerId",
     SESSION_ID: "sessionID",
     REQUEST: "request",
     PATH: "path",

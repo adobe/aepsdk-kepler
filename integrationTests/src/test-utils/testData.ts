@@ -1,3 +1,5 @@
+import { DataObject } from "@adobe/kepler-aepcore/src/core/eventhub/EventData";
+
 /*
 Copyright 2025 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -9,7 +11,13 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
+export const expectedEdgeResponseHandlesForFirstRequest = ['identity:result', 'locationHint:result', 'state:store'];
 
+export const expectedEdgeResponseHandlesForConsecutiveRequest = ['locationHint:result', 'state:store'];
+
+export const expectedConsentResponseHandlesForFirstRequest = ['identity:result', 'locationHint:result', 'state:store', 'consent:preferences'];
+
+export const expectedConsentResponseHandlesForConsecutiveRequest = ['locationHint:result', 'state:store', 'consent:preferences'];
 
 export const testFetchECIDQuery = {
     "identity": {
@@ -25,9 +33,36 @@ export const testSetConsentQuery = {
     }
 }
 
+export function getTestSendEvent(eventType: string, sdkConfiguration: DataObject = {}, datastreadmIdOverride: boolean = false, configOverride: boolean = false) {
+    const baseSendEventData = {
+        "xdm": {
+            "eventType": `KeplerIntegrationTest::${eventType}`,
+        },
+        "data": {
+            "key": "value"
+        },
+        "config": {}
+    }
+
+    if (datastreadmIdOverride) {
+        baseSendEventData["config"] = {
+            "datastreamIdOverride": sdkConfiguration["datastreamIdOverride"]
+        }
+    }
+
+    if (configOverride) {
+        baseSendEventData["config"] = {
+            ...baseSendEventData.config,
+            "datastreamConfigOverride": sdkConfiguration["datastreamConfigOverride"]
+        }
+    }
+
+    return baseSendEventData;
+}
+
 export const testImplementationDetails = {
     "environment": "app",
-    "name": "https://ns.adobe.com/experience/mobilesdk/kepler",
+    "name": "https://ns.adobe.com/experience/mobilesdk/js",
     "version": "1.0.0-beta.1"
 }
 

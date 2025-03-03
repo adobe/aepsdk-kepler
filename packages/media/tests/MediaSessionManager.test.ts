@@ -24,12 +24,12 @@ describe("MediaSessionManager tests", () => {
     const mediaSessionManager = new MediaSessionManager(mockDispatchFn);
 
     const sessionStartHit = new MediaHit(
-      "testSessionId",
+      "testPlayerId",
       "testParentId",
       "media.sessionStart",
       123456,
       {
-        sessionId: "testSessionId",
+        playerId: "testPlayerId",
         xdm: {
           key: "value",
         },
@@ -38,9 +38,9 @@ describe("MediaSessionManager tests", () => {
 
     // Starting the session with the event
     expect(mediaSessionManager.startSession(sessionStartHit, {})).toBe(true);
-    const session = mediaSessionManager.getSession("testSessionId");
+    const session = mediaSessionManager.getSession("testPlayerId");
     expect(session).toBeDefined();
-    expect(session?.getClientSessionId()).toBe("testSessionId");
+    expect(session?.getPlayerId()).toBe("testPlayerId");
   });
 
   test("startSession - should not start a new session if session already exists", () => {
@@ -48,12 +48,11 @@ describe("MediaSessionManager tests", () => {
 
     // Building the session start event data
     const sessionStartHit = new MediaHit(
-      "testSessionId",
+      "testPlayerId",
       "testParentId",
       "media.sessionStart",
       123456,
       {
-        sessionId: "testSessionId",
         xdm: {
           key: "value",
         },

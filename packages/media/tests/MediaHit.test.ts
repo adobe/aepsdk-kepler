@@ -13,11 +13,11 @@ import { MediaHit } from "../src/MediaHit";
 
 describe("MediaHit tests", () => {
   test("MediaHit should be defined", () => {
-    const mediaHit = new MediaHit("testSessionId", "testParentId", "testEventType", 123456, {
+    const mediaHit = new MediaHit("testPlayerId", "testParentId", "testEventType", 123456, {
       xdm: "data",
     });
     expect(mediaHit).toBeDefined();
-    expect(mediaHit.sessionId).toBe("testSessionId");
+    expect(mediaHit.playerId).toBe("testPlayerId");
     expect(mediaHit.parentId).toBe("testParentId");
     expect(mediaHit.eventType).toBe("testEventType");
     expect(mediaHit.timestamp).toBe(123456);

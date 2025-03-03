@@ -16,6 +16,7 @@ import { DataObject, EventData } from "../core/eventhub/EventData";
 import { Log } from "../core/utils/Log";
 import { Event } from "../core/eventhub";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
+import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeStateManager";
@@ -156,7 +157,12 @@ export class EdgeStateManager {
    * @param newState The new state.
    * @returns boolean
    */
-  private hasStateUpdated(previousState: DataObject | null, newState: DataObject): boolean {
+  private hasStateUpdated(previousState: DataObject, newState: DataObject): boolean {
+    // Share the first shared state
+    if (isEmptyDataObject(previousState)) {
+      return true;
+    }
+
     return JSON.stringify(previousState) !== JSON.stringify(newState);
   }
 }

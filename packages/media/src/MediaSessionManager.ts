@@ -25,27 +25,27 @@ export class MediaSessionManager {
   constructor(private dispatchFn: DispatchFn) {}
 
   /**
-   * Creates a new media session with the given session ID and configuration.
+   * Creates a new media session with the given media hit and configuration.
    *
-   * @param sessionId - The session ID to identify the session.
+   * @param hit - The media hit to start the session.
    * @param config - The configuration for the session.
    * @returns boolean - True if the session was created successfully, false otherwise.
    */
   public startSession(hit: MediaHit, config: DataObject = {}): boolean {
-    const session = this.getSession(hit.sessionId);
+    const session = this.getSession(hit.playerId);
     if (session) {
       Log.debug(
         MediaConstants.EXTENSION_NAME,
         "MediaSessionManager",
-        `Media session with ID:(${hit.sessionId}) is already active.`
+        `Media session with playerId:(${hit.playerId}) is already active.`
       );
       return false;
     }
 
-    this.createSession(hit.sessionId, this.dispatchFn, config);
+    this.createSession(hit.playerId, this.dispatchFn, config);
     this.process(hit);
 
-    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID:(${hit.sessionId}) created.`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with playerId:(${hit.playerId}) created.`);
     return true;
   }
 
@@ -57,41 +57,41 @@ export class MediaSessionManager {
   public process(hit: MediaHit): boolean {
     Log.debug(LOG_SOURCE, LOG_TAG, `Processing media event: ${JSON.stringify(hit)}`);
 
-    const session = this.getSession(hit.sessionId);
+    const session = this.getSession(hit.playerId);
 
     // Process the hits
     session?.process(hit);
 
     // End the session if the event is a session complete or session end event and remove the session from the active sessions.
     if (this.isSessionEndOrComplete(hit)) {
-      this.endSession(hit.sessionId);
+      this.endSession(hit.playerId);
     }
 
     return session ? true : false;
   }
 
   /**
-   * Ends the media session with the given session ID.
-   * @param sessionId - The session ID to end.
+   * Ends the media session with the given player ID.
+   * @param playerId - The player ID to end.
    * @returns boolean - True if the session was ended successfully, false otherwise.
    */
-  public endSession(sessionId: string): boolean {
-    const session = this.getSession(sessionId);
+  public endSession(playerId: string): boolean {
+    const session = this.getSession(playerId);
 
     if (!session) {
       Log.debug(
         LOG_SOURCE,
         LOG_TAG,
-        `Media session with ID:(${sessionId}) not found or is inactive.`
+        `Media session with playerId:(${playerId}) not found or is inactive.`
       );
       return false;
     }
 
     session.end();
 
-    this.deleteSession(sessionId);
+    this.deleteSession(playerId);
 
-    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} has been ended.`);
+    Log.debug(LOG_SOURCE, LOG_TAG, `Media session with playerId: ${playerId} has been ended.`);
     return true;
   }
 
@@ -129,23 +129,24 @@ export class MediaSessionManager {
   }
 
   /**
-   * Creates the session with the given session ID and configuration and caches the session in the active sessions.
-   * @param sessionId
-   * @param config
+   * Creates the session with the given player ID and configuration and caches the session in the active sessions.
+   * @param playerId - The player ID of the media session.
+   * @param dispatchFn - The dispatch function to dispatch the media edge events to the event hub.
+   * @param config - The configuration for the media session.
    */
-  private createSession(sessionId: string, dispatchFn: DispatchFn, config: DataObject): void {
-    this._activeSessions.set(sessionId, new MediaSession(sessionId, dispatchFn, config));
+  private createSession(playerId: string, dispatchFn: DispatchFn, config: DataObject): void {
+    this._activeSessions.set(playerId, new MediaSession(playerId, dispatchFn, config));
   }
 
   /**
-   * Returns the media session with the given session ID if it is active.
-   * @param sessionId - The session ID of the media session.
+   * Returns the media session with the given player ID if it is active.
+   * @param playerId - The player ID of the media session.
    * @returns MediaSession | null - The media session if it is active, null otherwise.
    */
-  public getSession(sessionId: string): MediaSession | null {
-    const session = this._activeSessions.get(sessionId);
+  public getSession(playerId: string): MediaSession | null {
+    const session = this._activeSessions.get(playerId);
     if (!session || !session.isActive()) {
-      Log.verbose(LOG_SOURCE, LOG_TAG, `Media session with ID: ${sessionId} is not active.`);
+      Log.verbose(LOG_SOURCE, LOG_TAG, `Media session with playerId: ${playerId} is not active.`);
       return null;
     }
 
@@ -153,11 +154,11 @@ export class MediaSessionManager {
   }
 
   /**
-   * Deletes the media session with the given session ID.
-   * @param sessionId - The session ID of the media session to delete.
+   * Deletes the media session with the given player ID.
+   * @param playerId - The player ID of the media session to delete.
    */
-  private deleteSession(sessionId: string): void {
-    this._activeSessions.delete(sessionId);
+  private deleteSession(playerId: string): void {
+    this._activeSessions.delete(playerId);
   }
 
   /**

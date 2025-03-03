@@ -18,6 +18,8 @@ import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
 import { MediaSessionManager } from "../src/MediaSessionManager";
 import { MediaHit } from "../src/MediaHit";
 import { MediaConstants } from "../src/MediaConstants";
+import { MediaState } from "../src/MediaState";
+import { SharedStateStatus } from "@adobe/kepler-aepcore/dist/core/sharedstate";
 
 jest.mock("../src/MediaSessionManager");
 jest.mock("@adobe/kepler-aepcore/dist/core/utils/Log");
@@ -33,6 +35,7 @@ describe("MediaExtension tests", () => {
     mockContainer = {
       dispatch: jest.fn(),
       registerEventListener: jest.fn(),
+      getXDMSharedState: jest.fn(),
     } as unknown as jest.Mocked<ExtensionContainer>;
 
     mockServiceLookup = {} as jest.Mocked<ServiceLookup>;
@@ -43,6 +46,7 @@ describe("MediaExtension tests", () => {
       process: jest.fn(),
       notifyBackendSessionId: jest.fn(),
       notifyErrorResponse: jest.fn(),
+      endAllSessions: jest.fn(),
     }));
   });
 
@@ -55,12 +59,11 @@ describe("MediaExtension tests", () => {
   test("onRegister should initialize MediaExtension", async () => {
     await mediaExtension.onRegister(mockContainer, mockServiceLookup);
 
-    expect(mediaExtension.isActive()).toBe(true);
     expect(mediaExtension["container"]).toBe(mockContainer);
     expect(mediaExtension["serviceLookup"]).toBe(mockServiceLookup);
     expect(mediaExtension["dispatchFn"]).toBeDefined();
     expect(MediaSessionManager).toHaveBeenCalledWith(mediaExtension["dispatchFn"]);
-    expect(mockContainer.registerEventListener).toHaveBeenCalledTimes(4);
+    expect(mockContainer.registerEventListener).toHaveBeenCalledTimes(5);
   });
 
   test("dispatchEvent should call container.dispatch when active", async () => {
@@ -85,7 +88,7 @@ describe("MediaExtension tests", () => {
     mediaExtension["mediaSessionManager"] = new MediaSessionManager(mockDispatchFn);
 
     const eventData = EventData.buildFrom({
-      clientSessionId: "testSessionId",
+      playerId: "testPlayerId",
       xdm: { eventType: MediaConstants.EventType.SESSION_START, key: "value", key1: 1 },
     });
     const event = Event.builder(
@@ -99,7 +102,7 @@ describe("MediaExtension tests", () => {
     // parent id of the media hit should be the event uuid
     // timestamp of the media hit should be the event timestamp
     const expectedSessionStartHit = new MediaHit(
-      "testSessionId",
+      "testPlayerId",
       event.uuid,
       MediaConstants.EventType.SESSION_START,
       event.timestamp,
@@ -135,7 +138,7 @@ describe("MediaExtension tests", () => {
     mediaExtension["mediaSessionManager"] = new MediaSessionManager(mockDispatchFn);
 
     const eventData = EventData.buildFrom({
-      clientSessionId: "testSessionId",
+      playerId: "testPlayerId",
       xdm: {
         eventType: MediaConstants.EventType.PLAY,
         key: "value",
@@ -150,7 +153,7 @@ describe("MediaExtension tests", () => {
     ).build();
 
     const expectedPlayHit = new MediaHit(
-      "testSessionId",
+      "testPlayerId",
       event.uuid,
       "media.play",
       event.timestamp,
@@ -225,8 +228,44 @@ describe("MediaExtension tests", () => {
     );
   });
 
+  test("handleSharedStateUpdate should update media state", async () => {
+    await mediaExtension.onRegister(mockContainer, mockServiceLookup);
+
+    jest.spyOn(mockContainer, "getXDMSharedState").mockReturnValue({
+      status: SharedStateStatus.SET,
+      value: EventData.buildFrom({ [MediaConstants.EventDataKeys.CONSENT_COLLECT]: "n" }),
+    });
+
+    const mediaState = new MediaState();
+    mediaExtension["mediaState"] = mediaState;
+
+    const eventData = EventData.buildFrom({
+      stateowner: MediaConstants.EDGE_EXTENSION_NAME,
+    });
+
+    const event = Event.builder(
+      "Edge shared state update",
+      EventType.HUB,
+      EventSource.SHARED_STATE,
+      eventData
+    ).build();
+
+    mediaExtension["handleSharedStateUpdate"](event);
+
+    expect(mockContainer.getXDMSharedState).toHaveBeenCalledWith(
+      MediaConstants.EDGE_EXTENSION_NAME,
+      expect.any(Object)
+    );
+    expect(mediaState.collectConsent).toBe("n");
+    expect(mediaExtension["mediaSessionManager"]!.endAllSessions).toHaveBeenCalled();
+  });
+
   test("onUnregister should deactivate the extension", () => {
     mediaExtension.onUnregister();
-    expect(mediaExtension.isActive()).toBe(false);
+
+    expect(mediaExtension["container"]).toBeNull();
+    expect(mediaExtension["serviceLookup"]).toBeNull();
+    expect(mediaExtension["dispatchFn"]).toBeNull();
+    expect(mediaExtension["mediaSessionManager"]).toBeNull();
   });
 });

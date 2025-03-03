@@ -117,7 +117,7 @@ export const EdgeConstants = {
       },
     },
     ImplementationDetails: {
-      NAME: "https://ns.adobe.com/experience/mobilesdk/kepler",
+      NAME: "https://ns.adobe.com/experience/mobilesdk/js",
       ENVIRONMENT: "app",
     },
     Path: {

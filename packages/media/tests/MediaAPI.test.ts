@@ -94,7 +94,7 @@ describe("MediaAPI tests", () => {
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.createSession",
         data: EventData.buildFrom({
-          clientSessionId: "default",
+          playerId: "default",
           xdm: {
             eventType: "media.sessionStart",
             key: "value",
@@ -164,7 +164,7 @@ describe("MediaAPI tests", () => {
         type: "com.adobe.eventType.edgeMedia",
         source: "com.adobe.eventSource.requestContent",
         data: EventData.buildFrom({
-          clientSessionId: "default",
+          playerId: "default",
           xdm: {
             eventType: "media.play",
             key: "value",

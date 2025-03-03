@@ -17,12 +17,13 @@ import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
 import { MediaConstants } from "./MediaConstants";
 import { safeStringify } from "@adobe/kepler-aepcore/dist/core/utils/common";
 import { MediaSessionManager } from "./MediaSessionManager";
+import { MediaState } from "./MediaState";
 import {
   getArray,
   getString,
   getDataObjectFromArray,
 } from "@adobe/kepler-aepcore/dist/core/utils/DataObjectUtil";
-import { getEventDataWithoutSessionId, getEventType, getSessionId } from "./MediaEventHelper";
+import { getEventDataWithoutPlayerId, getEventType, getPlayerId } from "./MediaEventHelper";
 import { MediaHit } from "./MediaHit";
 
 export type DispatchFn = (event: Event) => void;
@@ -33,15 +34,15 @@ const LOG_TAG = "MediaExtension";
 
 const MEDIA = MediaConstants.Media;
 const EDGE_RESPONSE = MediaConstants.Edge.EventData;
+const COLLECT_CONSENT_NO = "n";
 
 // Implementation
 export class MediaExtension implements Extension {
-  private _isActive: boolean = false;
   private container: ExtensionContainer | null = null;
   private serviceLookup: ServiceLookup | null = null;
   private mediaSessionManager: MediaSessionManager | null = null;
   private dispatchFn: DispatchFn | null = null;
-
+  private mediaState: MediaState | null = null;
   public get name(): string {
     return MediaConstants.EXTENSION_NAME;
   }
@@ -60,7 +61,7 @@ export class MediaExtension implements Extension {
     serviceLookup: ServiceLookup
   ): Promise<void> {
     Log.verbose(LOG_SOURCE, LOG_TAG, "onRegister() - Registering Media extension.");
-    this._isActive = true;
+    this.mediaState = new MediaState();
     this.container = extensionContainer;
     this.serviceLookup = serviceLookup;
     this.dispatchFn = this.dispatchEvent.bind(this);
@@ -78,33 +79,14 @@ export class MediaExtension implements Extension {
       LOG_TAG,
       `dispatchEvent() - Dispatching event: (${JSON.stringify(event)}).`
     );
-    if (this.isActive()) {
-      // dispatch the event to the event hub
-      this.container?.dispatch(event);
-    }
-  }
 
-  /**
-   * Returns the status of the Media extension.
-   * @returns boolean true if the extension is active, false otherwise.
-   */
-  isActive(): boolean {
-    return this._isActive;
+    this.container?.dispatch(event);
   }
 
   /**
    * Registers the listeners for the Media extension.
    */
   private registerListeners() {
-    if (!this.isActive()) {
-      Log.verbose(
-        LOG_SOURCE,
-        LOG_TAG,
-        "registerListeners() - Cannot register listeners. Media extension is not active."
-      );
-      return;
-    }
-
     Log.verbose(
       LOG_SOURCE,
       LOG_TAG,
@@ -148,6 +130,17 @@ export class MediaExtension implements Extension {
         this.notifyErrorResponse(event);
       }
     );
+
+    this.container.registerEventListener(EventType.HUB, EventSource.SHARED_STATE, (event) => {
+      const eventData = event.data;
+      const owner = eventData?.getString(MediaConstants.SharedState.KEY_OWNER);
+
+      if (owner !== MediaConstants.EDGE_EXTENSION_NAME) {
+        return;
+      }
+
+      this.handleSharedStateUpdate(event);
+    });
   }
 
   /**
@@ -162,16 +155,25 @@ export class MediaExtension implements Extension {
       `createMediaSession() API called with event: \n ${safeStringify(event, null, 2)} `
     );
 
-    const sessionId = getSessionId(event);
-    const eventType = getEventType(event);
-    const data = getEventDataWithoutSessionId(event);
+    if (this.mediaState?.collectConsent === COLLECT_CONSENT_NO) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `createMediaSession() - Collect consent status is set to "n", will not create media session. In order to create media sessions, please set the consent status to "y" and call createMediaSession() API.`
+      );
+      return;
+    }
 
-    if (!sessionId || !eventType || !data) {
+    const playerId = getPlayerId(event);
+    const eventType = getEventType(event);
+    const data = getEventDataWithoutPlayerId(event);
+
+    if (!playerId || !eventType || !data) {
       Log.error(LOG_SOURCE, LOG_TAG, "createMediaSession() - Invalid event data or type.");
       return;
     }
 
-    const sessionStartHit = new MediaHit(sessionId, event.uuid, eventType, event.timestamp, data);
+    const sessionStartHit = new MediaHit(playerId, event.uuid, eventType, event.timestamp, data);
 
     this.mediaSessionManager?.startSession(sessionStartHit);
   }
@@ -188,20 +190,61 @@ export class MediaExtension implements Extension {
       `sendMediaEvent() API called with event: \n ${safeStringify(event, null, 2)} `
     );
 
-    const sessionId = getSessionId(event);
-    const eventType = getEventType(event);
-    const data = getEventDataWithoutSessionId(event);
+    if (this.mediaState?.collectConsent === COLLECT_CONSENT_NO) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `sendMediaEvent() - Collect consent status is set to "n", will not send media event. In order to send media events, please set the consent status to "y" and call createMediaSession() API first.`
+      );
+      return;
+    }
 
-    if (!sessionId || !eventType || !data) {
+    const playerId = getPlayerId(event);
+    const eventType = getEventType(event);
+    const data = getEventDataWithoutPlayerId(event);
+
+    if (!playerId || !eventType || !data) {
       Log.error(LOG_SOURCE, LOG_TAG, "createMediaSession() - Invalid event data or type.");
       return;
     }
 
-    const mediaHit = new MediaHit(sessionId, event.uuid, eventType, event.timestamp, data);
+    const mediaHit = new MediaHit(playerId, event.uuid, eventType, event.timestamp, data);
 
     this.mediaSessionManager?.process(mediaHit);
   }
 
+  private handleSharedStateUpdate(event: Event): void {
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `handleSharedStateUpdate() - Received Shared state update event: \n ${safeStringify(
+        event,
+        null,
+        2
+      )}`
+    );
+
+    const edgeSharedStateResult = this.container?.getXDMSharedState(
+      MediaConstants.EDGE_EXTENSION_NAME,
+      event
+    );
+
+    this.mediaState?.updateEdgeState(edgeSharedStateResult);
+
+    if (this.mediaState?.collectConsent === COLLECT_CONSENT_NO) {
+      Log.debug(
+        LOG_SOURCE,
+        LOG_TAG,
+        `handleSharedStateUpdate() - Received consent status "n", will abort all media sessions.`
+      );
+      this.mediaSessionManager?.endAllSessions();
+    }
+  }
+
+  /**
+   * Notifies the backend session ID for the given request ID.
+   * @param event The event containing the request ID and backend session ID.
+   */
   private notifyBackendSessionId(event: Event): void {
     // get requestId from event data
     const requestId = event.parentId;
@@ -236,9 +279,19 @@ export class MediaExtension implements Extension {
       return;
     }
 
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `notifyBackendSessionId() - Received backend session ID:(${backendSessionId}) for requestId:(${requestId})`
+    );
+
     this.mediaSessionManager?.notifyBackendSessionId(requestId, backendSessionId);
   }
 
+  /**
+   * Notifies the error response for the given request ID.
+   * @param event The event containing the request ID and error response.
+   */
   private notifyErrorResponse(event: Event): void {
     // get requestId from event data
     const requestId = event.parentId;
@@ -248,6 +301,16 @@ export class MediaExtension implements Extension {
     }
 
     const errorData = event.data?.getData() ?? {};
+    Log.debug(
+      LOG_SOURCE,
+      LOG_TAG,
+      `notifyErrorResponse() - Received error response with error data:(${safeStringify(
+        errorData,
+        null,
+        2
+      )}) for requestId:(${requestId})`
+    );
+
     this.mediaSessionManager?.notifyErrorResponse(requestId, errorData);
   }
 
@@ -255,6 +318,11 @@ export class MediaExtension implements Extension {
    * Un-registers the Media extension.
    */
   onUnregister(): void {
-    this._isActive = false;
+    Log.verbose(LOG_SOURCE, LOG_TAG, "onUnregister() - Un-registering Media extension.");
+    this.container = null;
+    this.serviceLookup = null;
+    this.dispatchFn = null;
+    this.mediaState = null;
+    this.mediaSessionManager = null;
   }
 }

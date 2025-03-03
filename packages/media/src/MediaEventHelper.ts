@@ -11,12 +11,12 @@ governing permissions and limitations under the License.
 
 import { Event } from "@adobe/kepler-aepcore/dist/core/eventhub";
 import { MediaConstants } from "./MediaConstants";
-import { getDataObject, getString } from "@adobe/kepler-aepcore/dist/core/utils/DataObjectUtil";
+import { getString } from "@adobe/kepler-aepcore/dist/core/utils/DataObjectUtil";
 import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
 
 export function getEventType(event: Event): string | null {
-  const eventData = event.data?.getData() ?? {};
-  const xdmData = getDataObject(eventData, MediaConstants.EventDataKeys.XDM) ?? {};
+  const eventData = event.data;
+  const xdmData = eventData?.getDataObject(MediaConstants.EventDataKeys.XDM) ?? {};
   const eventType = getString(xdmData, MediaConstants.EventDataKeys.EVENT_TYPE) ?? null;
 
   return eventType;
@@ -28,16 +28,16 @@ export function getEventData(event: Event): DataObject | null {
   return eventData;
 }
 
-export function getEventDataWithoutSessionId(event: Event): DataObject | null {
+export function getEventDataWithoutPlayerId(event: Event): DataObject {
   const eventData = getEventData(event) ?? {};
-  delete eventData[MediaConstants.EventDataKeys.CLIENT_SESSION_ID];
+  delete eventData[MediaConstants.EventDataKeys.PLAYER_ID];
 
   return eventData;
 }
 
-export function getSessionId(event: Event): string {
-  const eventData = event.data?.getData() ?? {};
-  const sessionId = getString(eventData, MediaConstants.EventDataKeys.CLIENT_SESSION_ID) ?? "";
+export function getPlayerId(event: Event): string {
+  const eventData = event.data;
+  const playerId = eventData?.getString(MediaConstants.EventDataKeys.PLAYER_ID) ?? "";
 
-  return sessionId;
+  return playerId;
 }

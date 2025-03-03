@@ -13,7 +13,7 @@ import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
 
 export class MediaHit {
   constructor(
-    readonly sessionId: string,
+    readonly playerId: string,
     readonly parentId: string,
     readonly eventType: string,
     readonly timestamp: number,

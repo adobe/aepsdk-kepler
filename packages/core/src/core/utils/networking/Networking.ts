@@ -30,7 +30,7 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
     Log.error(
       LOG_SOURCE,
       LOG_TAG,
-      `asyncRequest() - Invalid URL ${request.url}. Verify the URL is a valid HTTPS URL.`
+      `asyncRequest() - Invalid URL ${url}. Verify the URL is a valid HTTPS URL.`
     );
     return ERROR_CONNECTION;
   }
@@ -38,7 +38,7 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
   Log.debug(
     LOG_SOURCE,
     LOG_TAG,
-    `asyncRequest() - Send request to ${request.url}, body: ${safeStringify(request.body)}`
+    `asyncRequest() - Send request to ${url}, body: ${safeStringify(request.body)}`
   );
 
   const mergedHeader: Record<string, string> = request.headers
@@ -52,7 +52,7 @@ export async function asyncRequest(request: NetworkRequest): Promise<HttpConnect
   );
 
   try {
-    const response = await fetch(request.url, {
+    const response = await fetch(url, {
       method: request.method,
       headers: mergedHeader,
       body: request.body,

@@ -25,7 +25,7 @@ const URL = EdgeConstants.Request.Url;
 /**
  * Returns the URL for the hit based on the hit type.
  * @param hit EdgeHit
- * @param locationHint LocationHintValue
+ * @param locationHint Location hint to be used for the request.
  * @returns string The URL for the hit.
  */
 export function getURLForHit(

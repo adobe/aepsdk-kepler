@@ -6,7 +6,8 @@ This repository is a monorepo and contains a collection of Amazon Kepler librari
 
 | Package Name | Latest Version |
 | ---- | ---- |
-| @adobe/kepler-aepcore | 1.0.0-beta.1 |
+| @adobe/kepler-aepcore | 1.0.0-beta.2 |
+| @adobe/kepler-aepmedia | 1.0.0-beta.2 |
 
 ## Requirements
 

@@ -5,7 +5,7 @@ __metadata:
   version: 8
   cacheKey: 10
 
-"@adobe/kepler-aepcore@npm:^1.0.0-beta.1, @adobe/kepler-aepcore@workspace:packages/core":
+"@adobe/kepler-aepcore@npm:^1.0.0-beta.2, @adobe/kepler-aepcore@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@adobe/kepler-aepcore@workspace:packages/core"
   dependencies:
@@ -14,11 +14,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@adobe/kepler-aepmedia@npm:^1.0.0-beta.1, @adobe/kepler-aepmedia@workspace:packages/media":
+"@adobe/kepler-aepmedia@npm:^1.0.0-beta.2, @adobe/kepler-aepmedia@workspace:packages/media":
   version: 0.0.0-use.local
   resolution: "@adobe/kepler-aepmedia@workspace:packages/media"
   dependencies:
-    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.1"
+    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.2"
   languageName: unknown
   linkType: soft
 
@@ -26,8 +26,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@adobe/keplersampleapp@workspace:apps/TestApp"
   dependencies:
-    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.1"
-    "@adobe/kepler-aepmedia": "npm:^1.0.0-beta.1"
+    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.2"
+    "@adobe/kepler-aepmedia": "npm:^1.0.0-beta.2"
     "@amzn/kepler-cli-platform": "npm:^0"
     "@amzn/react-native-kepler": "npm:~2.0.0"
     "@react-native-community/cli": "npm:11.3.2"
@@ -7052,8 +7052,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "integration-tests@workspace:integrationTests"
   dependencies:
-    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.1"
-    "@adobe/kepler-aepmedia": "npm:^1.0.0-beta.1"
+    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.2"
+    "@adobe/kepler-aepmedia": "npm:^1.0.0-beta.2"
   languageName: unknown
   linkType: soft
 

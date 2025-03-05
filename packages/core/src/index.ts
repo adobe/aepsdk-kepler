@@ -30,7 +30,7 @@ export interface InitOptions {
 }
 
 export const AEPSDK = {
-  version: "1.0.0-beta.1" as const,
+  version: CoreConstants.EXTENSION_VERSION,
 
   /**
    * Initializes the SDK with the given parameters.

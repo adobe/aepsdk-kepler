@@ -17,6 +17,10 @@ governing permissions and limitations under the License.
  * @returns a function to compute next interval for retry
  */
 export function buildNextInterval(maxRetries: number, intervalMs: number): () => number {
+  if (maxRetries === -1) {
+    return () => intervalMs;
+  }
+
   let maxRetriesCount = maxRetries;
   const interval = intervalMs;
   return () => {

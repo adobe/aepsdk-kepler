@@ -21,6 +21,7 @@ import {
   getBoolean,
   getNull,
   getArray,
+  buildDataObject,
 } from "../utils/DataObjectUtil";
 
 const LOG_TAG = "EventData";
@@ -80,8 +81,17 @@ export class EventData {
     }
   }
 
-  public getData(): DataObject {
-    return this.data;
+  public getData(): DataObject | undefined | null {
+    try {
+      const deepCopy = JSON.parse(this.convertToJSONString());
+      return deepCopy;
+    } catch (error) {
+      Log.error(
+        LOG_SOURCE,
+        LOG_TAG,
+        `Failed to get the data object, error: ${(error as Error).message}`
+      );
+    }
   }
 
   /**
@@ -119,8 +129,21 @@ export class EventData {
     current[key[key.length - 1]] = value;
   }
 
-  //TODO: let's add this method if we have a specific use case for it.
-  // public removeData(key: string): void {}
+  /**
+   * This method removes the data that is stored in the given path.
+   *
+   * @param key The path to the data that needs to be removed.
+   */
+  public removeData(...key: string[]): void {
+    let current = this.data;
+    for (let i = 0; i < key.length - 1; i++) {
+      if (current[key[i]] === undefined) {
+        return;
+      }
+      current = current[key[i]] as DataObject;
+    }
+    delete current[key[key.length - 1]];
+  }
 
   /**
    *

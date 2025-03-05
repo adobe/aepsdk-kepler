@@ -14,6 +14,10 @@ export const EdgeConstants = {
   FRIENDLY_NAME: "Edge",
   EXTENSION_VERSION: "1.0.0-beta.1",
 
+  Service: {
+    DATASTORE: "dataStore",
+  },
+
   Event: {
     Name: {
       SEND_EVENT: "AEP Send Event Request",
@@ -59,6 +63,13 @@ export const EdgeConstants = {
   EventData: {
     Keys: {
       ECID: "ecid",
+      TIMESTAMP: "timestamp",
+      XDM: "xdm",
+      CONFIG: "config",
+      REQUEST: "request",
+      PATH: "path",
+      DATASTREAM_ID_OVERRIDE: "datastreamIdOverride",
+      DATASTREAM_CONFIG_OVERRIDE: "datastreamConfigOverride",
     },
   },
 
@@ -93,6 +104,10 @@ export const EdgeConstants = {
         KEY: "meta",
         ENTRIES: "entries",
         STATE: "state",
+        CONFIG_OVERRIDES: "configOverrides",
+        SDK_CONFIG: "sdkConfig",
+        DATASTREAM: "datastream",
+        ORIGINAL: "original",
       },
       Query: {
         KEY: "query",
@@ -102,7 +117,7 @@ export const EdgeConstants = {
       },
     },
     ImplementationDetails: {
-      NAME: "https://ns.adobe.com/experience/mobilesdk/kepler",
+      NAME: "https://ns.adobe.com/experience/mobilesdk/js",
       ENVIRONMENT: "app",
     },
     Path: {
@@ -111,11 +126,17 @@ export const EdgeConstants = {
       CONSENT: "/v1/privacy/set-consent",
     },
     Url: {
-      DEFAULT: "https://edge.adobedc.net",
+      SCHEME: "https://",
+      DEFAULT: "edge.adobedc.net",
     },
     Retry: {
       TIMEOUT: 30000,
     },
     RecoverableStatusCodes: [408, 500, 503],
+    StatusCode: {
+      SUCCESS: 200,
+      MULTI_STATUS: 207,
+      NO_CONTENT: 204,
+    },
   },
 } as const;

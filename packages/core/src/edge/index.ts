@@ -108,10 +108,17 @@ export class EdgeAPI implements Edge {
 
     getEventDispatcher().dispatch(sendEvent);
 
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       EdgeCallbackManager.getInstance().registerCallback(
         sendEvent.uuid,
         (eventHandles: Array<EventData>) => {
+          if (!eventHandles || eventHandles.length === 0) {
+            return reject(
+              new Error(
+                "Send event with response failed. No event handles received from Edge Network."
+              )
+            );
+          }
           resolve(convertToArrayOfObject(eventHandles));
         }
       );
@@ -187,7 +194,7 @@ export class EdgeAPI implements Edge {
 
 function sanitizeEventDataForSendEvent(data: Record<string, unknown>): Record<string, unknown> {
   // remove any keys that are not allowed
-  const allowedKeys = ["xdm", "data", "query"];
+  const allowedKeys = ["xdm", "data", "query", "config"];
 
   Object.keys(data).forEach((key) => {
     if (!allowedKeys.includes(key)) {
@@ -204,7 +211,7 @@ function sanitizeEventDataForSendEvent(data: Record<string, unknown>): Record<st
 }
 
 function convertToArrayOfObject(eventDataArray: Array<EventData>): Array<Record<string, unknown>> {
-  return eventDataArray.map((eventData) => eventData.getData());
+  return eventDataArray.map((eventData) => eventData.getData() ?? {});
 }
 
 export const edge: Edge = new EdgeAPI();

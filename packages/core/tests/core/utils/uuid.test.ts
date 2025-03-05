@@ -10,22 +10,24 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { uuid } from "../../../src/core/utils/uuid";
+import { serviceLookup, ServiceLookup } from "../../../src/core/services";
+jest.mock("../../../src/core/services");
 
 describe("test uuid()", () => {
-  test("should generate a string", () => {
-    const id = uuid();
-    expect(typeof id).toBe("string");
+  let mockServiceLookup: jest.Mocked<ServiceLookup>;
+
+  beforeEach(() => {
+    mockServiceLookup = {
+      getService: jest.fn(),
+    } as jest.Mocked<ServiceLookup>;
+    (mockServiceLookup.getService as jest.Mock).mockReturnValue({
+      randomUUID: jest.fn().mockReturnValue("123e4567-e89b-12d3-a456-426614174000"),
+    });
+    (serviceLookup as jest.Mocked<ServiceLookup>).getService = mockServiceLookup.getService;
   });
 
-  test("should generate a valid version 4 UUID", () => {
-    const id = uuid();
-    const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    expect(id).toMatch(uuidV4Regex);
-  });
-
-  test("should generate different UUIDs on multiple calls", () => {
-    const id1 = uuid();
-    const id2 = uuid();
-    expect(id1).not.toBe(id2);
+  test("should call Crypto service to generate UUID", () => {
+    uuid();
+    expect(mockServiceLookup.getService).toHaveBeenCalledWith("crypto");
   });
 });

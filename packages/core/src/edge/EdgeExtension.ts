@@ -25,7 +25,8 @@ import { EdgeStateManager } from "./EdgeStateManager";
 import { DataObject, EventData } from "../core/eventhub/EventData";
 import { isNullOrEmptyString } from "../core/utils/StringUtil";
 import { safeStringify } from "../core/utils/common";
-import { getNumber } from "../core/utils/DataObjectUtil";
+import { getDataObject, getString } from "../core/utils/DataObjectUtil";
+import { convertToISOString } from "../core/utils/DateUtil";
 
 export type DispatchFn = (event: Event) => void;
 export type createXDMSharedState = (state: DataObject, event: Event | null) => void;
@@ -33,6 +34,9 @@ export type createXDMSharedState = (state: DataObject, event: Event | null) => v
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;
 const LOG_TAG = "EdgeExtension";
 const HIT_PROCESSING_TIMER_INTERVAL_MS = 500;
+
+const SERVICE = EdgeConstants.Service;
+const EVENT_DATA_KEYS = EdgeConstants.EventData.Keys;
 
 // Implementation
 export class EdgeExtension implements Extension {
@@ -73,7 +77,7 @@ export class EdgeExtension implements Extension {
     this.createSharedState = this.createXDMSharedState.bind(this);
 
     this.serviceLookup = serviceLookup;
-    this.dataStore = serviceLookup.getService("dataStore");
+    this.dataStore = serviceLookup.getService(SERVICE.DATASTORE);
 
     this.consentManager = new ConsentManager(this.dataStore, this.dispatchFn);
     this.identityManager = new IdentityManager(
@@ -113,8 +117,6 @@ export class EdgeExtension implements Extension {
         Promise.reject(error);
       });
   }
-
-
 
   /**
    * Creates the shared state with the provided data for the Edge extension.
@@ -200,38 +202,80 @@ export class EdgeExtension implements Extension {
    */
   sendEvent(event: Event): void {
     const eventData = event.data;
-
     if (!eventData) {
       Log.error(LOG_SOURCE, LOG_TAG, `sendEvent() - Event data(${eventData}) is invalid.`);
       return;
     }
 
-    Log.debug(
-      LOG_SOURCE,
-      LOG_TAG,
-      "sendEvent() - Received event with data: " + eventData.toString()
-    );
+    // Add timestamp to the event data XDM object
+    const xdm = eventData.getDataObject(EVENT_DATA_KEYS.XDM) ?? {};
+    xdm[EVENT_DATA_KEYS.TIMESTAMP] = convertToISOString(event.timestamp);
 
-    const xdm = eventData.getDataObject("xdm") ?? {};
+    const { config, request } = this.extractEventComponents(eventData);
 
-    let hitTimestamp = getNumber(xdm, "timestamp");
-    if (!hitTimestamp) {
-      Log.verbose(
-        LOG_SOURCE,
-        LOG_TAG,
-        "sendEvent() - Adding timestamp to the event data, since timestamp not present."
-      );
-      hitTimestamp = Date.now();
-      xdm["timestamp"] = hitTimestamp;
-    }
-
-    const edgeHit = EdgeHit.builder()
-      .setRequestId(event.uuid)
-      .setData(eventData.getData())
-      .setTimestamp(hitTimestamp)
-      .build();
+    // Create the edge hit
+    const edgeHit = this.createEdgeHit(event, eventData, config, request);
 
     this.processHitAndStartTimer(edgeHit);
+  }
+
+  /**
+   * Extracts the event components from the event data.
+   * @param eventData EventData
+   * @returns { xdm: DataObject, config: DataObject, request: DataObject } The extracted components.
+   */
+  private extractEventComponents(eventData: EventData): {
+    config: DataObject;
+    request: DataObject;
+  } {
+    const config = eventData.getDataObject(EVENT_DATA_KEYS.CONFIG) ?? {};
+    const request = eventData.getDataObject(EVENT_DATA_KEYS.REQUEST) ?? {};
+
+    // Remove processed objects from event data
+    eventData.removeData(EVENT_DATA_KEYS.CONFIG);
+    eventData.removeData(EVENT_DATA_KEYS.REQUEST);
+
+    return { config, request };
+  }
+
+  /**
+   * Creates the edge hit.
+   * @param event Event The event.
+   * @param cleanEventData EventData The clean event data.
+   * @param config DataObject The config object from the event data.
+   * @param request DataObject The request object from the event data.
+   * @returns EdgeHit The edge hit.
+   */
+  private createEdgeHit(
+    event: Event,
+    cleanEventData: EventData,
+    config: DataObject,
+    request: DataObject
+  ): EdgeHit {
+    const path = getString(request, EVENT_DATA_KEYS.PATH);
+    const datastreamConfigOverride = getDataObject(
+      config,
+      EVENT_DATA_KEYS.DATASTREAM_CONFIG_OVERRIDE
+    );
+    const datastreamIdOverride = getString(config, EVENT_DATA_KEYS.DATASTREAM_ID_OVERRIDE);
+
+    const edgeHitBuilder = EdgeHit.builder(
+      event.uuid,
+      cleanEventData.getData() ?? {},
+      event.timestamp
+    );
+
+    if (!isNullOrEmptyString(path)) {
+      edgeHitBuilder.setPath(path!);
+    }
+    if (datastreamConfigOverride) {
+      edgeHitBuilder.setDatastreamConfigOverride(datastreamConfigOverride);
+    }
+    if (datastreamIdOverride) {
+      edgeHitBuilder.setDatastreamIdOverride(datastreamIdOverride);
+    }
+
+    return edgeHitBuilder.build();
   }
 
   /**
@@ -252,22 +296,29 @@ export class EdgeExtension implements Extension {
       "setConsent() - Received event with data: " + eventData.toString()
     );
 
-    const consentHit = EdgeHit.builder()
-      .setData(eventData.getData())
+    const consentHit = EdgeHit.builder(event.uuid, eventData.getData() ?? {}, Date.now())
       .setType(EdgeHitType.CONSENT)
-      .setRequestId(event.uuid)
       .build();
 
     this.processHitAndStartTimer(consentHit);
   }
 
   private processHitAndStartTimer(hit: EdgeHit): void {
+    Log.verbose(
+      LOG_SOURCE,
+      LOG_TAG,
+      `processHitAndStartTimer() - queue hit: (${JSON.stringify(hit)})`
+    );
     this.hitProcessor?.queueHit(hit);
     this.hitProcessor?.process();
 
     this.startHitProcessingTimer();
   }
 
+  /**
+   * Returns the status of the Edge extension.
+   * @returns boolean true if the extension is active, false otherwise.
+   */
   isActive(): boolean {
     return this._isActive;
   }
@@ -303,10 +354,8 @@ export class EdgeExtension implements Extension {
       LOG_TAG,
       `sendEventForIdentity() - Sending edge request (requestId:${requestEventId}) to fetch Identity.`
     );
-    const identityHit = EdgeHit.builder()
+    const identityHit = EdgeHit.builder(requestEventId, {}, Date.now())
       .setType(EdgeHitType.EDGE)
-      .setTimestamp(Date.now())
-      .setRequestId(requestEventId)
       .build();
 
     // add the event to the list of events waiting for identity response

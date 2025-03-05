@@ -18,8 +18,6 @@ import { Executor, RetryContext } from ".";
 const LOG_TAG = "RetryContextImpl";
 
 export class RetryContextImpl<T> implements RetryContext<T> {
-  //TODO: add a default max retry count 1000???
-
   private retryOnResultFn: ((result: T) => boolean) | null = null;
   private retryOnErrorFn: ((error: Error) => boolean) | null = null;
   private nextInterval: () => number = () => -1;

@@ -10,49 +10,24 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DataObject } from "../core/eventhub/EventData";
+import { DataObject, DataType } from "../core/eventhub/EventData";
 
 export class EdgeHit {
-  readonly requestId: string = "";
-  readonly timestamp: number = Date.now();
-  readonly meta: DataObject | null = null;
-  readonly path: string = "";
-  readonly type: EdgeHitType = EdgeHitType.EDGE;
-  readonly xdm: DataObject | null = null;
+  readonly requestId: string;
   readonly data: DataObject | null = null;
-
-  // Public constructor to be called by the builder
-  constructor(builder: EdgeHitBuilder) {
-    this.requestId = builder.requestId;
-    this.timestamp = builder.timestamp;
-    this.meta = builder.meta;
-    this.path = builder.path;
-    this.type = builder.type;
-    this.xdm = builder.xdm;
-    this.data = builder.data;
-  }
-
-  // Static method to initialize the builder
-  static builder() {
-    return new EdgeHitBuilder();
-  }
-}
-
-export class EdgeHitBuilder {
-  private _requestId: string = "";
-  private _timestamp: number = Date.now();
+  readonly timestamp: number = Date.now();
   private _meta: DataObject | null = null;
   private _path: string = "";
   private _type: EdgeHitType = EdgeHitType.EDGE;
   private _xdm: DataObject | null = null;
-  private _data: DataObject | null = null;
 
-  get requestId(): string {
-    return this._requestId;
-  }
+  private _datastreamIdOverride: string | null = null;
+  private _datastreamConfigOverride: DataObject | null = null;
 
-  get timestamp(): number {
-    return this._timestamp;
+  constructor(requestId: string, data: DataObject, timestamp: number) {
+    this.requestId = requestId;
+    this.data = data;
+    this.timestamp = timestamp;
   }
 
   get meta(): DataObject | null {
@@ -71,56 +46,69 @@ export class EdgeHitBuilder {
     return this._xdm;
   }
 
-  get data(): DataObject | null {
-    return this._data;
+  get datastreamIdOverride(): string | null {
+    return this._datastreamIdOverride;
   }
 
-  // Method to set requestId
-  setRequestId(requestId: string): EdgeHitBuilder {
-    this._requestId = requestId;
-    return this;
+  get datastreamConfigOverride(): DataObject | null {
+    return this._datastreamConfigOverride;
   }
 
-  // Method to set timestamp
-  setTimestamp(timestamp: number): EdgeHitBuilder {
-    this._timestamp = timestamp;
-    return this;
-  }
+  private static EdgeHitBuilderInternal = class implements EdgeHitBuilder {
+    private edgeHit: EdgeHit;
 
-  // Method to set meta
-  setMeta(meta: DataObject | null): EdgeHitBuilder {
-    this._meta = meta;
-    return this;
-  }
+    constructor(edgeHit: EdgeHit) {
+      this.edgeHit = edgeHit;
+    }
 
-  // Method to set path
-  setPath(path: string): EdgeHitBuilder {
-    this._path = path;
-    return this;
-  }
+    setDatastreamIdOverride(datastreamId: string): EdgeHitBuilder {
+      this.edgeHit._datastreamIdOverride = datastreamId;
+      return this;
+    }
 
-  // Method to set type
-  setType(type: EdgeHitType): EdgeHitBuilder {
-    this._type = type;
-    return this;
-  }
+    setDatastreamConfigOverride(datastreamConfigOverride: DataObject): EdgeHitBuilder {
+      this.edgeHit._datastreamConfigOverride = datastreamConfigOverride;
+      return this;
+    }
 
-  // Method to set xdm
-  setXdm(xdm: DataObject): EdgeHitBuilder {
-    this._xdm = xdm;
-    return this;
-  }
+    setMeta(meta: DataObject): EdgeHitBuilder {
+      this.edgeHit._meta = meta;
+      return this;
+    }
 
-  // Method to set data
-  setData(data: DataObject): EdgeHitBuilder {
-    this._data = data;
-    return this;
-  }
+    setPath(path: string): EdgeHitBuilder {
+      this.edgeHit._path = path;
+      return this;
+    }
 
-  // Method to build the final EdgeHit object
-  build(): EdgeHit {
-    return new EdgeHit(this);
+    setType(type: EdgeHitType): EdgeHitBuilder {
+      this.edgeHit._type = type;
+      return this;
+    }
+
+    setXdm(xdm: DataObject): EdgeHitBuilder {
+      this.edgeHit._xdm = xdm;
+      return this;
+    }
+
+    build(): EdgeHit {
+      return this.edgeHit;
+    }
+  };
+
+  static builder(requestId: string, data: DataObject, timestamp: number): EdgeHitBuilder {
+    return new EdgeHit.EdgeHitBuilderInternal(new EdgeHit(requestId, data, timestamp));
   }
+}
+
+export interface EdgeHitBuilder {
+  setDatastreamIdOverride(datastreamId: string): EdgeHitBuilder;
+  setDatastreamConfigOverride(datastreamConfigOverride: DataObject): EdgeHitBuilder;
+  setMeta(meta: DataObject): EdgeHitBuilder;
+  setPath(path: string): EdgeHitBuilder;
+  setType(type: EdgeHitType): EdgeHitBuilder;
+  setXdm(xdm: DataObject): EdgeHitBuilder;
+  build(): EdgeHit;
 }
 
 export enum EdgeHitType {

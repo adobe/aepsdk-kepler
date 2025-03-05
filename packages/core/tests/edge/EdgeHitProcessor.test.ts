@@ -110,8 +110,10 @@ describe("EdgeHitProcessor tests", () => {
   test("should queue edge and consent hits correctly", async () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
-    const edgeHit = EdgeHit.builder().setType(EdgeHitType.EDGE).build();
-    const consentHit = EdgeHit.builder().setType(EdgeHitType.CONSENT).build();
+    const edgeHit = EdgeHit.builder("requestId1", {}, Date.now()).setType(EdgeHitType.EDGE).build();
+    const consentHit = EdgeHit.builder("requestId2", {}, Date.now())
+      .setType(EdgeHitType.CONSENT)
+      .build();
 
     edgeHitProcessor.queueHit(edgeHit);
     edgeHitProcessor.queueHit(consentHit);
@@ -124,11 +126,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -157,9 +159,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -180,11 +182,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -213,7 +215,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
         "}]}"
     );
@@ -225,29 +227,28 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
-
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
     edgeHitProcessor.queueHit(edgeHit);
 
     const testTS2 = Date.now();
-    const edgeHit2 = EdgeHit.builder()
-      .setRequestId("requestId2")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS2 })
-      .setTimestamp(testTS2)
-      .build();
+    const edgeHit2 = EdgeHit.builder(
+      "requestId2",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS2 },
+      testTS2
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit2);
 
     const testTS3 = Date.now();
-    const edgeHit3 = EdgeHit.builder()
-      .setRequestId("requestId3")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS3 })
-      .setTimestamp(testTS3)
-      .build();
+    const edgeHit3 = EdgeHit.builder(
+      "requestId3",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS3 },
+      testTS3
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit3);
 
@@ -270,9 +271,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -287,8 +288,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -318,9 +320,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -341,9 +343,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -358,8 +360,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -389,31 +392,31 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
   });
 
-  test("process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is n", async () => {
+  test("process should not send edge hit and drop edge hit to edge network, but should send consent hit when consent is 'n'", async () => {
     jest.spyOn(mockEdgeStateManager, "getCollectConsent").mockReturnValue(ConsentValue.NO);
 
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("edgeRequestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "edgeRequestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    const consentHit = EdgeHit.builder()
-      .setRequestId("consentRequestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "consentRequestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -428,8 +431,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -458,9 +462,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -472,17 +476,17 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("edgeRequestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "edgeRequestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
-    const consentHit = EdgeHit.builder()
-      .setRequestId("consentRequestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "consentRequestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -497,8 +501,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -527,9 +532,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -541,15 +546,13 @@ describe("EdgeHitProcessor tests", () => {
     jest.spyOn(edgeHitProcessor, "queueHit");
 
     for (let i = 0; i < 100; i++) {
-      const edgeHit = EdgeHit.builder()
-        .setRequestId(`requestId${i + 1}`)
-        .build();
+      const edgeHit = EdgeHit.builder(`requestId${i + 1}`, {}, Date.now()).build();
       edgeHitProcessor.queueHit(edgeHit);
     }
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(100);
 
-    const edgeHit101 = EdgeHit.builder().setRequestId(`requestId101`).build();
+    const edgeHit101 = EdgeHit.builder("requestId101", {}, Date.now()).build();
     edgeHitProcessor.queueHit(edgeHit101);
 
     expect(edgeHitProcessor.getEdgeQueueSize()).toBe(100);
@@ -563,8 +566,7 @@ describe("EdgeHitProcessor tests", () => {
     jest.spyOn(edgeHitProcessor, "queueHit");
 
     for (let i = 0; i < 100; i++) {
-      const consentHit = EdgeHit.builder()
-        .setRequestId(`requestId${i + 1}`)
+      const consentHit = EdgeHit.builder(`requestId${i + 1}`, {}, Date.now())
         .setType(EdgeHitType.CONSENT)
         .build();
       edgeHitProcessor.queueHit(consentHit);
@@ -572,8 +574,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(edgeHitProcessor.getConsentQueueSize()).toBe(100);
 
-    const consentHit101 = EdgeHit.builder()
-      .setRequestId(`requestId101`)
+    const consentHit101 = EdgeHit.builder("requestId101", {}, Date.now())
       .setType(EdgeHitType.CONSENT)
       .build();
     edgeHitProcessor.queueHit(consentHit101);
@@ -587,11 +588,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -624,9 +625,9 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/interact?configId"
     );
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -636,9 +637,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -653,8 +654,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -688,9 +690,9 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/privacy/set-consent?configId"
     );
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -700,11 +702,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -741,7 +743,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
         "}]}"
     );
@@ -753,9 +755,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -770,8 +772,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -811,9 +814,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -823,11 +826,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -868,9 +871,9 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":' +
         testTS +
-        '}],"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}}}'
+        "}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -880,9 +883,9 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const consentHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({
+    const consentHit = EdgeHit.builder(
+      "requestId1",
+      {
         consent: [
           {
             standard: "Adobe",
@@ -897,8 +900,9 @@ describe("EdgeHitProcessor tests", () => {
             },
           },
         ],
-      })
-      .setTimestamp(testTS)
+      },
+      testTS
+    )
       .setType(EdgeHitType.CONSENT)
       .build();
 
@@ -941,23 +945,333 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      '{"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
+      '{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":' +
         testTS +
-        '}}}],"query":{"consent":{"operation":"update"},"identity":{"fetch":["ECID"]}},"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/kepler","version":"1.0.0-beta.1","environment":"app"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}}}'
+        "}}}]}"
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
+  });
+
+  test("process should override the datastream id if presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
+      .setDatastreamIdOverride("newDatastreamId")
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    console.log(actualUrl);
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=newDatastreamId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
+  test("process should override the datastream config if presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
+      .setDatastreamConfigOverride({
+        com_adobe_experience_platform: {
+          datasets: {
+            event: {
+              datasetId: "new_dataset_id",
+            },
+          },
+        },
+      })
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    console.log(actualUrl);
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=mockConfigId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
+  test("process should override the datastream config and the datastream id if both presented", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    )
+      .setDatastreamIdOverride("newDatastreamId")
+      .setDatastreamConfigOverride({
+        com_adobe_experience_platform: {
+          datasets: {
+            event: {
+              datasetId: "new_dataset_id",
+            },
+          },
+        },
+      })
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/v1/interact?configId=newDatastreamId&requestId=requestId1"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
+  test("process should send edge hit with custom path when overwrite path is present", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "mediaRequestId",
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: { key: "value" },
+        timestamp: testTS,
+      },
+      testTS
+    )
+      .setPath("/va/v1/sessionStart")
+      .build();
+
+    edgeHitProcessor.queueHit(edgeHit);
+
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(mockEdgeStateManager.getCollectConsent).toHaveBeenCalledTimes(1);
+    expect(mockEdgeStateManager.getIdentityMap).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getLocationHint).toHaveBeenCalledTimes(1);
+    expect(mockEdgeResponseManager.getStateStore).toHaveBeenCalledTimes(1);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/va/v1/sessionStart?configId=mockConfigId&requestId=mediaRequestId"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
+  });
+
+  test("process should send edge hit with custom path and location hint when both are set", async () => {
+    const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
+
+    const testTS = Date.now();
+    const edgeHit = EdgeHit.builder(
+      "mediaRequestId",
+      {
+        xdm: {
+          eventType: "media.sessionStart",
+          key: "value",
+        },
+        data: { key: "value" },
+        timestamp: testTS,
+      },
+      testTS
+    )
+      .setPath("/va/v1/sessionStart")
+      .build();
+
+    mockEdgeResponseManager.getLocationHint.mockReturnValue("mockLocationHint");
+    edgeHitProcessor.queueHit(edgeHit);
+
+    // mock ECID presence
+    mockEdgeStateManager.getIdentityMap.mockReturnValue({
+      ECID: [
+        {
+          authenticatedState: "ambiguous",
+          id: "mockECID",
+          primary: true,
+        },
+      ],
+    });
+
+    mockAsyncRequest.mockResolvedValue({
+      responseCode: 200,
+      bodyAsText: "{}",
+    });
+
+    const success = await edgeHitProcessor.process();
+    expect(success).toBe(true);
+
+    expect(edgeHitProcessor.getEdgeQueueSize()).toBe(0);
+    expect(edgeHitProcessor.getConsentQueueSize()).toBe(0);
+
+    const actualUrl = mockAsyncRequest.mock.calls[0][0]["url"] as string;
+    const actualMethod = mockAsyncRequest.mock.calls[0][0]["method"] as string;
+    const actualTimeout = mockAsyncRequest.mock.calls[0][0]["timeout"] as number;
+    const actualBody = mockAsyncRequest.mock.calls[0][0]["body"] as string;
+
+    expect(actualUrl).toEqual(
+      "https://edge.adobedc.net/ee/mockLocationHint/va/v1/sessionStart?configId=mockConfigId&requestId=mediaRequestId"
+    );
+    expect(actualMethod).toEqual("POST");
+    expect(actualTimeout).toEqual(5000);
+    console.log(actualBody);
+    expect(actualBody).toEqual(
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"1.0.0-beta.1","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+    );
   });
 
   test("Request should be retried after 30 seconds when it fails with recoverable error", async () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 
@@ -1003,11 +1317,11 @@ describe("EdgeHitProcessor tests", () => {
     const edgeHitProcessor = new EdgeHitProcessor(mockEdgeResponseManager, mockEdgeStateManager);
 
     const testTS = Date.now();
-    const edgeHit = EdgeHit.builder()
-      .setRequestId("requestId1")
-      .setData({ xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS })
-      .setTimestamp(testTS)
-      .build();
+    const edgeHit = EdgeHit.builder(
+      "requestId1",
+      { xdm: { key: "value" }, data: { key: "value" }, timestamp: testTS },
+      testTS
+    ).build();
 
     edgeHitProcessor.queueHit(edgeHit);
 

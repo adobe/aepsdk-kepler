@@ -17,5 +17,9 @@ import { isString } from "./TypeCheck";
  * @returns true if the string is null or empty, false otherwise
  */
 export const isNullOrEmptyString = (str: string | null | undefined): boolean => {
-  return str === undefined || str === null || !isString(str) || str.trim().length === 0;
+  return !str || !isString(str) || str.trim().length === 0;
+};
+
+export const caseInsensitiveEquals = (str1: string, str2: string): boolean => {
+  return str1.toLowerCase() === str2.toLowerCase();
 };

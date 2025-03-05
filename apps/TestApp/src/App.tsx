@@ -1,325 +1,344 @@
 /*
- * Copyright (c) 2022 Amazon.com, Inc. or its affiliates.  All rights reserved.
- *
- * PROPRIETARY/CONFIDENTIAL.  USE IS SUBJECT TO LICENSE TERMS.
- */
+Copyright 2025 Adobe. All rights reserved.
+This file is licensed to you under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
+*/
 
 import React, {useEffect, useState} from 'react';
-import {StyleSheet, Text, ImageBackground, View, Image, Modal, Button, ScrollView} from 'react-native';
+import {
+  Text,
+  ImageBackground,
+  View,
+  Image,
+  ScrollView
+} from 'react-native';
+import { Card } from './components/Card';
+import { Section } from './components/Section';
+import { images } from './constants';
+import { ResponsePanel } from './components/ResponsePanel';
+import { appStyles } from './styles/appStyles';
 
-import {Link} from './components/Link';
-import {AEPSDK} from '@adobe/kepler-aepcore';
-import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
+import { AEPSDK } from '@adobe/kepler-aepcore';
+import { Media } from '@adobe/kepler-aepmedia';
 import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
 
-const images = {
-  aep: require('./assets/aepsdk-black.png'),
-};
+// to reset SDK datastore
+import { KeplerDataStore } from '@adobe/kepler-aepcore/dist/platform-kepler/DataStore';
+// NETWORK MONITORING - START
+// Remove this import if reverting network monitoring
+import { NetworkMonitor } from './utils/NetworkMonitor';
+// NETWORK MONITORING - END
 
-const keplerDataStore = new KeplerDataStore();
-const clearDatastore = async () => {
-  console.log('##AEPSample - Clearing Datastore');
-  const sdk_keys = [
-    'edge.ecid',
-    'edge.consent.collect',
-    'edge.locationHint',
-    'edge.stateStore',
-  ]
-
-  for (const key of sdk_keys) {
-    console.log(`##AEPSample - Deleting key: ${key}`);
-    await keplerDataStore.delete(key);
-  }
-}
 
 export const App = () => {
-  const [ecid, setECID] = useState('not set');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [modalText, setModalText] = useState('');
+  console.log('App component rendering');
 
-  const styles = getStyles();
+  const [ecid, setECID] = useState('not set');
+  const [responseText, setResponseText] = useState('');
+  const [responseTitle, setResponseTitle] = useState('Response Panel');
+  const [requestData, setRequestData] = useState('');
+  const [requestTimestamp, setRequestTimestamp] = useState(0);
+
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const sdkConfiguration = require('./AEPSDKConfig.json');
+
+  const keplerDataStore = new KeplerDataStore();
 
   useEffect(() => {
-    const init = async () => {
-      initSDK();
-    };
+    console.log('App component mounted');
+    NetworkMonitor.initialize();
+    initAEPSDK();
+    handleGetECID();
+  }, []);
 
-    const clear = async () => {
-      clearDatastore();
-    }
-
-    const ecid = async () => {
-      getECID();
-    };
-
-    clear();
-    setTimeout(() => {
-      // wait for the datastore to clear
-      init();
-      ecid();
-    }, 100);
-  }, []); // Runs once when the component mounts.
-
-  const initSDK = () => {
-    console.log('##AEPSample - Initializing AEPSDK');
-
-    const sdkConfig = {
-      "edge.configId": "<YOUR_DATASTREAM_ID>", // required
-      // "edge.domain": "<YOUR_DOMAIN>", // optional
-      // "consent.default": { // optional
-      //   "consents": {
-      //     "collect": {
-      //       "val": "y" // "p" = pending , "y" = yes, "n" = no
-      //      }
-      //    }
-      //  }
-    }
-
-    AEPSDK.initialize(
-    {
-      config: sdkConfig,
-      logLevel: LogLevel.VERBOSE
-    });
-  }
-
-  const setConsent = (consentValue: string = 'y') => {
-    console.log('##AEPSample - Setting Consent: ', consentValue);
-    const consentData = {
-      "consent": [
-          {
-              "standard": "Adobe",
-              "version": "2.0",
-              "value": {
-                  "collect": {
-                      "val": consentValue,
-                  },
-                  "metadata": {
-                    "time": Date.now(),
-                  }
-              }
-          }
-      ]
-  }
-    AEPSDK.setConsent(consentData)
-  }
-
-  const getECID = async (showModal: boolean = false) => {
-    console.log('##AEPSample - Getting ECID');
-    AEPSDK.getExperienceCloudId().then((ecid) => {
-      console.log('##AEPSample - Got ECID: ', ecid);
-      if (ecid) {
-        setECID(ecid);
-        if (showModal) {
-          setModalText(`ECID: ${ecid}`);
-          setModalVisible(true);
-        }
-      }
-    });
+  // Update the response panel
+  const updatePanel = (title: string, request: unknown, response?: unknown) => {
+    const requestTimestamp = Date.now();
+    setResponseTitle(title);
+    setRequestData(JSON.stringify(request, null, 2));
+    setResponseText(response ? JSON.stringify(response, null, 2) : '');
+    // Pass timestamp to ResponsePanel
+    setRequestTimestamp(requestTimestamp);
   };
 
-  const sendEvent = () => {
-    AEPSDK.sendEvent({
-      xdm: {
-        xdmKey: 'xdmVal',
-      },
-      data: {
-        freeformKey: 'freeformVal',
-      },
-      query: {
-        queryKey: 'queryVal',
-      },
-    });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const clearDatastore = async () => {
+    const sdk_keys = [
+      'edge.ecid',
+      'edge.consent.collect',
+      'edge.locationHint',
+      'edge.stateStore',
+    ];
+
+    for (const key of sdk_keys) {
+      keplerDataStore.delete(key);
+    }
   }
 
-  const sendEventWithResponse = () => {
-    AEPSDK.sendEventWithResponse({
-      xdm: {
-        xdmKey: 'xdmVal',
-      },
-      data: {
-        freeformKey: 'freeformVal',
-      },
-      query: {
-        queryKey: 'queryVal',
-      },
-    })
-      .then((eventHandles: Array<Record<string, unknown>>) => {
-        const sendEventResponseJson = JSON.stringify(eventHandles ?? "{}", undefined, 2);
-        console.log(`##AEPSample - SendEventWithResponse Success: ${sendEventResponseJson}`);
-        setModalText(`Response:\n ${sendEventResponseJson}`);
-        setModalVisible(true);
-      })
-      .catch((error: string) => {
-        console.log(`##AEPSample - SendEventWithResponse Error: ${error}`);
-        setModalText(`SendEvent Error: ${error}`);
-        setModalVisible(true);
+  // Initialize the AEPSDK
+  const initAEPSDK = async () => {
+      const sdkConfig = {
+        "edge.configId": sdkConfiguration["edge.configId"],
+      };
+
+      AEPSDK.initialize({
+        config: sdkConfig,
+        logLevel: LogLevel.DEBUG,
+        extensions: [Media.EXTENSION]
       });
+    }
+
+  // Get the ECID from the AEPSDK
+  // Update the response panel with the ECID
+  const handleGetECID = async () => {
+    try {
+      const ecid = await AEPSDK.getExperienceCloudId();
+      if (ecid) {
+        setECID(ecid);
+        updatePanel('Get ECID', 'Retrieving ECID...', `ECID: ${ecid}`);
+      }
+    } catch (error) {
+      console.error('GetECID Error:', error);
+      updatePanel('Get ECID Error', 'Retrieving ECID...', `Error: ${error}`);
+    }
+  };
+
+  // Send an event to the AEPSDK
+  // Update the response panel with the event data
+  const handleSendEvent = async (withConfigOverride = false, withDatastreamIdOverride = false) => {
+    let config = {};
+    if (withConfigOverride) {
+      config = { ...config, datastreamConfigOverride: sdkConfiguration["datastreamConfigOverride"] };
+    }
+    if (withDatastreamIdOverride) {
+      config = { ...config, datastreamIdOverride: sdkConfiguration["datastreamIdOverride"]};
+    }
+
+    const sendEventData = {
+        xdm: { xdmKey: 'xdmVal' },
+        data: { freeformKey: 'freeformVal' },
+        query: { queryKey: 'queryVal' },
+        config: config
+    }
+
+    AEPSDK.sendEvent(sendEventData);
+    updatePanel('Send Event', sendEventData);
+  };
+
+  // Send an event to the AEPSDK and handle the response
+  // Update the response panel with the event data and response
+  const handleSendEventWithResponse = async (withConfigOverride = false, withDatastreamIdOverride = false) => {
+    let config = {};
+    if (withConfigOverride) {
+      config = { ...config, datastreamConfigOverride: sdkConfiguration["datastreamConfigOverride"] };
+    }
+    if (withDatastreamIdOverride) {
+      config = { ...config, datastreamIdOverride: sdkConfiguration["datastreamIdOverride"]};
+    }
+
+    const sendEventData = {
+      xdm: { xdmKey: 'xdmVal' },
+      data: { freeformKey: 'freeformVal' },
+      query: { queryKey: 'queryVal' },
+      config: config
+    }
+
+    try {
+      const response = await AEPSDK.sendEventWithResponse(sendEventData);
+      updatePanel('Send Event with Response', sendEventData, response);
+    } catch (error) {
+      console.error('SendEvent Error:', error);
+      updatePanel('Send Event Error', sendEventData, `Error: ${error}`);
+    }
+  };
+
+  const handleMediaSession = async () => {
+      const mediaData = {
+        "xdm": {
+            "eventType": "media.sessionStart",
+            "mediaCollection": {
+                "playhead": 0,
+                "sessionDetails": {
+                    "streamType": "video",
+                    "friendlyName": "KeplerSampleApp::test_media_name",
+                    "hasResume": false,
+                    "name": "KeplerSampleApp::test_media_id",
+                    "length": 100,
+                    "contentType": "vod",
+                    "channel": "KeplerSampleApp::test_channel",
+                    "playerName": "KeplerSampleApp::test_player_name"
+                }
+            }
+        }
+      };
+       Media.createMediaSession(mediaData);
+      updatePanel('Create Media Session', mediaData);
+  };
+
+  const handleMediaEvent = async (eventType: string = "media.ping") => {
+      const mediaEventData = {
+        "xdm": {
+          "eventType": eventType,
+          "mediaCollection": {
+              "playhead": 1,
+            }
+        }
+      };
+       Media.sendMediaEvent(mediaEventData);
+      updatePanel('Send Media Event', mediaEventData);
+  };
+
+  const handleSetConsent = async (value: 'y' | 'n' | 'p') => {
+      const consentData = {
+        consent: [{
+          standard: "Adobe",
+          version: "2.0",
+          value: {
+            collect: { val: value },
+            metadata: { time: new Date().toISOString() }
+          }
+        }]
+      };
+      AEPSDK.setConsent(consentData);
+      updatePanel('Set Consent', consentData);
+
+  };
+
+  const handleUpdateConfiguration = async () => {
+    const configData = {
+      "edge.domain": "customdomain.data.adobedc.net",
+    };
+    AEPSDK.updateConfiguration(configData);
+    updatePanel('Update Configuration', configData);
   };
 
   return (
     <ImageBackground
-      source={require('./assets/aep_bg.png')}
-      style={styles.background}>
-      <View style={styles.container}>
-      <Modal
-          animationType="slide"
-          transparent={true}
-          visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(false);
-          }}>
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <ScrollView contentContainerStyle={styles.scrollContainer}>
-                <Text style={styles.modalText}>
-                  {modalText}
-                </Text>
-                {/* Add more content here */}
-              </ScrollView>
-              <View style={styles.modalButton}>
-                <Button
-                  title="Close"
-                  onPress={() => setModalVisible(false)}
+      source={images.background}
+      style={appStyles.background}
+      onError={(e) => console.error('Background image failed to load:', e.nativeEvent.error)}>
+      <View style={[appStyles.container, {backgroundColor: 'rgba(0,0,0,0.5)'}]}>
+        {/* Info Panel */}
+        <View style={appStyles.infoPanel}>
+          <View style={appStyles.infoLeft}>
+            <Image source={images.aep} style={appStyles.logo}/>
+          </View>
+          <View style={appStyles.infoRight}>
+            <Text style={appStyles.infoTitle}>AEP SDK Sample App</Text>
+            <Text style={appStyles.infoText}>SDK Version: {AEPSDK.version}</Text>
+            <Text style={appStyles.infoText}>ECID: {ecid}</Text>
+          </View>
+        </View>
+
+        <View style={appStyles.mainContent}>
+          <ScrollView style={appStyles.scrollView}>
+            <View style={appStyles.cardsContainer}>
+              <Section title="Core APIs">
+                <Card
+                  title="Get ECID"
+                  description="Retrieve Experience Cloud ID"
+                  onPress={handleGetECID}
+                  variant="blue"
                 />
-              </View>
+                <Card
+                  title="Update Configuration"
+                  description="Update SDK configuration"
+                  onPress={handleUpdateConfiguration}
+                  variant="blue"
+                />
+              </Section>
+
+              <Section title="Consent APIs">
+                <Card
+                  title="Set Consent (Yes)"
+                  description="Set consent value to Yes"
+                  onPress={() => handleSetConsent('y')}
+                  variant="orange"
+                />
+                <Card
+                  title="Set Consent (No)"
+                  description="Set consent value to No"
+                  onPress={() => handleSetConsent('n')}
+                  variant="orange"
+                />
+              </Section>
+
+              <Section title="Edge APIs">
+                <Card
+                  title="Send Event"
+                  description="Send basic event"
+                  onPress={() => handleSendEvent()}
+                  variant="green"
+                />
+                <Card
+                  title="Send Event with Response"
+                  description="Send event and handle response"
+                  onPress={handleSendEventWithResponse}
+                  variant="green"
+                />
+                <Card
+                  title="Send Event with Config Override"
+                  description="Send event with datastream config override and handle response"
+                  onPress={() => handleSendEventWithResponse(true)}
+                  variant="green"
+                />
+                <Card
+                  title="Send Event with ID Override"
+                  description="Send event with datastream ID override and handle response"
+                  onPress={() => handleSendEventWithResponse(false, true)}
+                  variant="green"
+                />
+              </Section>
+
+              <Section title="Media APIs">
+                <Card
+                  title="Create Media Session"
+                  description="Initialize media tracking"
+                  onPress={handleMediaSession}
+                  variant="purple"
+                />
+                <Card
+                  title="Send Media Play"
+                  description="Send media tracking event"
+                  onPress={() => handleMediaEvent("media.play")}
+                  variant="purple"
+                />
+                <Card
+                  title="Send Media Pause"
+                  description="Send media tracking event"
+                  onPress={() => handleMediaEvent("media.pauseStart")}
+                  variant="purple"
+                />
+                <Card
+                  title="Send Media Complete"
+                  description="Send media tracking event"
+                  onPress={() => handleMediaEvent("media.sessionComplete")}
+                  variant="purple"
+                />
+                <Card
+                  title="Send Media End"
+                  description="Send media tracking event"
+                  onPress={() => handleMediaEvent("media.sessionEnd")}
+                  variant="purple"
+                />
+
+              </Section>
             </View>
-          </View>
-        </Modal>
-        <View style={styles.links}>
-          <View style={styles.headerContainer}>
-            <Text style={styles.subHeaderText}>
-              AEP SDK Sample App
-            </Text>
-          </View>
-          <Link
-            linkText={'Get ECID'}
-            onPress={() => {
-              {
-                console.log('##Getting ECID');
-                getECID(true);
-              }
-            }}
-          />
-          <Link
-            linkText={'SendEvent'}
-            onPress={() => {
-              sendEvent();
-            }}
-          />
-          <Link
-            linkText={'SendEventWithResponse'}
-            onPress={() => {
-              sendEventWithResponse();
-            }}
-          />
-          <Link
-            linkText={'Set Consent (y)'}
-            onPress={() => {
-              setConsent('y')
-            }}
-          />
-          <Link
-            linkText={'Set Consent (n)'}
-            onPress={() => {
-              setConsent('n')
-            }}
-          />
-          <Link
-            linkText={'Set Consent (p)'}
-            onPress={() => {
-              setConsent('p')
-            }}
+          </ScrollView>
+
+          <ResponsePanel
+            content={responseText}
+            title={responseTitle}
+            requestData={requestData}
+            requestTimestamp={requestTimestamp}
           />
         </View>
-      </View>
-      <View style={styles.textContainer}>
-        <View style={styles.image}>
-          <Image source={images.aep}/>
-        </View>
-        <Text style={styles.sdkInfoText}>
-          SDK Version: {AEPSDK.version}
-        </Text>
-        <Text style={styles.sdkInfoText}>
-          ECID: {ecid}
-        </Text>
       </View>
     </ImageBackground>
   );
 };
-
-const getStyles = () =>
-  StyleSheet.create({
-    background: {
-      color: 'white',
-      flex: 1,
-      flexDirection: 'column',
-    },
-    container: {
-      flex: 6,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    headerContainer: {
-      marginLeft: 200,
-    },
-    headerText: {
-      color: 'white',
-      fontSize: 80,
-      marginBottom: 10,
-    },
-    subHeaderText: {
-      color: 'white',
-      fontSize: 45,
-      fontWeight: 'bold',
-    },
-    links: {
-      flex: 1,
-      flexDirection: 'column',
-      justifyContent: 'space-around',
-      height: 600,
-    },
-    image: {
-      flex: 1,
-      paddingLeft: 10,
-    },
-    textContainer: {
-      justifyContent: 'center',
-      flex: 1,
-      marginLeft: 190,
-    },
-    text: {
-      color: 'white',
-      fontSize: 40,
-    },
-    sdkInfoText: {
-      color: 'white',
-      fontSize: 40,
-      marginLeft: 150,
-      marginBottom: 30,
-      fontWeight: 'bold'
-    },
-    modalContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      fontSize: 40,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-      width: '50%',
-      maxHeight: '70%', // Ensure the modal doesn't exceed screen height
-      backgroundColor: 'white',
-      borderRadius: 10,
-      padding: 20,
-    },
-    scrollContainer: {
-      paddingVertical: 10, // Add padding inside the scrollable area
-    },
-    modalText: {
-      fontSize: 25,
-      marginBottom: 20, // Adds space below the text
-    },
-    modalButton: {
-      marginTop: 20, // Adds space above the button
-    },
-  });

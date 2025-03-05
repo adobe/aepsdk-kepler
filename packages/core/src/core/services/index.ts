@@ -11,16 +11,19 @@ governing permissions and limitations under the License.
 */
 import { defaultDataStore, DataStore } from "./DataStore";
 import { defaultLogging, LogLevel, Logging } from "./Logging";
+import { defaultCryptoService, Crypto } from "./Crypto";
 
 export interface Services {
   dataStore: DataStore;
   logging: Logging;
+  crypto: Crypto;
 }
 export type Name = keyof Services;
 
 const services: Services = {
   dataStore: defaultDataStore,
   logging: defaultLogging,
+  crypto: defaultCryptoService,
 };
 
 export interface ServiceLookup {

@@ -27,10 +27,16 @@ describe("test Queue class", () => {
     const queue = new Queue<number>();
     queue.enqueue(1);
     queue.enqueue(2);
+
     const item = queue.dequeue();
     expect(item).toBe(1);
     expect(queue.size()).toBe(1);
     expect(queue.peek()).toBe(2);
+  });
+
+  test("test dequeue() with no item, returns undefined", () => {
+    const queue = new Queue<number>();
+    expect(queue.dequeue()).toBeUndefined();
   });
 
   test("test peek()", () => {
@@ -40,6 +46,11 @@ describe("test Queue class", () => {
     const item = queue.peek();
     expect(item).toBe(1);
     expect(queue.size()).toBe(2);
+  });
+
+  test("test peek() with no item, returns undefined", () => {
+    const queue = new Queue<number>();
+    expect(queue.peek()).toBeUndefined();
   });
 
   test("test isEmpty()", () => {

@@ -19,7 +19,8 @@
     "adobe experience platform"
   ],
   "devDependencies": {
-    "@adobe/kepler-aepcore": "^1.0.0-beta.1"
+    "@adobe/kepler-aepcore": "^1.0.0-beta.1",
+    "@adobe/kepler-aepmedia": "^1.0.0-beta.1"
   },
   "author": {
     "name": "Adobe Experience Platform SDK Team"

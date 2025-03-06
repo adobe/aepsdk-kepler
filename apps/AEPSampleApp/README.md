@@ -60,7 +60,7 @@ If you encounter any issues:
 
 1. Verify your datastream ID is correctly configured in `AEPSDKConfig.json`
 2. Check that all dependencies are installed properly
-3. Make sure your React Native development environment is properly set up
+3. Make sure your Kepler development environment is properly set up
 
 ## API References
 

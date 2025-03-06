@@ -1,20 +1,17 @@
 {
   "name": "kepler-sample-app",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "Sample app demonstrating the usage of AEP Kepler SDK",
   "main": "index.js",
   "private": true,
-  "installConfig": {
-    "hoistingLimits": "workspaces"
-  },
   "scripts": {
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
-    "clean": "rm -rf node_modules && rm -rf yarn.lock && yarn install",
+    "clean": "rm -rf node_modules",
     "build:release": "react-native build-kepler --build-type Release",
     "build:debug": "react-native build-kepler --build-type Debug",
-    "build:app": "npm-run-all build:release build:debug"
+    "build:app": "build:release build:debug"
   },
   "dependencies": {
     "@adobe/kepler-aepcore": "file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz",

@@ -5,6 +5,16 @@ __metadata:
   version: 8
   cacheKey: 10
 
+"@adobe/kepler-aepcore@file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz::locator=kepler-sample-app%40workspace%3Aapps%2FAEPSampleApp":
+  version: 1.0.0-beta.2
+  resolution: "@adobe/kepler-aepcore@file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz#./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz::hash=c35bd2&locator=kepler-sample-app%40workspace%3Aapps%2FAEPSampleApp"
+  dependencies:
+    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0"
+    react-native-uuid: "npm:^2.0.0"
+  checksum: 10/bb35be751b6272d797d407ff681c27c1b2402ee97583f36d109511859c64847c793d899556a2e9f15858873ef30caa41cd25019d444e9d4548c50ff46caa3bd0
+  languageName: node
+  linkType: hard
+
 "@adobe/kepler-aepcore@npm:^1.0.0-beta.2, @adobe/kepler-aepcore@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@adobe/kepler-aepcore@workspace:packages/core"
@@ -13,6 +23,15 @@ __metadata:
     react-native-uuid: "npm:^2.0.0"
   languageName: unknown
   linkType: soft
+
+"@adobe/kepler-aepmedia@file:./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz::locator=kepler-sample-app%40workspace%3Aapps%2FAEPSampleApp":
+  version: 1.0.0-beta.2
+  resolution: "@adobe/kepler-aepmedia@file:./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz#./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz::hash=3eb124&locator=kepler-sample-app%40workspace%3Aapps%2FAEPSampleApp"
+  dependencies:
+    "@adobe/kepler-aepcore": "npm:^1.0.0-beta.2"
+  checksum: 10/a499ed75b541c6b60c1103e25cd7a01ef1c76578ba38bd0f00a6bc9c947d393907032771f752f9876cc97a66cbf8b07a5447cb3368608916464cf502817046a5
+  languageName: node
+  linkType: hard
 
 "@adobe/kepler-aepmedia@npm:^1.0.0-beta.2, @adobe/kepler-aepmedia@workspace:packages/media":
   version: 0.0.0-use.local
@@ -2648,7 +2667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native-community/cli-tools@npm:11.4.1":
+"@react-native-community/cli-tools@npm:11.4.1, @react-native-community/cli-tools@npm:^11.3.7":
   version: 11.4.1
   resolution: "@react-native-community/cli-tools@npm:11.4.1"
   dependencies:
@@ -2832,7 +2851,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-native/virtualized-lists@npm:^0.72.5":
+"@react-native/virtualized-lists@npm:^0.72.4, @react-native/virtualized-lists@npm:^0.72.5":
   version: 0.72.8
   resolution: "@react-native/virtualized-lists@npm:0.72.8"
   dependencies:
@@ -3183,12 +3202,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-native@npm:^0.72.0":
+  version: 0.72.8
+  resolution: "@types/react-native@npm:0.72.8"
+  dependencies:
+    "@react-native/virtualized-lists": "npm:^0.72.4"
+    "@types/react": "npm:*"
+  checksum: 10/1029e17b4c2de0a56cc5c67a73459e6ee6e8ffd5f779e6a835889ae9141e4453252832ee3b7c5a7d2fad4f7b79dc7d7f3796ed2cd58855157e1e5ac52e501332
+  languageName: node
+  linkType: hard
+
 "@types/react-test-renderer@npm:^18.0.0":
   version: 18.3.1
   resolution: "@types/react-test-renderer@npm:18.3.1"
   dependencies:
     "@types/react": "npm:^18"
   checksum: 10/f8cc23cc8decdb6068cdc8f8c306e189eab8e569443ce97b216e757ee42eb20b18d2280ef41e2955668413f14be92765a3ba86cfcfeeae6b20c965acd9674786
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*":
+  version: 19.0.10
+  resolution: "@types/react@npm:19.0.10"
+  dependencies:
+    csstype: "npm:^3.0.2"
+  checksum: 10/10b592d212ebe4b4e0bd42a95c58af3d8dfcb8b3fa4b412d686c2ff8810d5dd3e3a30ebedb31d7b738e33a39c43503e24fe4e6ca8a21d842870043793f4eda98
   languageName: node
   linkType: hard
 
@@ -3573,11 +3611,11 @@ __metadata:
   linkType: hard
 
 "acorn@npm:^8.8.2, acorn@npm:^8.9.0":
-  version: 8.14.0
-  resolution: "acorn@npm:8.14.0"
+  version: 8.14.1
+  resolution: "acorn@npm:8.14.1"
   bin:
     acorn: bin/acorn
-  checksum: 10/6df29c35556782ca9e632db461a7f97947772c6c1d5438a81f0c873a3da3a792487e83e404d1c6c25f70513e91aa18745f6eafb1fcc3a43ecd1920b21dd173d2
+  checksum: 10/d1379bbee224e8d44c3c3946e6ba6973e999fbdd4e22e41c3455d7f9b6f72f7ce18d3dc218002e1e48eea789539cf1cb6d1430c81838c6744799c712fb557d92
   languageName: node
   linkType: hard
 
@@ -4415,9 +4453,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001688":
-  version: 1.0.30001701
-  resolution: "caniuse-lite@npm:1.0.30001701"
-  checksum: 10/d121607a96f9165128203a317d6aee6a4c7808d52a1f3b46ef5fb918abe9e9d4463e57b0bd5ffe2f4316292bd5b8d85a832b4456b7ca6f024f377b498911bfec
+  version: 1.0.30001702
+  resolution: "caniuse-lite@npm:1.0.30001702"
+  checksum: 10/1f756953e5caf6c5b17562413cbbb7768b6b853620001b592aff07235ed98e84a1c169ad627d2cd77acd1524f482b5a9682edbd1b7b5cd3dae7753785d7b021d
   languageName: node
   linkType: hard
 
@@ -5332,9 +5370,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.111
-  resolution: "electron-to-chromium@npm:1.5.111"
-  checksum: 10/93f9f402f4342b3e7b133a549d66dd9938b6ec82eeb2a5776cfdacda6c5b764393bc443973ad5bbe6833bf59b5a8b1ef6150889cfd6a3c0ee19a8a6fc35623ca
+  version: 1.5.112
+  resolution: "electron-to-chromium@npm:1.5.112"
+  checksum: 10/3d67bf774e65415ca74d39b7b280916d3afbaa96375458c9dc4eb321937adcb8f9bc1350fae398e6c6fc1ad58c2a198caf033442b8cb5d9e5c8a1ca88a68504d
   languageName: node
   linkType: hard
 
@@ -6203,9 +6241,9 @@ __metadata:
   linkType: hard
 
 "flow-parser@npm:0.*":
-  version: 0.262.0
-  resolution: "flow-parser@npm:0.262.0"
-  checksum: 10/f22285d1e52a7435015c120503c5585694c459a5e96898cf8122db4ae562a7d06f11c1c4ba5b4f6f5a38cd35835273e8ae345dfb36aa663b0cf90c3a7cd2c5f6
+  version: 0.263.0
+  resolution: "flow-parser@npm:0.263.0"
+  checksum: 10/b682b144644a91d842a4c25eea5665215ed9f1667ad03977ba867ebac7ad26bfe748a8c6ef3f3bf37df3b063948476b973861cee99ea62c517b7e50f8d1a3b80
   languageName: node
   linkType: hard
 
@@ -8417,6 +8455,39 @@ __metadata:
   checksum: 10/4c6b14d6be2a3391b020ea2b3d1a0acf2f4c60fcb16681c7f6f76d4c0f1841fae5b00c1a2e719980992e46320e4b6c55a4713683cb1873dd41a2621f08c9f8e8
   languageName: node
   linkType: hard
+
+"kepler-sample-app@workspace:apps/AEPSampleApp":
+  version: 0.0.0-use.local
+  resolution: "kepler-sample-app@workspace:apps/AEPSampleApp"
+  dependencies:
+    "@adobe/kepler-aepcore": "file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz"
+    "@adobe/kepler-aepmedia": "file:./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz"
+    "@amzn/kepler-cli-platform": "npm:^0"
+    "@amzn/react-native-kepler": "npm:~2.0.0"
+    "@react-native-community/cli": "npm:11.3.2"
+    "@react-native-community/cli-tools": "npm:^11.3.7"
+    "@react-native/eslint-config": "npm:0.72.2"
+    "@react-native/metro-config": "npm:^0.72.6"
+    "@testing-library/react-native": "npm:^7.2.0"
+    "@types/jest": "npm:^28.0.0"
+    "@types/react": "npm:^18.0.24"
+    "@types/react-native": "npm:^0.72.0"
+    "@types/react-test-renderer": "npm:^18.0.0"
+    "@typescript-eslint/eslint-plugin": "npm:^5.30.0"
+    babel-jest: "npm:^28.0.0"
+    eslint: "npm:^8.12.0"
+    jest: "npm:^28.0.0"
+    metro-react-native-babel-preset: "npm:^0.76.5"
+    mustache: "npm:^4.2.0"
+    npm-run-all: "npm:^4.1.5"
+    prettier: "npm:^2.6.2"
+    react: "npm:18.2.0"
+    react-native: "npm:0.72.0"
+    react-test-renderer: "npm:18.2.0"
+    ts-jest: "npm:^28.0.0"
+    typescript: "npm:4.8.4"
+  languageName: unknown
+  linkType: soft
 
 "keyv@npm:^4.5.3":
   version: 4.5.4

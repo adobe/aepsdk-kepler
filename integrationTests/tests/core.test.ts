@@ -20,6 +20,7 @@ import { serviceLookup } from "@adobe/kepler-aepcore/dist/core/services";
 import { Extension, ExtensionContainer } from "@adobe/kepler-aepcore/dist/core/extension";
 import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
 
+const extensionVersion = "1.0.0-beta.2";
 describe("test public APIs", () => {
   beforeEach(() => {
     resetSDK();
@@ -43,7 +44,7 @@ describe("test public APIs", () => {
     expect(sharedState).not.toBeNull();
     expect(sharedState).toEqual({
       data: {
-        version: "1.0.0-beta.1",
+        version: extensionVersion,
         wrapper: {
           type: "NONE",
           friendlyName: "None",
@@ -51,11 +52,11 @@ describe("test public APIs", () => {
         extensions: [
           {
             name: "com.adobe.module.configuration",
-            version: "1.0.0-beta.1",
+            version: extensionVersion,
           },
           {
             name: "com.adobe.edge",
-            version: "1.0.0-beta.1",
+            version: extensionVersion,
           },
           {
             name: "testExtension",
@@ -87,7 +88,7 @@ describe("test public APIs", () => {
 
     expect(sharedState).toEqual({
       data: {
-        version: "1.0.0-beta.1",
+        version: extensionVersion,
         wrapper: {
           type: "NONE",
           friendlyName: "None",
@@ -95,11 +96,11 @@ describe("test public APIs", () => {
         extensions: [
           {
             name: "com.adobe.module.configuration",
-            version: "1.0.0-beta.1",
+            version: extensionVersion,
           },
           {
             name: "com.adobe.edge",
-            version: "1.0.0-beta.1",
+            version: extensionVersion,
           },
           {
             name: "testExtension",

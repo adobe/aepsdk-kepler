@@ -63,7 +63,7 @@ export function getTestSendEvent(eventType: string, sdkConfiguration: DataObject
 export const testImplementationDetails = {
     "environment": "app",
     "name": "https://ns.adobe.com/experience/mobilesdk/js",
-    "version": "1.0.0-beta.1"
+    "version": "1.0.0-beta.2"
 }
 
 export const testIdentityMap = {

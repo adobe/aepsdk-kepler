@@ -1,6 +1,6 @@
 {
   "name": "@adobe/kepler-aepcore",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Adobe Experience Platform support for kepler apps.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",

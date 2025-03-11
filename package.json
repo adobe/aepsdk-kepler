@@ -15,7 +15,9 @@
     "unit_test": "npx lerna run test",
     "unit_test_report": "npx lerna run testReport",
     "integration_test": "cd integrationTests && npx jest",
-    "archive_all": "rm -rf ./out; mkdir out; npx lerna run archive"
+    "archive_all": "rm -rf ./out; mkdir out; npx lerna run archive",
+    "build_sample_app": "./scripts/buildSampleApp.sh",
+    "package_sdk": "./scripts/packageSDK.sh"
   },
   "devDependencies": {
     "@amzn/react-native-kepler": "~2.0.0",

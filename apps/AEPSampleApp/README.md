@@ -1,67 +1,67 @@
-# Kepler Sample App
+# Adobe Experience Platform Kepler SDK Sample App
 
-This Kepler app demonstrates the usage of the AEP Kepler SDK.
+This is a sample React Native application demonstrating the usage of Adobe Experience Platform Kepler SDK.
 
-To run this app on your Amazon device, follow the steps below to set it up beforehand.
+## Package Contents
 
-## Install the AEP Kepler SDK
-
-Fristly, download the `@adobe-kepler-aepcore-1.0.0-beta.1.tgz` file to the root directory of the Kepler sample app project.
-
-Next, execute the npm command provided below to install the package.
-
-```shell
-npm install @adobe-kepler-aepcore-1.0.0-beta.1.tgz
+```
+AEPKeplerSDK/
+├── libs/                    # SDK Libraries
+│   ├── @adobe-kepler-aepcore-*.tgz
+│   └── @adobe-kepler-aepmedia-*.tgz
+├── docs/                    # SDK Documentation
+│   ├── api-reference.md
+│   ├── getting-started.md
+│   └── Tutorials/
+└── AEPSampleApp/           # Sample Application
+    └── ...
 ```
 
-## Initialize and configure the AEP Keper SDK
+## Getting Started
 
-The `App.tsx` file contains the code to initialize the AEP Kepler SDK, as shown below:
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-- Import the `@adobe/kepler-aepcore` package
+2. Configure the SDK:
+   Update the `src/AEPSDKConfig.json` file with your configuration:
+   ```json
+   {
+     "edge.configId": "<YOUR_DATASTREAM_ID>"
+   }
+   ```
 
-```javascript
-import {AEPSDK, LogLevel} from '@adobe/kepler-aepcore';
-```
+3. Initialize the SDK in your application:
+   ```typescript
+   import { AEPSDK, LogLevel } from '@adobe/kepler-aepcore';
+   import { Media } from '@adobe/kepler-aepmedia';
 
-- Initliaze the SDK
+   const sdkConfig = {
+     "edge.configId": sdkConfiguration["edge.configId"]
+   };
 
-This section provides an example of how to initialize the AEP SDK in your Keper application.
+   AEPSDK.initialize({
+     config: sdkConfig,
+     logLevel: LogLevel.VERBOSE,
+     extensions: [Media.EXTENSION]
+   });
+   ```
 
-> **NOTE:**
-> The configuration key `edge.configId` is required for initializing the AEP SDK. Replace <YOUR_DATASTREAM_ID> with a valid datastream ID string before launching the app. Refer to the `API References` for additional details.
+## Prerequisites
 
-```typescript
-AEPSDK.initialize({
-    config: {
-       "edge.configId": "<YOUR_DATASTREAM_ID>", // required
-      // "edge.domain": "<YOUR_DOMAIN>", // optional
-      // "consent.default": { // optional
-      //   "consents": {
-      //     "collect": {
-      //       "val": "y" // "p" = pending , "y" = yes, "n" = no
-      //      }
-      //    }
-      //  }
-    },
-    logLevel: LogLevel.DEBUG
-});
-```
+- Node.js (v16 or later)
+- npm or yarn
+- React Native development environment set up
 
-## Send XDM data to the Adobe Edge Network
+## Troubleshooting
 
-Use the `sendEvent` API to send XDM data to the Adobe Edge Network.
+If you encounter any issues:
 
-```typescript
-AEPSDK.sendEvent(
-  {
-    xdm :
-    {
-      xdmKey: 'xdmVal'
-    },
-    data: {
-      freeformKey: 'freeformVal'
-    }
-  }
-);
-```
+1. Verify your datastream ID is correctly configured in `AEPSDKConfig.json`
+2. Check that all dependencies are installed properly
+3. Make sure your Kepler development environment is properly set up
+
+## API References
+
+For detailed API documentation and advanced configuration options, please refer to the AEP SDK documentation.

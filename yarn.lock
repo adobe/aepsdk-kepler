@@ -3573,11 +3573,11 @@ __metadata:
   linkType: hard
 
 "acorn@npm:^8.8.2, acorn@npm:^8.9.0":
-  version: 8.14.0
-  resolution: "acorn@npm:8.14.0"
+  version: 8.14.1
+  resolution: "acorn@npm:8.14.1"
   bin:
     acorn: bin/acorn
-  checksum: 10/6df29c35556782ca9e632db461a7f97947772c6c1d5438a81f0c873a3da3a792487e83e404d1c6c25f70513e91aa18745f6eafb1fcc3a43ecd1920b21dd173d2
+  checksum: 10/d1379bbee224e8d44c3c3946e6ba6973e999fbdd4e22e41c3455d7f9b6f72f7ce18d3dc218002e1e48eea789539cf1cb6d1430c81838c6744799c712fb557d92
   languageName: node
   linkType: hard
 
@@ -4415,9 +4415,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001688":
-  version: 1.0.30001701
-  resolution: "caniuse-lite@npm:1.0.30001701"
-  checksum: 10/d121607a96f9165128203a317d6aee6a4c7808d52a1f3b46ef5fb918abe9e9d4463e57b0bd5ffe2f4316292bd5b8d85a832b4456b7ca6f024f377b498911bfec
+  version: 1.0.30001702
+  resolution: "caniuse-lite@npm:1.0.30001702"
+  checksum: 10/1f756953e5caf6c5b17562413cbbb7768b6b853620001b592aff07235ed98e84a1c169ad627d2cd77acd1524f482b5a9682edbd1b7b5cd3dae7753785d7b021d
   languageName: node
   linkType: hard
 
@@ -5332,9 +5332,9 @@ __metadata:
   linkType: hard
 
 "electron-to-chromium@npm:^1.5.73":
-  version: 1.5.111
-  resolution: "electron-to-chromium@npm:1.5.111"
-  checksum: 10/93f9f402f4342b3e7b133a549d66dd9938b6ec82eeb2a5776cfdacda6c5b764393bc443973ad5bbe6833bf59b5a8b1ef6150889cfd6a3c0ee19a8a6fc35623ca
+  version: 1.5.112
+  resolution: "electron-to-chromium@npm:1.5.112"
+  checksum: 10/3d67bf774e65415ca74d39b7b280916d3afbaa96375458c9dc4eb321937adcb8f9bc1350fae398e6c6fc1ad58c2a198caf033442b8cb5d9e5c8a1ca88a68504d
   languageName: node
   linkType: hard
 
@@ -6203,9 +6203,9 @@ __metadata:
   linkType: hard
 
 "flow-parser@npm:0.*":
-  version: 0.262.0
-  resolution: "flow-parser@npm:0.262.0"
-  checksum: 10/f22285d1e52a7435015c120503c5585694c459a5e96898cf8122db4ae562a7d06f11c1c4ba5b4f6f5a38cd35835273e8ae345dfb36aa663b0cf90c3a7cd2c5f6
+  version: 0.263.0
+  resolution: "flow-parser@npm:0.263.0"
+  checksum: 10/b682b144644a91d842a4c25eea5665215ed9f1667ad03977ba867ebac7ad26bfe748a8c6ef3f3bf37df3b063948476b973861cee99ea62c517b7e50f8d1a3b80
   languageName: node
   linkType: hard
 

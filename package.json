@@ -20,7 +20,7 @@
     "package_sdk": "./scripts/packageSDK.sh"
   },
   "devDependencies": {
-    "@amzn/react-native-kepler": "~2.0.0",
+    "@amazon-devices/react-native-kepler": "^2.0.0",
     "@babel/core": "^7.20.0",
     "@babel/runtime": "^7.20.0",
     "@babel/traverse": "7.22.8",

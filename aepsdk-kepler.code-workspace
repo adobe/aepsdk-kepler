@@ -10,7 +10,14 @@
   "settings": {
     "[typescript]": {
       "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "C_Cpp.default.includePath": [
+      "${workspaceFolder}/**",
+      "/Users/namarora/kepler/sdk/0.21.4726/workspace/App/NativeRuntime/build/private/sysroot-armv7/usr/include/**",
+      "/Users/namarora/kepler/sdk/0.21.4726/workspace/App/NativeRuntime/build/private/sysroot-aarch64/usr/include/**",
+      "/Users/namarora/kepler/sdk/0.21.4726/workspace/App/NativeRuntime/build/private/sysroot-x86_64/usr/include/**"
+    ],
+    "C_Cpp.default.compilerPath": "/Users/namarora/kepler/sdk/0.21.4726/workspace/App/NativeRuntime/build/private/toolchain/armv7/mac/bin/clang"
   },
   "tasks": {
     "version": "2.0.0",

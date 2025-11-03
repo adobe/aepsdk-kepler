@@ -38,10 +38,10 @@
     "hoistingLimits": "dependencies"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0",
+    "@react-native-async-storage/async-storage": "^2.0.0",
     "react-native-uuid": "^2.0.0"
   },
   "overrides": {
-    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0"
+    "@react-native-async-storage/async-storage": "^2.0.0"
   }
 }

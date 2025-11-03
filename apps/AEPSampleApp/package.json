@@ -15,14 +15,14 @@
   },
   "dependencies": {
     "@adobe/kepler-aepcore": "file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz",
-    "@adobe/kepler-aepmedia": "file:./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz",
-    "@amzn/react-native-kepler": "~2.0.0",
+    "@adobe/kepler-aepmedia": "file:./libs/adobe-kepler-aepmedia-1.0.0-beta.2.tgz",
+    "@amazon-devices/react-native-kepler": "^2.0.0",
     "@react-native-community/cli-tools": "^11.3.7",
     "react": "18.2.0",
     "react-native": "0.72.0"
   },
   "devDependencies": {
-    "@amzn/kepler-cli-platform": "^0",
+    "@amazon-devices/kepler-cli-platform": "^0",
     "@react-native-community/cli": "11.3.2",
     "@react-native/eslint-config": "0.72.2",
     "@react-native/metro-config": "^0.72.6",

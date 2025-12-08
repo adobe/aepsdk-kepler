@@ -15,3 +15,4 @@ id = "com.adobe.marketing.keplersampleapp"
 id = "com.adobe.marketing.keplersampleapp.main"
 runtime-module = "/com.amazon.kepler.keplerscript.runtime.loader_2@IKeplerScript_2_0"
 launch-type = "singleton"
+categories = ["com.amazon.category.main"]

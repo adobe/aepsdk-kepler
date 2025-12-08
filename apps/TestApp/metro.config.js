@@ -23,8 +23,15 @@ const config = {
       },
     }),
   },
-  watchFolders: [resolve(__dirname, '../../packages')],
+  watchFolders: [
+    resolve(__dirname, '../../packages'),
+    resolve(__dirname, '../../node_modules')
+  ],
   resolver: {
+    nodeModulesPaths: [
+      resolve(__dirname, 'node_modules'),
+      resolve(__dirname, '../../node_modules')
+    ],
     extraNodeModules: new Proxy(
       {},
       {
@@ -39,9 +46,10 @@ const config = {
           ) {
             const packageName = name.replace('@adobe/kepler-aep', '');
             console.log('------packageName -> ' + packageName);
-            return join(__dirname, `../../packages/${packageName}`);
+            return resolve(__dirname, `../../packages/${packageName}`);
           }
-          return join(__dirname, `node_modules/${name}`);
+          // For all other modules, check root node_modules first
+          return resolve(__dirname, `../../node_modules/${name}`);
         },
       },
     ),

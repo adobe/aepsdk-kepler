@@ -9,8 +9,8 @@
     "test": "jest",
     "lint": "eslint .",
     "clean": "rm -rf node_modules",
-    "build:release": "react-native build-kepler --build-type Release",
-    "build:debug": "react-native build-kepler --build-type Debug",
+    "build:release": "react-native build-vega --build-type Release",
+    "build:debug": "react-native build-vega --build-type Debug",
     "build:app": "build:release build:debug"
   },
   "dependencies": {

@@ -26,9 +26,10 @@ rm -rf apps/AEPSampleApp/libs
 mkdir -p apps/AEPSampleApp/libs
 
 # Copy the archived packages to the sample app
+# (yarn pack writes tarballs to each package dir with names like adobe-kepler-aepcore-v1.0.0-beta.2.tgz)
 echo "Copying SDK packages to sample app..."
-cp out/@adobe-kepler-aepcore-*.tgz apps/AEPSampleApp/libs/
-cp out/@adobe-kepler-aepmedia-*.tgz apps/AEPSampleApp/libs/
+cp packages/core/adobe-kepler-aepcore-*.tgz apps/AEPSampleApp/libs/
+cp packages/media/adobe-kepler-aepmedia-*.tgz apps/AEPSampleApp/libs/
 
 # Navigate to sample app directory
 cd apps/AEPSampleApp

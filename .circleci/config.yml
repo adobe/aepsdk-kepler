@@ -1,0 +1,21 @@
+version: 2.1
+
+jobs:
+  sanity-check:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - run:
+          name: Print Environment Info
+          command: |
+            echo "CircleCI is alive."
+            echo "Branch: $CIRCLE_BRANCH"
+            echo "Commit: $CIRCLE_SHA1"
+            uname -a
+            date
+
+workflows:
+  test-workflow:
+    jobs:
+      - sanity-check

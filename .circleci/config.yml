@@ -1,7 +1,9 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/configuration-reference
-# Builds Vega + Node image from .circleci/Dockerfile and runs build_sample_app inside it.
+# Vega/Kepler SDK and Node are installed via steps below (no Docker image build).
 version: 2.1
+
+orbs:
+  node: circleci/node@7.1.0
 
 # Pipeline parameters (override in CircleCI UI or when triggering the pipeline)
 parameters:
@@ -9,31 +11,42 @@ parameters:
     type: string
     default: "0.21.5245"
 
-# Define jobs to be invoked in workflows.
-# See: https://circleci.com/docs/jobs-steps/#jobs-overview
 jobs:
   build-sample-app:
-    description: Build Vega/Node Docker image and run build_sample_app inside it
+    description: Install Vega/Kepler SDK and Node via steps, then run build_sample_app
     docker:
-      - image: cimg/docker:24.0
+      - image: cimg/base:current
 
     environment:
+      DEBIAN_FRONTEND: noninteractive
+      NONINTERACTIVE: "true"
       VEGA_SDK_VERSION: << pipeline.parameters.vega_sdk_version >>
 
     steps:
       - checkout
 
-      - setup_remote_docker:
-          version: 24.0
+      - run:
+          name: Install system dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y curl tar jq ca-certificates
+            sudo rm -rf /var/lib/apt/lists/*
 
       - run:
-          name: Build Vega + Node image from Dockerfile
+          name: Install Vega/Kepler SDK
           command: |
-            docker build \
-              --build-arg VEGA_SDK_VERSION="${VEGA_SDK_VERSION}" \
-              -f .circleci/Dockerfile \
-              -t vega-builder \
-              .
+            export NONINTERACTIVE=true
+            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.21.5245}"
+            curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash
+            VEGA_BIN="${HOME}/vega/bin"
+            [ -d "$VEGA_BIN" ] || VEGA_BIN="/root/vega/bin"
+            echo "export PATH=\"${VEGA_BIN}:\${PATH}\"" >> $BASH_ENV
+            source $BASH_ENV
+            vega -v
+
+      - node/install:
+          node-version: "20.20.0"
+          install-yarn: true
 
       - restore_cache:
           keys:
@@ -41,14 +54,12 @@ jobs:
             - yarn-cache-
 
       - run:
-          name: Install deps and run build_sample_app (inside Vega image)
-          command: |
-            docker run --rm \
-              -v "$(pwd)":/workspace \
-              -w /workspace \
-              -e VEGA_SDK_VERSION="${VEGA_SDK_VERSION}" \
-              vega-builder \
-              bash -c "yarn install --frozen-lockfile && yarn run build_sample_app"
+          name: Install root dependencies
+          command: yarn install --frozen-lockfile
+
+      - run:
+          name: Build sample app
+          command: yarn run build_sample_app
 
       - save_cache:
           key: yarn-cache-{{ checksum "yarn.lock" }}
@@ -56,8 +67,6 @@ jobs:
             - node_modules
             - apps/AEPSampleApp/node_modules
 
-# Orchestrate jobs using workflows.
-# See: https://circleci.com/docs/workflows/
 workflows:
   build-sample-app-workflow:
     jobs:

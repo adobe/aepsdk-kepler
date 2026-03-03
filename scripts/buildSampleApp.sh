@@ -34,12 +34,16 @@ cp packages/media/adobe-kepler-aepmedia-*.tgz apps/AEPSampleApp/libs/
 # Navigate to sample app directory
 cd apps/AEPSampleApp
 
+# Remove stale package-lock.json so npm doesn't use old integrity hashes for the file: tgz.
+# Fresh yarn pack in CI can produce different tgz checksums than the committed lockfile.
+rm -f package-lock.json
+
 echo "[build_sample_app] Installing sample app dependencies in $(pwd)..."
 [ -n "$NPM_TOKEN" ] && echo "[build_sample_app] WARNING: NPM_TOKEN is set (len=${#NPM_TOKEN})" || echo "[build_sample_app] NPM_TOKEN unset"
 [ -n "$NODE_AUTH_TOKEN" ] && echo "[build_sample_app] WARNING: NODE_AUTH_TOKEN is set (len=${#NODE_AUTH_TOKEN})" || echo "[build_sample_app] NODE_AUTH_TOKEN unset"
-echo "[build_sample_app] npm config get registry: $(npm config get registry)"
-# Always use npm for AEPSampleApp (deps: 2 file: local tgz, rest from registry)
-npm install
+# Use registry.npmjs.org explicitly (avoid registry.yarnpkg.com which can trigger token messages).
+echo "[build_sample_app] Using registry: https://registry.npmjs.org/"
+npm install --registry=https://registry.npmjs.org/
 
 # Check if installation was successful
 if [ $? -eq 0 ]; then

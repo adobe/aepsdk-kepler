@@ -50,19 +50,19 @@ jobs:
 
       - restore_cache:
           keys:
-            - yarn-cache-{{ checksum "yarn.lock" }}
-            - yarn-cache-
+            - node-deps-{{ checksum "package-lock.json" }}
+            - node-deps-
 
       - run:
           name: Install root dependencies
-          command: yarn install --frozen-lockfile
+          command: yarn install
 
       - run:
           name: Build sample app
           command: yarn run build_sample_app
 
       - save_cache:
-          key: yarn-cache-{{ checksum "yarn.lock" }}
+          key: node-deps-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
             - apps/AEPSampleApp/node_modules

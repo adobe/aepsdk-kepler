@@ -13,6 +13,37 @@ import { EdgeConstants } from "../EdgeConstants";
 import { DataObject } from "../../core/eventhub/EventData";
 
 const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
+
+/**
+ * Attempts to get @adobe/kepler-aepmedia version if the package is installed.
+ * @returns Media package version or undefined if not found
+ */
+function getAepMediaVersion(): string | undefined {
+  try {
+    const media = require("@adobe/kepler-aepmedia");
+    return media?.Media?.EXTENSION?.version ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Builds the implementation details version string from aepmedia and aepcore package versions.
+ * Format: "aepmedia-1.x.x + aepcore-1.x.x". Omits any package part if its version is not found.
+ */
+function getImplementationDetailsVersion(): string {
+  const aepmediaVersion = getAepMediaVersion();
+  const aepcoreVersion = EdgeConstants.EXTENSION_VERSION;
+  const parts: string[] = [];
+  if (aepmediaVersion) {
+    parts.push(`aepmedia-${aepmediaVersion}`);
+  }
+  if (aepcoreVersion) {
+    parts.push(`aepcore-${aepcoreVersion}`);
+  }
+  return parts.length > 0 ? parts.join(" + ") : "";
+}
+
 /**
  * Returns the implementation details object.
  * @returns DataObject
@@ -20,7 +51,7 @@ const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
 export function getImplementationDetails(): DataObject {
   return {
     name: IMPLEMENTATION_DETAILS.NAME,
-    version: EdgeConstants.EXTENSION_VERSION, //Edge and core will be of same version always
+    version: getImplementationDetailsVersion(),
     environment: IMPLEMENTATION_DETAILS.ENVIRONMENT,
   };
 }

@@ -31,6 +31,16 @@ jest.mock("../../src/edge/EdgeStateManager");
 jest.mock("../../src/edge/EdgeResponseManager");
 
 const extensionVersion = "1.0.0-beta.2";
+// ImplementationDetails version format: "aepmedia-x.x.x + aepcore-x.x.x" (aepmedia omitted when not installed)
+const expectedImplementationVersion = `aepcore-${extensionVersion}`;
+
+jest.mock("../../src/edge/network-handling/ImplementationDetails", () => ({
+  getImplementationDetails: () => ({
+    name: "https://ns.adobe.com/experience/mobilesdk/js",
+    version: "aepcore-1.0.0-beta.2",
+    environment: "app",
+  }),
+}));
 describe("EdgeHitProcessor tests", () => {
   let mockAsyncRequest: jest.MockedFunction<typeof asyncRequest>;
   let mockDataStore: jest.Mocked<DataStore>;
@@ -160,7 +170,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -216,7 +226,7 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/v1/interact?configId=mockConfigId&requestId=requestId1"
     );
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -318,7 +328,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -388,7 +398,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -456,7 +466,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"n"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -524,7 +534,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -615,7 +625,7 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/interact?configId"
     );
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -678,7 +688,7 @@ describe("EdgeHitProcessor tests", () => {
       "https://edge.adobedc.net/ee/mockLocationHint/v1/privacy/set-consent?configId"
     );
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -729,7 +739,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -798,7 +808,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"query":{"consent":{"operation":"update"}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -853,7 +863,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/interact?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -925,7 +935,7 @@ describe("EdgeHitProcessor tests", () => {
 
     expect(actualUrl).toContain("https://edge.adobedc.net/ee/v1/privacy/set-consent?configId");
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"}},"query":{"identity":{"fetch":["ECID"]},"consent":{"operation":"update"}},"meta":{"state":{"entries":[{"key":"kndctr_1234_AdobeOrg_cluster","value":"or2","maxAge":1800},{"key":"kndctr_1234_AdobeOrg_identity","value":"123456789abcdef","maxAge":1800}]}},"consent":[{"standard":"Adobe","version":"2.0","value":{"collect":{"val":"y"},"metadata":{"time":${testTS}}}}]}`
     );
     expect(actualMethod).toEqual("POST");
     expect(actualTimeout).toEqual(5000);
@@ -984,7 +994,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1049,7 +1059,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1114,7 +1124,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"meta":{"configOverrides":{"com_adobe_experience_platform":{"datasets":{"event":{"datasetId":"new_dataset_id"}}}},"sdkConfig":{"datastream":{"original":"mockConfigId"}}},"events":[{"xdm":{"key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1177,7 +1187,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 
@@ -1237,7 +1247,7 @@ describe("EdgeHitProcessor tests", () => {
     expect(actualTimeout).toEqual(5000);
     console.log(actualBody);
     expect(actualBody).toEqual(
-      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${extensionVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
+      `{"xdm":{"implementationDetails":{"name":"https://ns.adobe.com/experience/mobilesdk/js","version":"${expectedImplementationVersion}","environment":"app"},"identityMap":{"ECID":[{"authenticatedState":"ambiguous","id":"mockECID","primary":true}]}},"events":[{"xdm":{"eventType":"media.sessionStart","key":"value"},"data":{"key":"value"},"timestamp":${testTS}}]}`
     );
   });
 

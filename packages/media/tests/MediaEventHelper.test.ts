@@ -9,10 +9,10 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
 import { MediaConstants } from "../src/MediaConstants";
 import { getEventType, getEventData, getEventDataWithoutPlayerId } from "../src/MediaEventHelper";
-import { Event, EventType } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { Event, EventType } from "@adobe/vega-aepcore/dist/core/eventhub";
 
 describe("MediaEventHelper tests", () => {
   test("getEventType() - should return the event type", () => {

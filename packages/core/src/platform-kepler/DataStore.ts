@@ -21,9 +21,9 @@ import { LOG_EXTENSION } from "./Constants";
 
 const KEY_PREFIX = "adb_aep_";
 
-const LOG_TAG = "KeplerDataStore";
+const LOG_TAG = "VegaDataStore";
 
-export class KeplerDataStore implements DataStore {
+export class VegaDataStore implements DataStore {
   private getKeyWithPrefix(key: string): string {
     return KEY_PREFIX + key;
   }
@@ -33,7 +33,7 @@ export class KeplerDataStore implements DataStore {
     Log.debug(
       LOG_EXTENSION,
       LOG_TAG,
-      `get() - Retrieving value for key(${prefixedKey}) from KeplerDataStore`
+      `get() - Retrieving value for key(${prefixedKey}) from VegaDataStore`
     );
 
     try {
@@ -56,7 +56,7 @@ export class KeplerDataStore implements DataStore {
     Log.debug(
       LOG_EXTENSION,
       LOG_TAG,
-      `set() - Saving Key(${prefixedKey}) with value(${value}) to KeplerDataStore`
+      `set() - Saving Key(${prefixedKey}) with value(${value}) to VegaDataStore`
     );
     AsyncStorage.setItem(prefixedKey, value).catch((error) => {
       Log.debug(
@@ -74,7 +74,7 @@ export class KeplerDataStore implements DataStore {
     Log.debug(
       LOG_EXTENSION,
       LOG_TAG,
-      `delete() - Deleting key(${prefixedKey}) from KeplerDataStore`
+      `delete() - Deleting key(${prefixedKey}) from VegaDataStore`
     );
     AsyncStorage.removeItem(prefixedKey).catch((error) => {
       Log.debug(

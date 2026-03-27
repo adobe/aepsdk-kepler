@@ -3,7 +3,7 @@
 ## Requirements
 
 - VSCode
-- Kepler SDK
+- Vega SDK
 - Node
 - Yarn
 

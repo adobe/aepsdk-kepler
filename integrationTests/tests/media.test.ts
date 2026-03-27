@@ -10,12 +10,12 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-jest.mock("@adobe/kepler-aepcore/src/platform-kepler");
+jest.mock("@adobe/vega-aepcore/src/platform-kepler");
 
-import { AEPSDK } from "@adobe/kepler-aepcore";
+import { AEPSDK } from "@adobe/vega-aepcore";
 import { resetSDK } from "../src/test-utils/resetSDK";
-import { LogLevel } from '@adobe/kepler-aepcore/src/core/services';
-import { Media } from "@adobe/kepler-aepmedia";
+import { LogLevel } from '@adobe/vega-aepcore/src/core/services';
+import { Media } from "@adobe/vega-aepmedia";
 import {
     assertRequestUrl
 } from "../src/test-utils/assertUtil";

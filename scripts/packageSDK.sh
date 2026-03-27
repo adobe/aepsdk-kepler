@@ -11,7 +11,7 @@
 # Exit on any error
 set -e
 
-echo "Building and archiving AEP Kepler SDK packages..."
+echo "Building and archiving AEP Vega SDK packages..."
 
 # Build and archive all packages
 echo "Building and archiving packages..."
@@ -20,15 +20,15 @@ yarn archive_all
 echo "Preparing SDK distribution package..."
 
 # Create a temporary directory for packaging
-TEMP_DIR="dist/AEPKeplerSDK"
+TEMP_DIR="dist/AEPVegaSDK"
 rm -rf dist
 mkdir -p $TEMP_DIR
 
 # Create and populate libs directory at root level
 echo "Setting up SDK packages..."
 mkdir -p $TEMP_DIR/libs
-cp out/@adobe-kepler-aepcore-*.tgz $TEMP_DIR/libs/
-cp out/@adobe-kepler-aepmedia-*.tgz $TEMP_DIR/libs/
+cp out/@adobe-vega-aepcore-*.tgz $TEMP_DIR/libs/
+cp out/@adobe-vega-aepmedia-*.tgz $TEMP_DIR/libs/
 
 # Copy documentation
 echo "Copying documentation..."
@@ -58,8 +58,8 @@ rsync -av --progress apps/AEPSampleApp/ $TEMP_DIR/AEPSampleApp/ \
 
 # Create libs directory in AEPSampleApp and copy SDK packages
 mkdir -p $TEMP_DIR/AEPSampleApp/libs
-cp $TEMP_DIR/libs/@adobe-kepler-aepcore-*.tgz $TEMP_DIR/AEPSampleApp/libs/
-cp $TEMP_DIR/libs/@adobe-kepler-aepmedia-*.tgz $TEMP_DIR/AEPSampleApp/libs/
+cp $TEMP_DIR/libs/@adobe-vega-aepcore-*.tgz $TEMP_DIR/AEPSampleApp/libs/
+cp $TEMP_DIR/libs/@adobe-vega-aepmedia-*.tgz $TEMP_DIR/AEPSampleApp/libs/
 
 # Ensure AEPSDKConfig.json has proper formatting
 echo '{
@@ -81,11 +81,11 @@ EOL
 # Create a distribution archive
 echo "Creating distribution archive..."
 cd dist
-tar -czf AEPKeplerSDK.tar.gz AEPKeplerSDK/
+tar -czf AEPVegaSDK.tar.gz AEPVegaSDK/
 
 echo ""
 echo "Distribution package created successfully!"
-echo "Location: dist/AEPKeplerSDK.tar.gz"
+echo "Location: dist/AEPVegaSDK.tar.gz"
 echo ""
 echo "Package contents:"
 echo "- libs/: SDK library packages"

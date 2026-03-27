@@ -1,7 +1,7 @@
 {
   "name": "integration-tests",
   "version": "1.0.0",
-  "description": "The integration tests for the Adobe Experience Platform Kepler SDK",
+  "description": "The integration tests for the Adobe Experience Platform Vega SDK",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",
   "private": true,
@@ -14,13 +14,13 @@
     "url": "https://github.com/adobe/aepsdk-kepler"
   },
   "keywords": [
-    "kepler",
+    "vega",
     "adobe",
     "adobe experience platform"
   ],
   "devDependencies": {
-    "@adobe/kepler-aepcore": "^1.0.0-beta.2",
-    "@adobe/kepler-aepmedia": "^1.0.0-beta.2"
+    "@adobe/vega-aepcore": "^1.0.0-beta.2",
+    "@adobe/vega-aepmedia": "^1.0.0-beta.2"
   },
   "author": {
     "name": "Adobe Experience Platform SDK Team"

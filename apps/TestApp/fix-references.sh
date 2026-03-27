@@ -17,15 +17,15 @@ echo "Fixing package references for TestApp..."
 mkdir -p node_modules/@adobe
 
 # Remove any existing symlinks
-rm -f node_modules/@adobe/kepler-aepcore
-rm -f node_modules/@adobe/kepler-aepmedia
+rm -f node_modules/@adobe/vega-aepcore
+rm -f node_modules/@adobe/vega-aepmedia
 rm -f node_modules/react
 rm -f node_modules/react-native
 rm -f node_modules/@amazon-devices
 
 # Create proper symlinks to the Adobe packages
-ln -sf ../../../../packages/core node_modules/@adobe/kepler-aepcore
-ln -sf ../../../../packages/media node_modules/@adobe/kepler-aepmedia
+ln -sf ../../../../packages/core node_modules/@adobe/vega-aepcore
+ln -sf ../../../../packages/media node_modules/@adobe/vega-aepmedia
 
 # Create symlinks for React and React Native (needed by Metro bundler)
 ln -sf ../../../node_modules/react node_modules/react
@@ -39,8 +39,8 @@ echo ""
 echo "Verifying package resolution..."
 node -e "
   try {
-    require.resolve('@adobe/kepler-aepcore');
-    require.resolve('@adobe/kepler-aepmedia');
+    require.resolve('@adobe/vega-aepcore');
+    require.resolve('@adobe/vega-aepmedia');
     require.resolve('react');
     require.resolve('react-native');
     require.resolve('@amazon-devices/react-native-kepler');

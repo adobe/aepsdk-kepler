@@ -11,12 +11,12 @@ governing permissions and limitations under the License.
 */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { KeplerDataStore } from "../../src/platform-kepler/DataStore";
-describe("KeplerDataStore", () => {
-  let keplerDataStore: KeplerDataStore;
+import { VegaDataStore } from "../../src/platform-kepler/DataStore";
+describe("VegaDataStore", () => {
+  let keplerDataStore: VegaDataStore;
 
   beforeEach(() => {
-    keplerDataStore = new KeplerDataStore();
+    keplerDataStore = new VegaDataStore();
     jest.clearAllMocks();
   });
 

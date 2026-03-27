@@ -10,10 +10,10 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { KeplerDataStore } from '@adobe/kepler-aepcore/src/platform-kepler/DataStore';
+import { VegaDataStore } from '@adobe/vega-aepcore/src/platform-kepler/DataStore';
 
 export async function clearDatastore() {
-    const keplerDataStore = new KeplerDataStore();
+    const keplerDataStore = new VegaDataStore();
 
         console.log('#clearDatastore() - Clearing Datastore');
         const sdk_keys = [

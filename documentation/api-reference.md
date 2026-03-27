@@ -1,6 +1,6 @@
-# Adobe Experience Platform Kepler SDK API Reference
+# Adobe Experience Platform Vega SDK API Reference
 
-This document lists the APIs provided by AEP Kepler SDK, along with code samples for API usage.
+This document lists the APIs provided by AEP Vega SDK, along with code samples for API usage.
 
 
 > **IMPORTANT:**
@@ -64,8 +64,8 @@ function initialize(options?: InitOptions): void
 #### Example
 
 ```typescript
-import {AEPSDK} from '@adobe/kepler-aepcore';
-import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+import {AEPSDK} from '@adobe/vega-aepcore';
+import { LogLevel } from '@adobe/vega-aepcore/dist/core/services';
 ```
 
 ```typescript
@@ -102,7 +102,7 @@ function updateConfiguration(config: Record<string, any>): void
 #### Example
 
 ```typescript
-import {AEPSDK} from '@adobe/kepler-aepcore';
+import {AEPSDK} from '@adobe/vega-aepcore';
 
 AEPSDK.updateConfiguration({
     "edge.configId": "<YOUR_DATASTREAM_ID>", // required
@@ -148,7 +148,7 @@ function setLogLevel(logLevel: LogLevel): void
 #### Example
 
 ```typescript
-import {AEPSDK} from '@adobe/kepler-aepcore';
+import {AEPSDK} from '@adobe/vega-aepcore';
 
 AEPSDK.setLogLevel(LogLevel.VERBOSE);
 ```
@@ -168,7 +168,7 @@ getLogLevel(): LogLevel
 #### Example
 
 ```typescript
-import {AEPSDK} from '@adobe/kepler-aepcore';
+import {AEPSDK} from '@adobe/vega-aepcore';
 
 AEPSDK.getLogLevel();
 ```

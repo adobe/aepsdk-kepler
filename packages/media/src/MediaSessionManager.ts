@@ -9,11 +9,11 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
+import { Log } from "@adobe/vega-aepcore/dist/core/utils/Log";
 import { MediaConstants } from "./MediaConstants";
 import { MediaSession } from "./MediaSession";
 import { MediaHit } from "./MediaHit";
-import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
+import { DataObject } from "@adobe/vega-aepcore/dist/core/eventhub/EventData";
 import { DispatchFn } from "./MediaExtension";
 
 const LOG_SOURCE = MediaConstants.EXTENSION_NAME;

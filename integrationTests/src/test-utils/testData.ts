@@ -1,4 +1,4 @@
-import { DataObject } from "@adobe/kepler-aepcore/src/core/eventhub/EventData";
+import { DataObject } from "@adobe/vega-aepcore/src/core/eventhub/EventData";
 
 /*
 Copyright 2026 Adobe. All rights reserved.

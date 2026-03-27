@@ -11,7 +11,7 @@ governing permissions and limitations under the License.
 
 import { MediaHit } from "../src/MediaHit";
 import { MediaSession } from "../src/MediaSession";
-import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
+import { Log } from "@adobe/vega-aepcore/dist/core/utils/Log";
 import { MediaConstants } from "../src/MediaConstants";
 
 const EVENT_TYPE = MediaConstants.EventType;

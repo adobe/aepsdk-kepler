@@ -142,3 +142,4 @@ CLAUDE.md
 .claude/settings.local.json
 .local-docs/
 scripts/vega-sdk-upgrade-playbook.md
+.venv-pdf/

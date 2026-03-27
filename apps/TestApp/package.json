@@ -1,5 +1,5 @@
 {
-  "name": "@adobe/keplersampleapp",
+  "name": "@adobe/vegasampleapp",
   "version": "1.0.0",
   "private": true,
   "license": "Apache-2.0",
@@ -22,8 +22,8 @@
     "release": "npm-run-all lint test build build:app"
   },
   "dependencies": {
-    "@adobe/kepler-aepcore": "^1.0.0-beta.2",
-    "@adobe/kepler-aepmedia": "^1.0.0-beta.2",
+    "@adobe/vega-aepcore": "^1.0.0-beta.2",
+    "@adobe/vega-aepmedia": "^1.0.0-beta.2",
     "@amazon-devices/react-native-kepler": "^2.0.0",
     "react": "18.2.0",
     "react-native": "0.72.0"
@@ -51,7 +51,7 @@
   },
   "kepler": {
     "projectType": "application",
-    "appName": "keplersampleapp",
+    "appName": "vegasampleapp",
     "targets": [
       "tv"
     ],

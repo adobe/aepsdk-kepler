@@ -27,8 +27,8 @@ mkdir -p $TEMP_DIR
 # Create and populate libs directory at root level
 echo "Setting up SDK packages..."
 mkdir -p $TEMP_DIR/libs
-cp out/adobe-vega-aepcore-*.tgz $TEMP_DIR/libs/
-cp out/adobe-vega-aepmedia-*.tgz $TEMP_DIR/libs/
+cp packages/core/adobe-vega-aepcore-*.tgz $TEMP_DIR/libs/
+cp packages/media/adobe-vega-aepmedia-*.tgz $TEMP_DIR/libs/
 
 # Copy documentation
 echo "Copying documentation..."

@@ -211,7 +211,7 @@ export const App = () => {
 
   const handleUpdateConfiguration = async () => {
     const configData = {
-      "edge.domain": "edge.data.adobedc.net",
+      "edge.domain": "customdomain.data.adobedc.net",
     };
     AEPSDK.updateConfiguration(configData);
     updatePanel('Update Configuration', configData);
@@ -240,7 +240,7 @@ export const App = () => {
             <View style={appStyles.cardsContainer}>
               <Section title="Core APIs">
                 <Card
-                  title="Get ECID NAMAN"
+                  title="Get ECID"
                   description="Retrieve Experience Cloud ID"
                   onPress={handleGetECID}
                   variant="blue"

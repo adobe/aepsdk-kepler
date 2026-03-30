@@ -136,3 +136,9 @@ out/
 
 # DS_Store
 *.DS_Store
+
+# Claude Code
+CLAUDE.md
+.claude/settings.local.json
+.local-docs/
+scripts/vega-sdk-upgrade-playbook.md

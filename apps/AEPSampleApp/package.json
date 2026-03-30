@@ -1,28 +1,29 @@
 {
-  "name": "kepler-sample-app",
+  "name": "vega-sample-app",
   "version": "1.0.0-beta",
-  "description": "Sample app demonstrating the usage of AEP Kepler SDK",
+  "description": "Sample app demonstrating the usage of AEP Vega SDK",
   "main": "index.js",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "start": "react-native start",
     "test": "jest",
     "lint": "eslint .",
     "clean": "rm -rf node_modules",
-    "build:release": "react-native build-kepler --build-type Release",
-    "build:debug": "react-native build-kepler --build-type Debug",
+    "build:release": "react-native build-vega --build-type Release",
+    "build:debug": "react-native build-vega --build-type Debug",
     "build:app": "build:release build:debug"
   },
   "dependencies": {
-    "@adobe/kepler-aepcore": "file:./libs/@adobe-kepler-aepcore-1.0.0-beta.2.tgz",
-    "@adobe/kepler-aepmedia": "file:./libs/@adobe-kepler-aepmedia-1.0.0-beta.2.tgz",
-    "@amzn/react-native-kepler": "~2.0.0",
+    "@adobe/vega-aepcore": "file:./libs/adobe-vega-aepcore-v1.0.0-beta.2.tgz",
+    "@adobe/vega-aepmedia": "file:./libs/adobe-vega-aepmedia-v1.0.0-beta.2.tgz",
+    "@amazon-devices/react-native-kepler": "^2.0.0",
     "@react-native-community/cli-tools": "^11.3.7",
     "react": "18.2.0",
     "react-native": "0.72.0"
   },
   "devDependencies": {
-    "@amzn/kepler-cli-platform": "^0",
+    "@amazon-devices/kepler-cli-platform": "~0.22.0",
     "@react-native-community/cli": "11.3.2",
     "@react-native/eslint-config": "0.72.2",
     "@react-native/metro-config": "^0.72.6",
@@ -44,7 +45,7 @@
   },
   "kepler": {
     "projectType": "application",
-    "appName": "keplersampleapp",
+    "appName": "vegasampleapp",
     "targets": [
       "tv"
     ],

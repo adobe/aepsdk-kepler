@@ -1,5 +1,5 @@
 {
-  "name": "@adobe/kepler-aepmedia",
+  "name": "@adobe/vega-aepmedia",
   "version": "1.0.0-beta.2",
   "description": "Adobe Experience Platform Media Analytics SDK.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
@@ -20,10 +20,11 @@
   "files": [
     "dist/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "keywords": [
-    "kepler",
+    "vega",
     "adobe",
     "adobe experience platform",
     "media",
@@ -39,6 +40,6 @@
     "hoistingLimits": "dependencies"
   },
   "dependencies": {
-    "@adobe/kepler-aepcore": "^1.0.0-beta.2"
+    "@adobe/vega-aepcore": "^1.0.0-beta.2"
   }
 }

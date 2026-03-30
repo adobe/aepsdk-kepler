@@ -1,31 +1,113 @@
 # Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/configuration-reference
+# Vega/Kepler SDK and Node are installed via steps below (no Docker image build).
+# NPM_TOKEN/NODE_AUTH_TOKEN are cleared so only public registry is used (avoids EINTEGRITY from expired tokens).
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/jobs-steps/#jobs-overview & https://circleci.com/docs/configuration-reference/#jobs
+orbs:
+  node: circleci/node@7.1.0
+
+# Pipeline parameters (override in CircleCI UI or when triggering the pipeline)
+parameters:
+  vega_sdk_version:
+    type: string
+    default: "0.21.5245"
+
 jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/executor-intro/ & https://circleci.com/docs/configuration-reference/#executor-job
+  build-sample-app:
+    description: Install Vega/Kepler SDK and Node via steps, then run build_sample_app
     docker:
-      # Specify the version you desire here
-      # See: https://circleci.com/developer/images/image/cimg/base
       - image: cimg/base:current
 
-    # Add steps to the job
-    # See: https://circleci.com/docs/jobs-steps/#steps-overview & https://circleci.com/docs/configuration-reference/#steps
-    steps:
-      # Checkout the code as the first step.
-      - checkout
-      - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      NONINTERACTIVE: "true"
+      VEGA_SDK_VERSION: << pipeline.parameters.vega_sdk_version >>
+      # Force public registry only - avoid expired/revoked tokens from CircleCI env
+      NPM_TOKEN: ""
+      NODE_AUTH_TOKEN: ""
+      NPM_AUTH_TOKEN: ""
 
-# Orchestrate jobs using workflows
-# See: https://circleci.com/docs/workflows/ & https://circleci.com/docs/configuration-reference/#workflows
+    steps:
+      - checkout
+
+      - run:
+          name: Disable npm auth (use public registry only)
+          command: |
+            echo 'unset NPM_TOKEN NODE_AUTH_TOKEN NPM_AUTH_TOKEN' >> $BASH_ENV
+            echo "Auth tokens cleared for this job (public registry only)."
+
+      - run:
+          name: Install system dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y curl tar jq ca-certificates
+            sudo rm -rf /var/lib/apt/lists/*
+
+      - run:
+          name: Install Vega/Kepler SDK
+          command: |
+            export NONINTERACTIVE=true
+            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.21.5245}"
+            curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash
+            VEGA_BIN="${HOME}/vega/bin"
+            [ -d "$VEGA_BIN" ] || VEGA_BIN="/root/vega/bin"
+            echo "export PATH=\"${VEGA_BIN}:\${PATH}\"" >> $BASH_ENV
+            source $BASH_ENV
+            vega -v
+
+      - node/install:
+          node-version: "20.20.0"
+          install-yarn: true
+
+      - restore_cache:
+          keys:
+            - node-deps-{{ checksum "package-lock.json" }}
+            - node-deps-
+
+      - run:
+          name: Install root dependencies
+          command: yarn install
+
+      - run:
+          name: Debug npm auth and registry (before build_sample_app)
+          command: |
+            echo "========== NPM AUTH DEBUG =========="
+            echo "--- Auth-related env (values masked) ---"
+            for v in NPM_TOKEN NODE_AUTH_TOKEN NPM_AUTH_TOKEN npm_config__auth; do
+              if [ -n "${!v}" ]; then
+                echo "${v}=SET (len=${#!v})"
+              else
+                echo "${v}=unset"
+              fi
+            done
+            echo "--- Root .npmrc ---"
+            cat .npmrc 2>/dev/null || echo "(no root .npmrc)"
+            echo "--- apps/AEPSampleApp/.npmrc ---"
+            cat apps/AEPSampleApp/.npmrc 2>/dev/null || echo "(no AEPSampleApp .npmrc)"
+            echo "--- npm config (from root) ---"
+            npm config list
+            echo "--- npm config from apps/AEPSampleApp ---"
+            (cd apps/AEPSampleApp && npm config list)
+            echo "--- AEPSampleApp deps that hit registry (non-file:) ---"
+            (cd apps/AEPSampleApp && node -e "
+            const p = require('./package.json');
+            const all = {...p.dependencies, ...p.devDependencies};
+            const fromRegistry = Object.entries(all).filter(([k,v]) => !String(v).startsWith('file:'));
+            console.log(fromRegistry.map(([k,v]) => k + '@' + v).join('\n'));
+            ")
+            echo "========== END NPM AUTH DEBUG =========="
+
+      - run:
+          name: Build sample app
+          command: yarn run build_sample_app
+
+      - save_cache:
+          key: node-deps-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+            - apps/AEPSampleApp/node_modules
+
 workflows:
-  say-hello-workflow: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  build-sample-app-workflow:
     jobs:
-      - say-hello
+      - build-sample-app

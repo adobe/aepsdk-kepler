@@ -33,7 +33,7 @@ describe("EdgeAPI tests", () => {
     };
     (getEventDispatcher as jest.Mock).mockReturnValue(mockEventDispatcher);
 
-    jest.useFakeTimers();
+    jest.useFakeTimers({ doNotFake: ['performance'] });
   });
 
   afterEach(() => {

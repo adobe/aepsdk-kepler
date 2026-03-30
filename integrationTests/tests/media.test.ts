@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Adobe. All rights reserved.
+Copyright 2026 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy
 of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -10,12 +10,12 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-jest.mock("@adobe/kepler-aepcore/src/platform-kepler");
+jest.mock("@adobe/vega-aepcore/src/platform-kepler");
 
-import { AEPSDK } from "@adobe/kepler-aepcore";
+import { AEPSDK } from "@adobe/vega-aepcore";
 import { resetSDK } from "../src/test-utils/resetSDK";
-import { LogLevel } from '@adobe/kepler-aepcore/src/core/services';
-import { Media } from "@adobe/kepler-aepmedia";
+import { LogLevel } from '@adobe/vega-aepcore/src/core/services';
+import { Media } from "@adobe/vega-aepmedia";
 import {
     assertRequestUrl
 } from "../src/test-utils/assertUtil";

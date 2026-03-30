@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Adobe. All rights reserved.
+Copyright 2026 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy
 of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -10,19 +10,19 @@ governing permissions and limitations under the License.
 */
 
 import { MediaExtension } from "../src/MediaExtension";
-import { ExtensionContainer } from "@adobe/kepler-aepcore/dist/core/extension";
-import { ServiceLookup } from "@adobe/kepler-aepcore/dist/core/services";
-import { Event, EventType, EventSource } from "@adobe/kepler-aepcore/dist/core/eventhub";
-import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
-import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
+import { ExtensionContainer } from "@adobe/vega-aepcore/dist/core/extension";
+import { ServiceLookup } from "@adobe/vega-aepcore/dist/core/services";
+import { Event, EventType, EventSource } from "@adobe/vega-aepcore/dist/core/eventhub";
+import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
+import { Log } from "@adobe/vega-aepcore/dist/core/utils/Log";
 import { MediaSessionManager } from "../src/MediaSessionManager";
 import { MediaHit } from "../src/MediaHit";
 import { MediaConstants } from "../src/MediaConstants";
 import { MediaState } from "../src/MediaState";
-import { SharedStateStatus } from "@adobe/kepler-aepcore/dist/core/sharedstate";
+import { SharedStateStatus } from "@adobe/vega-aepcore/dist/core/sharedstate";
 
 jest.mock("../src/MediaSessionManager");
-jest.mock("@adobe/kepler-aepcore/dist/core/utils/Log");
+jest.mock("@adobe/vega-aepcore/dist/core/utils/Log");
 
 describe("MediaExtension tests", () => {
   let mediaExtension: MediaExtension;

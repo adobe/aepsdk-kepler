@@ -11,12 +11,12 @@ governing permissions and limitations under the License.
 */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { KeplerDataStore } from "../../src/platform-kepler/DataStore";
-describe("KeplerDataStore", () => {
-  let keplerDataStore: KeplerDataStore;
+import { VegaDataStore } from "../../src/platform-kepler/DataStore";
+describe("VegaDataStore", () => {
+  let vegaDataStore: VegaDataStore;
 
   beforeEach(() => {
-    keplerDataStore = new KeplerDataStore();
+    vegaDataStore = new VegaDataStore();
     jest.clearAllMocks();
   });
 
@@ -27,7 +27,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "getItem").mockResolvedValue(value);
 
-    const result = await keplerDataStore.get(key);
+    const result = await vegaDataStore.get(key);
 
     expect(AsyncStorage.getItem).toBeCalledWith(prefixedKey);
     expect(result).toBe(value);
@@ -39,7 +39,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "getItem").mockResolvedValue(null);
 
-    const result = await keplerDataStore.get(key);
+    const result = await vegaDataStore.get(key);
 
     expect(AsyncStorage.getItem).toBeCalledWith(prefixedKey);
     expect(result).toBeNull();
@@ -52,7 +52,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "getItem").mockRejectedValue(new Error(errorMessage));
 
-    const result = await keplerDataStore.get(key);
+    const result = await vegaDataStore.get(key);
 
     expect(AsyncStorage.getItem).toBeCalledWith(prefixedKey);
     expect(result).toBeNull();
@@ -65,7 +65,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "setItem").mockResolvedValue();
 
-    keplerDataStore.set(key, value);
+    vegaDataStore.set(key, value);
 
     expect(AsyncStorage.setItem).toBeCalledWith(prefixedKey, value);
   });
@@ -78,7 +78,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "setItem").mockRejectedValue(new Error(errorMessage));
 
-    keplerDataStore.set(key, value);
+    vegaDataStore.set(key, value);
 
     expect(AsyncStorage.setItem).toBeCalledWith(prefixedKey, value);
   });
@@ -89,7 +89,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "removeItem").mockResolvedValue();
 
-    keplerDataStore.delete(key);
+    vegaDataStore.delete(key);
 
     expect(AsyncStorage.removeItem).toBeCalledWith(prefixedKey);
   });
@@ -101,7 +101,7 @@ describe("KeplerDataStore", () => {
 
     jest.spyOn(AsyncStorage, "removeItem").mockRejectedValue(new Error(errorMessage));
 
-    keplerDataStore.delete(key);
+    vegaDataStore.delete(key);
 
     expect(AsyncStorage.removeItem).toBeCalledWith(prefixedKey);
   });

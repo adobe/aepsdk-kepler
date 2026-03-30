@@ -1,7 +1,7 @@
 {
-  "name": "@adobe/kepler-aepcore",
+  "name": "@adobe/vega-aepcore",
   "version": "1.0.0-beta.2",
-  "description": "Adobe Experience Platform support for kepler apps.",
+  "description": "Adobe Experience Platform support for vega apps.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",
   "main": "./dist/index.js",
@@ -20,10 +20,11 @@
   "files": [
     "dist/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "keywords": [
-    "kepler",
+    "vega",
     "adobe",
     "adobe experience platform",
     "core"
@@ -38,10 +39,14 @@
     "hoistingLimits": "dependencies"
   },
   "dependencies": {
-    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0",
-    "react-native-uuid": "^2.0.0"
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "@amazon-devices/react-native-async-storage__async-storage": "~2.0.0",
+       "react-native-uuid": "^2.0.0"
+  },
+  "peerDependencies": {
+    "@amazon-devices/react-native-async-storage__async-storage": "~2.0.0"
   },
   "overrides": {
-    "@react-native-async-storage/async-storage": "npm:@amzn/react-native-async-storage__async-storage@~2.0.0"
+    "@react-native-async-storage/async-storage": "1.23.1"
   }
 }

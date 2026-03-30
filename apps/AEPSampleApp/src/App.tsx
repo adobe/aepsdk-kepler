@@ -1,5 +1,5 @@
 /*
-Copyright 2025 Adobe. All rights reserved.
+Copyright 2026 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License. You may obtain a copy
 of the License at http://www.apache.org/licenses/LICENSE-2.0
@@ -23,9 +23,9 @@ import { images } from './constants';
 import { ResponsePanel } from './components/ResponsePanel';
 import { appStyles } from './styles/appStyles';
 
-import { AEPSDK } from '@adobe/kepler-aepcore';
-import { Media } from '@adobe/kepler-aepmedia';
-import { LogLevel } from '@adobe/kepler-aepcore/dist/core/services';
+import { AEPSDK } from '@adobe/vega-aepcore';
+import { Media } from '@adobe/vega-aepmedia';
+import { LogLevel } from '@adobe/vega-aepcore/dist/core/services';
 
 // NETWORK MONITORING - START
 // Remove this import if reverting network monitoring
@@ -147,13 +147,13 @@ export const App = () => {
                 "playhead": 0,
                 "sessionDetails": {
                     "streamType": "video",
-                    "friendlyName": "KeplerSampleApp::test_media_name",
+                    "friendlyName": "VegaSampleApp::test_media_name",
                     "hasResume": false,
-                    "name": "KeplerSampleApp::test_media_id",
+                    "name": "VegaSampleApp::test_media_id",
                     "length": 100,
                     "contentType": "vod",
-                    "channel": "KeplerSampleApp::test_channel",
-                    "playerName": "KeplerSampleApp::test_player_name"
+                    "channel": "VegaSampleApp::test_channel",
+                    "playerName": "VegaSampleApp::test_player_name"
                 }
             }
         }

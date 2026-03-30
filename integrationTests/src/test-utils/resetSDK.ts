@@ -9,7 +9,7 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
-import { _resetSDK, _resetEventDispatcher } from "@adobe/kepler-aepcore/dist/Core";
+import { _resetSDK, _resetEventDispatcher } from "@adobe/vega-aepcore/dist/Core";
 
 export function resetSDK() {
   const eventHub = _resetSDK();

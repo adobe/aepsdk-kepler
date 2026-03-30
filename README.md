@@ -1,17 +1,17 @@
-# aepsdk-kepler
+# aepsdk-vega
 
 ## About
 
-This repository is a monorepo and contains a collection of Amazon Kepler libraries for Adobe Experience Platform Mobile SDK as listed below. These libraries can be found in the [packages](./packages) directory.
+This repository is a monorepo and contains a collection of Amazon Vega libraries for Adobe Experience Platform Mobile SDK as listed below. These libraries can be found in the [packages](./packages) directory.
 
 | Package Name | Latest Version |
 | ---- | ---- |
-| @adobe/kepler-aepcore | 1.0.0-beta.2 |
-| @adobe/kepler-aepmedia | 1.0.0-beta.2 |
+| @adobe/vega-aepcore | 1.0.0-beta.2 |
+| @adobe/vega-aepmedia | 1.0.0-beta.2 |
 
 ## Requirements
 
-- Kepler SDK
+- Vega SDK
 
 - Node
 

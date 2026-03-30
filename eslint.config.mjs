@@ -1,9 +1,22 @@
 // @ts-check
+// ESLint configuration compatible with React Native 0.72 and TypeScript ESLint v5
 
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
-
-export default tseslint.config(
-    eslint.configs.recommended,
-    ...tseslint.configs.recommended,
-);
+export default {
+  root: true,
+  extends: [
+    'eslint:recommended',
+  ],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module',
+  },
+  env: {
+    node: true,
+    es6: true,
+  },
+  rules: {
+    // Add your custom rules here
+  },
+};

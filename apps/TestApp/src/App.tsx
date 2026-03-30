@@ -47,7 +47,7 @@ export const App = () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const sdkConfiguration = require('./AEPSDKConfig.json');
 
-  const keplerDataStore = new VegaDataStore();
+  const vegaDataStore = new VegaDataStore();
 
   useEffect(() => {
     console.log('App component mounted');
@@ -76,7 +76,7 @@ export const App = () => {
     ];
 
     for (const key of sdk_keys) {
-      keplerDataStore.delete(key);
+      vegaDataStore.delete(key);
     }
   }
 

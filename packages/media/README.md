@@ -1,1 +1,1 @@
-# @adobe/vega-media
+# @adobe/vega-aepmedia

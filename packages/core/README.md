@@ -1,1 +1,1 @@
-# @adobe/vega-core
+# @adobe/vega-aepcore

@@ -143,3 +143,7 @@ CLAUDE.md
 .local-docs/
 scripts/vega-sdk-upgrade-playbook.md
 .venv-pdf/
+
+# Claude Code local files
+CLAUDE.md
+.claude/

@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": "../../../.."
+		},
+		{
+			"name": "TestApp",
+			"path": "../../../../apps/TestApp"
+		}
+	],
+	"settings": {
+		"C_Cpp.default.includePath": [
+			"${workspaceFolder}/**",
+			"${env:VEGA_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-armv7/usr/include/**",
+			"${env:VEGA_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-aarch64/usr/include/**",
+			"${env:VEGA_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-x86_64/usr/include/**",
+			"${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-armv7/usr/include/**",
+			"${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-aarch64/usr/include/**",
+			"${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-x86_64/usr/include/**"
+		],
+		"C_Cpp.default.compilerPath": "${env:VEGA_SDK_HOME}/workspace/App/NativeRuntime/build/private/toolchain/armv7/mac/bin/clang"
+	}
+}

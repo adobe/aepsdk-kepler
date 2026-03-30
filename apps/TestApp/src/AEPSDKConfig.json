@@ -1,6 +1,6 @@
 {
     "edge.configId": "<YOUR_EDGE_DATASTREAM_ID>",
-    "edge.domain": "edge.data.adobedc.net",
+    "edge.domain": "<YOUR_EDGE_DOMAIN>",
     "consent.default": {
       "consents": {
         "collect": {

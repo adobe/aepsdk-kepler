@@ -27,8 +27,8 @@ mkdir -p $TEMP_DIR
 # Create and populate libs directory at root level
 echo "Setting up SDK packages..."
 mkdir -p $TEMP_DIR/libs
-cp out/@adobe-vega-aepcore-*.tgz $TEMP_DIR/libs/
-cp out/@adobe-vega-aepmedia-*.tgz $TEMP_DIR/libs/
+cp out/adobe-vega-aepcore-*.tgz $TEMP_DIR/libs/
+cp out/adobe-vega-aepmedia-*.tgz $TEMP_DIR/libs/
 
 # Copy documentation
 echo "Copying documentation..."
@@ -58,8 +58,8 @@ rsync -av --progress apps/AEPSampleApp/ $TEMP_DIR/AEPSampleApp/ \
 
 # Create libs directory in AEPSampleApp and copy SDK packages
 mkdir -p $TEMP_DIR/AEPSampleApp/libs
-cp $TEMP_DIR/libs/@adobe-vega-aepcore-*.tgz $TEMP_DIR/AEPSampleApp/libs/
-cp $TEMP_DIR/libs/@adobe-vega-aepmedia-*.tgz $TEMP_DIR/AEPSampleApp/libs/
+cp $TEMP_DIR/libs/adobe-vega-aepcore-*.tgz $TEMP_DIR/AEPSampleApp/libs/
+cp $TEMP_DIR/libs/adobe-vega-aepmedia-*.tgz $TEMP_DIR/AEPSampleApp/libs/
 
 # Ensure AEPSDKConfig.json has proper formatting
 echo '{

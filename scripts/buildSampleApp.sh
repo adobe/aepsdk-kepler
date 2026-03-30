@@ -34,10 +34,10 @@ rm -rf apps/AEPSampleApp/libs
 mkdir -p apps/AEPSampleApp/libs
 
 # Copy the archived packages to the sample app
-# (yarn pack writes tarballs to each package dir with names like adobe-vega-aepcore-v1.0.0-beta.2.tgz)
+# (yarn pack writes tarballs to out/ via the --out flag in each package's archive script)
 echo "Copying SDK packages to sample app..."
-cp packages/core/adobe-vega-aepcore-*.tgz apps/AEPSampleApp/libs/
-cp packages/media/adobe-vega-aepmedia-*.tgz apps/AEPSampleApp/libs/
+cp out/adobe-vega-aepcore-*.tgz apps/AEPSampleApp/libs/
+cp out/adobe-vega-aepmedia-*.tgz apps/AEPSampleApp/libs/
 
 # Navigate to sample app directory
 cd apps/AEPSampleApp

@@ -4,6 +4,7 @@
   "description": "Sample app demonstrating the usage of AEP Kepler SDK",
   "main": "index.js",
   "private": true,
+  "license": "Apache-2.0",
   "scripts": {
     "start": "react-native start",
     "test": "jest",

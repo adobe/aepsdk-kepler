@@ -9,20 +9,20 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
-import { Event, EventType, EventSource } from "@adobe/kepler-aepcore/dist/core/eventhub";
-import { ExtensionContainer, Extension } from "@adobe/kepler-aepcore/dist/core/extension";
-import { ServiceLookup } from "@adobe/kepler-aepcore/dist/core/services";
-import { Log } from "@adobe/kepler-aepcore/dist/core/utils/Log";
+import { DataObject } from "@adobe/vega-aepcore/dist/core/eventhub/EventData";
+import { Event, EventType, EventSource } from "@adobe/vega-aepcore/dist/core/eventhub";
+import { ExtensionContainer, Extension } from "@adobe/vega-aepcore/dist/core/extension";
+import { ServiceLookup } from "@adobe/vega-aepcore/dist/core/services";
+import { Log } from "@adobe/vega-aepcore/dist/core/utils/Log";
 import { MediaConstants } from "./MediaConstants";
-import { safeStringify } from "@adobe/kepler-aepcore/dist/core/utils/common";
+import { safeStringify } from "@adobe/vega-aepcore/dist/core/utils/common";
 import { MediaSessionManager } from "./MediaSessionManager";
 import { MediaState } from "./MediaState";
 import {
   getArray,
   getString,
   getDataObjectFromArray,
-} from "@adobe/kepler-aepcore/dist/core/utils/DataObjectUtil";
+} from "@adobe/vega-aepcore/dist/core/utils/DataObjectUtil";
 import { getEventDataWithoutPlayerId, getEventType, getPlayerId } from "./MediaEventHelper";
 import { MediaHit } from "./MediaHit";
 

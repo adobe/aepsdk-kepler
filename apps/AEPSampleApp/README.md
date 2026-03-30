@@ -1,14 +1,14 @@
-# Adobe Experience Platform Kepler SDK Sample App
+# Adobe Experience Platform Vega SDK Sample App
 
-This is a sample React Native application demonstrating the usage of Adobe Experience Platform Kepler SDK.
+This is a sample React Native application demonstrating the usage of Adobe Experience Platform Vega SDK.
 
 ## Package Contents
 
 ```
-AEPKeplerSDK/
+AEPVegaSDK/
 ├── libs/                    # SDK Libraries
-│   ├── @adobe-kepler-aepcore-*.tgz
-│   └── @adobe-kepler-aepmedia-*.tgz
+│   ├── @adobe-vega-aepcore-*.tgz
+│   └── @adobe-vega-aepmedia-*.tgz
 ├── docs/                    # SDK Documentation
 │   ├── api-reference.md
 │   ├── getting-started.md
@@ -34,8 +34,8 @@ AEPKeplerSDK/
 
 3. Initialize the SDK in your application:
    ```typescript
-   import { AEPSDK, LogLevel } from '@adobe/kepler-aepcore';
-   import { Media } from '@adobe/kepler-aepmedia';
+   import { AEPSDK, LogLevel } from '@adobe/vega-aepcore';
+   import { Media } from '@adobe/vega-aepmedia';
 
    const sdkConfig = {
      "edge.configId": sdkConfiguration["edge.configId"]
@@ -60,7 +60,7 @@ If you encounter any issues:
 
 1. Verify your datastream ID is correctly configured in `AEPSDKConfig.json`
 2. Check that all dependencies are installed properly
-3. Make sure your Kepler development environment is properly set up
+3. Make sure your Vega development environment is properly set up
 
 ## API References
 

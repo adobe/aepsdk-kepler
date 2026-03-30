@@ -1,1 +1,1 @@
-# @adobe/kepler-media
+# @adobe/vega-aepmedia

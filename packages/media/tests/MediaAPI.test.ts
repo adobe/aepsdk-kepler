@@ -10,10 +10,10 @@ governing permissions and limitations under the License.
 */
 
 import { Media } from "../src/";
-import { getEventDispatcher } from "@adobe/kepler-aepcore/dist/Core";
-import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { getEventDispatcher } from "@adobe/vega-aepcore/dist/Core";
+import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
 
-jest.mock("@adobe/kepler-aepcore/dist/Core");
+jest.mock("@adobe/vega-aepcore/dist/Core");
 
 describe("MediaAPI tests", () => {
   let mockEventDispatcher: {
@@ -28,7 +28,7 @@ describe("MediaAPI tests", () => {
     };
     (getEventDispatcher as jest.Mock).mockReturnValue(mockEventDispatcher);
 
-    jest.useFakeTimers();
+    jest.useFakeTimers({ doNotFake: ['performance'] });
   });
 
   afterEach(() => {

@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
 import { isValidMediaXDMData, isValidMediaEvent } from "../src/MediaAPIHelper";
 
 describe("test MediaAPIHelper class", () => {

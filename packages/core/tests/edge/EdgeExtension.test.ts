@@ -28,7 +28,7 @@ jest.mock("../../src/edge/consent/ConsentManager");
 jest.mock("../../src/core/services/Crypto");
 jest.mock("../../src/core/utils/Log");
 
-jest.useFakeTimers();
+jest.useFakeTimers({ doNotFake: ['performance'] });
 
 describe("EdgeExtension tests", () => {
   let mockExtensionContainer: jest.Mocked<ExtensionContainer>;

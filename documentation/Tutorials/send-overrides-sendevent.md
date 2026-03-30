@@ -10,7 +10,7 @@ Datastream overrides let you define additional configuration settings for your d
 
 ## Datastream ID override
 
-After configuring the datastream overrides, you can now send these overrides to the Edge Network through Adobe Kepler SDK. Sending the overrides using the `sendEvent` or `sendEventWithResponse` API is the final step of activating the datastream configuration overrides.
+After configuring the datastream overrides, you can now send these overrides to the Edge Network through Adobe Vega SDK. Sending the overrides using the `sendEvent` or `sendEventWithResponse` API is the final step of activating the datastream configuration overrides.
 
 The following examples demonstrate what a datastream ID override looks like:
 

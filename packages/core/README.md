@@ -1,1 +1,1 @@
-# @adobe/kepler-core
+# @adobe/vega-aepcore

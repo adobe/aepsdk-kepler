@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { Extension } from "@adobe/kepler-aepcore/dist/core/extension";
+import { Extension } from "@adobe/vega-aepcore/dist/core/extension";
 
 export interface MediaInterface {
   readonly EXTENSION: Extension;

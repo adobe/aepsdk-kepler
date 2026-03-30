@@ -10,9 +10,9 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { getDataObject } from "@adobe/kepler-aepcore/src/core/utils/DataObjectUtil";
-import { DataObject } from "@adobe/kepler-aepcore/src/core/eventhub/EventData";
-import { isNullOrEmptyString } from "@adobe/kepler-aepcore/src/core/utils/StringUtil";
+import { getDataObject } from "@adobe/vega-aepcore/src/core/utils/DataObjectUtil";
+import { DataObject } from "@adobe/vega-aepcore/src/core/eventhub/EventData";
+import { isNullOrEmptyString } from "@adobe/vega-aepcore/src/core/utils/StringUtil";
 import { testFetchECIDQuery, testImplementationDetails, testIdentityMap } from "./testData";
 /*
 ******************************************************

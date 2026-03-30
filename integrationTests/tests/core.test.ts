@@ -10,15 +10,15 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-jest.mock("@adobe/kepler-aepcore/dist/platform-kepler");
+jest.mock("@adobe/vega-aepcore/dist/platform-kepler");
 
-import { AEPSDK } from "@adobe/kepler-aepcore";
-import { registerPlatformService } from "@adobe/kepler-aepcore/dist/platform-kepler";
-import { configuration } from "@adobe/kepler-aepcore/dist/configuration";
+import { AEPSDK } from "@adobe/vega-aepcore";
+import { registerPlatformService } from "@adobe/vega-aepcore/dist/platform-kepler";
+import { configuration } from "@adobe/vega-aepcore/dist/configuration";
 import { resetSDK } from "../src/test-utils/resetSDK";
-import { serviceLookup } from "@adobe/kepler-aepcore/dist/core/services";
-import { Extension, ExtensionContainer } from "@adobe/kepler-aepcore/dist/core/extension";
-import { EventData } from "@adobe/kepler-aepcore/dist/core/eventhub";
+import { serviceLookup } from "@adobe/vega-aepcore/dist/core/services";
+import { Extension, ExtensionContainer } from "@adobe/vega-aepcore/dist/core/extension";
+import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
 
 const extensionVersion = "1.0.0-beta.2";
 describe("test public APIs", () => {

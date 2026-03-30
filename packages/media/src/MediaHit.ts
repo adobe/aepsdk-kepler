@@ -9,7 +9,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
-import { DataObject } from "@adobe/kepler-aepcore/dist/core/eventhub/EventData";
+import { DataObject } from "@adobe/vega-aepcore/dist/core/eventhub/EventData";
 
 export class MediaHit {
   constructor(

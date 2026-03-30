@@ -10,7 +10,7 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 import { registerService } from "../core/services";
-import { KeplerDataStore } from "./DataStore";
+import { VegaDataStore } from "./DataStore";
 import { Log } from "../core/utils/Log";
 import { LOG_EXTENSION } from "./Constants";
 import { CryptoService } from "./Crypto";
@@ -18,7 +18,7 @@ import { CryptoService } from "./Crypto";
 const LOG_TAG = "registerPlatformService";
 
 export function registerPlatformService(): void {
-  Log.debug(LOG_EXTENSION, LOG_TAG, "registerPlatformService() - Registering KeplerDataStore");
-  registerService("dataStore", new KeplerDataStore());
+  Log.debug(LOG_EXTENSION, LOG_TAG, "registerPlatformService() - Registering VegaDataStore");
+  registerService("dataStore", new VegaDataStore());
   registerService("crypto", new CryptoService());
 }

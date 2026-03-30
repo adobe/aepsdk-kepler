@@ -15,12 +15,12 @@ import { DataObject } from "../../core/eventhub/EventData";
 const IMPLEMENTATION_DETAILS = EdgeConstants.Request.ImplementationDetails;
 
 /**
- * Attempts to get @adobe/kepler-aepmedia version if the package is installed.
+ * Attempts to get @adobe/vega-aepmedia version if the package is installed.
  * @returns Media package version or undefined if not found
  */
 function getAepMediaVersion(): string | undefined {
   try {
-    const media = require("@adobe/kepler-aepmedia");
+    const media = require("@adobe/vega-aepmedia");
     return media?.Media?.EXTENSION?.version ?? undefined;
   } catch {
     return undefined;

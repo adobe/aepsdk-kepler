@@ -23,7 +23,7 @@ import { EdgeStateManager } from "./EdgeStateManager";
 import { safeStringify } from "../core/utils/common";
 import { createConsentRequestBody } from "./network-handling/RequestHelper";
 import { createEdgeRequestBody } from "./network-handling/RequestHelper";
-import { getURLForHit } from "./network-handling/UrlHelper";
+import { getURLForHit } from "./network-handling/URLHelper";
 import { isEmptyDataObject } from "../core/utils/DataObjectUtil";
 
 const LOG_SOURCE = EdgeConstants.EXTENSION_NAME;

@@ -1,6 +1,6 @@
 {
   "name": "@adobe/vega-aepmedia",
-  "version": "1.0.0-beta.2",
+  "version": "1.0.0",
   "description": "Adobe Experience Platform Media Analytics SDK.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",

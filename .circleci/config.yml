@@ -69,35 +69,6 @@ jobs:
           command: yarn install
 
       - run:
-          name: Debug npm auth and registry (before build_sample_app)
-          command: |
-            echo "========== NPM AUTH DEBUG =========="
-            echo "--- Auth-related env (values masked) ---"
-            for v in NPM_TOKEN NODE_AUTH_TOKEN NPM_AUTH_TOKEN npm_config__auth; do
-              if [ -n "${!v}" ]; then
-                echo "${v}=SET (len=${#!v})"
-              else
-                echo "${v}=unset"
-              fi
-            done
-            echo "--- Root .npmrc ---"
-            cat .npmrc 2>/dev/null || echo "(no root .npmrc)"
-            echo "--- apps/AEPSampleApp/.npmrc ---"
-            cat apps/AEPSampleApp/.npmrc 2>/dev/null || echo "(no AEPSampleApp .npmrc)"
-            echo "--- npm config (from root) ---"
-            npm config list
-            echo "--- npm config from apps/AEPSampleApp ---"
-            (cd apps/AEPSampleApp && npm config list)
-            echo "--- AEPSampleApp deps that hit registry (non-file:) ---"
-            (cd apps/AEPSampleApp && node -e "
-            const p = require('./package.json');
-            const all = {...p.dependencies, ...p.devDependencies};
-            const fromRegistry = Object.entries(all).filter(([k,v]) => !String(v).startsWith('file:'));
-            console.log(fromRegistry.map(([k,v]) => k + '@' + v).join('\n'));
-            ")
-            echo "========== END NPM AUTH DEBUG =========="
-
-      - run:
           name: Build sample app
           command: yarn run build_sample_app
 

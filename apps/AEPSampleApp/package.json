@@ -15,8 +15,8 @@
     "build:app": "build:release build:debug"
   },
   "dependencies": {
-    "@adobe/vega-aepcore": "file:./libs/adobe-vega-aepcore-v1.0.0-beta.2.tgz",
-    "@adobe/vega-aepmedia": "file:./libs/adobe-vega-aepmedia-v1.0.0-beta.2.tgz",
+    "@adobe/vega-aepcore": "file:../../packages/core",
+    "@adobe/vega-aepmedia": "file:../../packages/media",
     "@amazon-devices/react-native-kepler": "^2.0.0",
     "@react-native-community/cli-tools": "^11.3.7",
     "react": "18.2.0",

@@ -23,9 +23,8 @@ import { images } from './constants';
 import { ResponsePanel } from './components/ResponsePanel';
 import { appStyles } from './styles/appStyles';
 
-import { AEPSDK } from '@adobe/vega-aepcore';
+import { AEPSDK, LogLevel } from '@adobe/vega-aepcore';
 import { Media } from '@adobe/vega-aepmedia';
-import { LogLevel } from '@adobe/vega-aepcore/dist/core/services';
 
 // to reset SDK datastore
 import { VegaDataStore } from '@adobe/vega-aepcore/dist/platform-kepler/DataStore';

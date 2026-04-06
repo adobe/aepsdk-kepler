@@ -64,8 +64,7 @@ function initialize(options?: InitOptions): void
 #### Example
 
 ```typescript
-import {AEPSDK} from '@adobe/vega-aepcore';
-import { LogLevel } from '@adobe/vega-aepcore/dist/core/services';
+import { AEPSDK, LogLevel } from '@adobe/vega-aepcore';
 ```
 
 ```typescript

@@ -12,11 +12,6 @@
     "testReport": "jest --coverage",
     "archive": "yarn pack --out ../../out/%s-%v.tgz"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/adobe/aepsdk-kepler",
-    "directory": "packages/core"
-  },
   "files": [
     "dist/",
     "README.md",

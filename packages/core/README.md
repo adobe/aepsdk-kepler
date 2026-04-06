@@ -2,8 +2,7 @@
 
 This document lists the public APIs provided by **@adobe/vega-aepcore** for Adobe Experience Platform on **Amazon Vega (Kepler)** React Native applications, with TypeScript-oriented usage samples.
 
-> **IMPORTANT**
-> Call **`AEPSDK.initialize()`** before any other SDK API. Provide a valid **`edge.configId`** (Datastream ID) via `initialize` or **`updateConfiguration`** before Edge-related calls will succeed.
+> **IMPORTANT:** Call **`AEPSDK.initialize()`** before calling any other SDK API. Provide a valid **`edge.configId`** (Datastream ID) in `initialize` or **`updateConfiguration`** so Edge-related calls can succeed.
 
 ---
 

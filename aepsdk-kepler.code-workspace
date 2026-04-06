@@ -1,0 +1,87 @@
+{
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "apps/TestApp"
+    }
+  ],
+  "settings": {
+    "[typescript]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "C_Cpp.default.includePath": [
+      "${workspaceFolder}/**",
+      "${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-armv7/usr/include/**",
+      "${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-aarch64/usr/include/**",
+      "${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/sysroot-x86_64/usr/include/**"
+    ],
+    "C_Cpp.default.compilerPath": "${env:KEPLER_SDK_HOME}/workspace/App/NativeRuntime/build/private/toolchain/armv7/mac/bin/clang"
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "tsc build all",
+        "type": "shell",
+        "command": "yarn build_all",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        }
+      },
+      {
+        "label": "unit tests (all)",
+        "type": "shell",
+        "command": "yarn unit_test",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+      },
+      {
+        "label": "integration tests",
+        "type": "shell",
+        "command": "yarn integration_test",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+      },
+      {
+        "label": "unit tests reports (all)",
+        "type": "shell",
+        "command": "yarn unit_test_report",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+      },
+      {
+        "label": "fix format",
+        "type": "shell",
+        "command": "yarn fix_format",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+      },
+      {
+        "label": "linting",
+        "type": "shell",
+        "command": "yarn lint",
+        "problemMatcher": [],
+        "group": {
+          "kind": "build",
+          "isDefault": false
+        }
+      }
+    ]
+  }
+}

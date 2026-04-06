@@ -1,0 +1,40 @@
+{
+  "name": "@adobe/vega-aepmedia",
+  "version": "1.0.0-beta.2",
+  "description": "Adobe Experience Platform Media Analytics SDK.",
+  "homepage": "https://developer.adobe.com/client-sdks/documentation/",
+  "license": "Apache-2.0",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "rm -rf dist; npx tsc",
+    "test": "jest",
+    "testReport": "jest --coverage",
+    "archive": "yarn pack --out ../../out/%s-%v.tgz"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "keywords": [
+    "vega",
+    "adobe",
+    "adobe experience platform",
+    "media",
+    "media analytics"
+  ],
+  "author": {
+    "name": "Adobe Experience Platform SDK Team"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "installConfig": {
+    "hoistingLimits": "dependencies"
+  },
+  "dependencies": {
+    "@adobe/vega-aepcore": "^1.0.0-beta.2"
+  }
+}

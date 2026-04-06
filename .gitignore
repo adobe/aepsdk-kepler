@@ -71,6 +71,7 @@ web_modules/
 
 # Yarn Integrity file
 .yarn-integrity
+.yarn
 
 # dotenv environment variable files
 .env
@@ -128,3 +129,21 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+out/
+
+.vscode/.react
+
+# DS_Store
+*.DS_Store
+
+# Claude Code
+CLAUDE.md
+.claude/settings.local.json
+.local-docs/
+scripts/vega-sdk-upgrade-playbook.md
+.venv-pdf/
+
+# Claude Code local files
+CLAUDE.md
+.claude/

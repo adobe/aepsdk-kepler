@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "sourceMap": true,
+    "noEmit": false,
+    "lib": [
+      "dom", // added to mock the fetch API
+      "esnext"
+    ]
+  },
+  "exclude": ["tests", "dist"]
+}

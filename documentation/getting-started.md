@@ -14,8 +14,7 @@ If no datastream was previously created, see [Configure datastreams](https://dev
 
 ## Initialize and configure the AEP Vega SDK
 ```typescript
-import {AEPSDK} from '@adobe/vega-aepcore';
-import { LogLevel } from '@adobe/vega-aepcore/dist/core/services';
+import { AEPSDK, LogLevel } from '@adobe/vega-aepcore';
 ```
 
 

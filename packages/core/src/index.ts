@@ -22,6 +22,8 @@ import { initializeSDK } from "./Core";
 const LOG_TAG = "Index";
 const LOG_SOURCE = CoreConstants.EXTENSION_NAME;
 
+export { LogLevel } from "./core/services";
+
 export interface InitOptions {
   // todo update label configuration
   config?: Record<string, unknown>;

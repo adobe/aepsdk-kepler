@@ -70,6 +70,7 @@ jobs:
 
       - run:
           name: Build sample app
+          no_output_timeout: 30m
           command: yarn run build_sample_app
 
       - save_cache:

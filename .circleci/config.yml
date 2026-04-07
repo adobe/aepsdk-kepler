@@ -55,25 +55,33 @@ jobs:
             source $BASH_ENV
             vega -v
 
+      # npm only (package-lock.json); build_sample_app uses npm run build_all / unit_test
       - node/install:
           node-version: "20.20.0"
-          install-yarn: true
+
+      - run:
+          name: Align npm version with lockfile
+          command: |
+            npm install -g npm@11.11.0
+            echo "npm $(npm -v)"
 
       - restore_cache:
           keys:
-            - node-deps-{{ checksum "package-lock.json" }}
-            - node-deps-
+            - node-deps-v2-{{ checksum "package-lock.json" }}
+            - node-deps-v2-
 
       - run:
           name: Install root dependencies
-          command: yarn install
+          command: npm ci
 
       - run:
           name: Build sample app
-          command: yarn run build_sample_app
+          # Jest can run 15+ min; logs may be quiet between files. See root jest.config.js (verbose in CI).
+          no_output_timeout: 30m
+          command: npm run build_sample_app
 
       - save_cache:
-          key: node-deps-{{ checksum "package-lock.json" }}
+          key: node-deps-v2-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
             - apps/AEPSampleApp/node_modules

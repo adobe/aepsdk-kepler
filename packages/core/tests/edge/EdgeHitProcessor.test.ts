@@ -30,14 +30,14 @@ jest.mock("../../src/edge/StateStoreManager");
 jest.mock("../../src/edge/EdgeStateManager");
 jest.mock("../../src/edge/EdgeResponseManager");
 
-const extensionVersion = "1.0.0-beta.2";
+const extensionVersion = "1.0.1";
 // ImplementationDetails version format: "aepmedia-x.x.x + aepcore-x.x.x" (aepmedia omitted when not installed)
 const expectedImplementationVersion = `aepcore-${extensionVersion}`;
 
 jest.mock("../../src/edge/network-handling/ImplementationDetails", () => ({
   getImplementationDetails: () => ({
     name: "https://ns.adobe.com/experience/mobilesdk/js",
-    version: "aepcore-1.0.0-beta.2",
+    version: "aepcore-1.0.1",
     environment: "app",
   }),
 }));

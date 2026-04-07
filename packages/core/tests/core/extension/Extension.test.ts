@@ -51,7 +51,7 @@ describe("test Extension", () => {
     /* eslint-disable @typescript-eslint/no-unused-vars */
     const extension1: Extension = {
       name: "extension1",
-      version: "1.0.0",
+      version: "1.0.1",
       onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
         return new Promise<void>((resolve) => {
           setTimeout(() => {
@@ -63,7 +63,7 @@ describe("test Extension", () => {
     };
     const extension2: Extension = {
       name: "extension2",
-      version: "1.0.0",
+      version: "1.0.1",
       onRegister: async (extensionContainer: ExtensionContainer, serviceLookup: ServiceLookup) => {
         return new Promise<void>((resolve) => {
           setTimeout(() => {

@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 export const MediaConstants = {
   EXTENSION_NAME: "com.adobe.edge.media",
   FRIENDLY_NAME: "Media",
-  EXTENSION_VERSION: "1.0.0-beta.2",
+  EXTENSION_VERSION: "1.0.1",
 
   EDGE_EXTENSION_NAME: "com.adobe.edge",
 

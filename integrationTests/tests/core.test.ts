@@ -20,7 +20,7 @@ import { serviceLookup } from "@adobe/vega-aepcore/dist/core/services";
 import { Extension, ExtensionContainer } from "@adobe/vega-aepcore/dist/core/extension";
 import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
 
-const extensionVersion = "1.0.0-beta.2";
+const extensionVersion = "1.0.1";
 describe("test public APIs", () => {
   beforeEach(() => {
     resetSDK();

@@ -18,7 +18,9 @@
     "integration_test": "cd integrationTests && npx jest",
     "archive_all": "rm -rf ./out; mkdir out; npx lerna run archive",
     "build_sample_app": "./scripts/buildSampleApp.sh",
-    "package_sdk": "./scripts/packageSDK.sh"
+    "package_sdk": "./scripts/packageSDK.sh",
+    "sync_sdk_version": "node scripts/sync-sdk-version.cjs",
+    "release_sdk": "./scripts/release-sdk.sh"
   },
   "devDependencies": {
     "@amazon-devices/react-native-kepler": "^2.0.0",

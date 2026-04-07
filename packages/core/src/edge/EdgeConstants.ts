@@ -12,7 +12,7 @@ governing permissions and limitations under the License.
 export const EdgeConstants = {
   EXTENSION_NAME: "com.adobe.edge",
   FRIENDLY_NAME: "Edge",
-  EXTENSION_VERSION: "1.0.0-beta.2",
+  EXTENSION_VERSION: "1.0.1",
 
   Service: {
     DATASTORE: "dataStore",

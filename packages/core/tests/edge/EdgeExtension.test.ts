@@ -105,7 +105,7 @@ describe("EdgeExtension tests", () => {
   test("EdgeExtension should have the correct name and version", () => {
     const edgeExtension: Extension = new EdgeExtension();
     expect(edgeExtension.name).toBe("com.adobe.edge");
-    expect(edgeExtension.version).toBe("1.0.0-beta.2");
+    expect(edgeExtension.version).toBe("1.0.1");
   });
 
   test("EdgeExtension onRegister should boot up edgeStateManager, edgeResponseManager, register listeners and start hit processing timer", () => {

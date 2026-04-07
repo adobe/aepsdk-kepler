@@ -1,6 +1,6 @@
 {
   "name": "vega-sample-app",
-  "version": "1.0.0-beta",
+  "version": "1.0.0",
   "description": "Sample app demonstrating the usage of AEP Vega SDK",
   "main": "index.js",
   "private": true,

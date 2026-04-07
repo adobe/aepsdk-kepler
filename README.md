@@ -6,8 +6,8 @@ This repository is a monorepo and contains a collection of Amazon Vega libraries
 
 | Package Name | Latest Version |
 | ---- | ---- |
-| @adobe/vega-aepcore | 1.0.0-beta.2 |
-| @adobe/vega-aepmedia | 1.0.0-beta.2 |
+| @adobe/vega-aepcore | 1.0.1 |
+| @adobe/vega-aepmedia | 1.0.1 |
 
 ## Requirements
 

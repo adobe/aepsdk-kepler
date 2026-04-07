@@ -11,25 +11,27 @@
 # Exit on any error
 set -e
 
-echo "Building SDK packages and installing AEPSampleApp dependencies from local source..."
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "${ROOT}"
 
-# Build all packages first so dist/ exists for the file: references
 echo "Building SDK packages (core + media)..."
-yarn build_all
+npm run build_all
 
-# Clean generated folders in the sample app
+echo "Running SDK unit tests (core + media)..."
+npm run unit_test
+
+echo "Installing AEPSampleApp dependencies from local source..."
+
 echo "Cleaning AEPSampleApp generated folders..."
 rm -rf apps/AEPSampleApp/node_modules
 rm -rf apps/AEPSampleApp/package-lock.json
 rm -rf apps/AEPSampleApp/.vscode
-rm -rf apps/AEPSampleApp/yarn.lock
 rm -rf apps/AEPSampleApp/ios/build
 rm -rf apps/AEPSampleApp/ios/Pods
 rm -rf apps/AEPSampleApp/android/build
 rm -rf apps/AEPSampleApp/android/app/build
 rm -rf apps/AEPSampleApp/android/.gradle
 
-# Navigate to sample app directory
 cd apps/AEPSampleApp
 
 echo "[build_sample_app] Installing sample app dependencies in $(pwd)..."
@@ -37,9 +39,4 @@ echo "[build_sample_app] Installing sample app dependencies in $(pwd)..."
 # and packages/media via file: references. npm packs them on the fly from source.
 npm install --registry=https://registry.npmjs.org/
 
-if [ $? -eq 0 ]; then
-    echo "Build and setup completed successfully!"
-else
-    echo "Setup failed. Please check the error messages above."
-    exit 1
-fi
+echo "Build, unit tests, and AEPSampleApp setup completed successfully!"

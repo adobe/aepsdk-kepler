@@ -20,6 +20,7 @@ import { LocationHintManager } from "../../src/edge/LocationHintManager";
 import { StateStoreManager } from "../../src/edge/StateStoreManager";
 import { asyncRequest } from "../../src/core/utils/networking";
 import { EdgeStateManager } from "../../src/edge/EdgeStateManager";
+import { EdgeConstants } from "../../src/edge/EdgeConstants";
 
 jest.mock("../../src/core/utils/networking");
 jest.mock("../../src/core/services/DataStore");
@@ -30,17 +31,20 @@ jest.mock("../../src/edge/StateStoreManager");
 jest.mock("../../src/edge/EdgeStateManager");
 jest.mock("../../src/edge/EdgeResponseManager");
 
-const extensionVersion = "1.0.0-beta.2";
-// ImplementationDetails version format: "aepmedia-x.x.x + aepcore-x.x.x" (aepmedia omitted when not installed)
+const extensionVersion = EdgeConstants.EXTENSION_VERSION;
+// Matches ImplementationDetails (core-only in this test suite: no aepmedia in node resolution)
 const expectedImplementationVersion = `aepcore-${extensionVersion}`;
 
-jest.mock("../../src/edge/network-handling/ImplementationDetails", () => ({
-  getImplementationDetails: () => ({
-    name: "https://ns.adobe.com/experience/mobilesdk/js",
-    version: "aepcore-1.0.0-beta.2",
-    environment: "app",
-  }),
-}));
+jest.mock("../../src/edge/network-handling/ImplementationDetails", () => {
+  const { EdgeConstants: EdgeConstantsMock } = require("../../src/edge/EdgeConstants");
+  return {
+    getImplementationDetails: () => ({
+      name: "https://ns.adobe.com/experience/mobilesdk/js",
+      version: `aepcore-${EdgeConstantsMock.EXTENSION_VERSION}`,
+      environment: "app",
+    }),
+  };
+});
 describe("EdgeHitProcessor tests", () => {
   let mockAsyncRequest: jest.MockedFunction<typeof asyncRequest>;
   let mockDataStore: jest.Mocked<DataStore>;

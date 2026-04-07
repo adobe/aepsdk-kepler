@@ -1,5 +1,3 @@
-import { DataObject } from "@adobe/vega-aepcore/src/core/eventhub/EventData";
-
 /*
 Copyright 2026 Adobe. All rights reserved.
 This file is licensed to you under the Apache License, Version 2.0 (the "License");
@@ -11,6 +9,10 @@ the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTA
 OF ANY KIND, either express or implied. See the License for the specific language
 governing permissions and limitations under the License.
 */
+
+import { DataObject } from "@adobe/vega-aepcore/src/core/eventhub/EventData";
+import { EdgeConstants } from "@adobe/vega-aepcore/src/edge/EdgeConstants";
+import { MediaConstants } from "@adobe/vega-aepmedia/src/MediaConstants";
 export const expectedEdgeResponseHandlesForFirstRequest = ['identity:result', 'locationHint:result', 'state:store'];
 
 export const expectedEdgeResponseHandlesForConsecutiveRequest = ['locationHint:result', 'state:store'];
@@ -60,10 +62,13 @@ export function getTestSendEvent(eventType: string, sdkConfiguration: DataObject
     return baseSendEventData;
 }
 
+/** Matches packages/core ImplementationDetails.getImplementationDetailsVersion() when media + core are present */
+export const testImplementationDetailsVersion = `aepmedia-${MediaConstants.EXTENSION_VERSION} + aepcore-${EdgeConstants.EXTENSION_VERSION}`;
+
 export const testImplementationDetails = {
     "environment": "app",
     "name": "https://ns.adobe.com/experience/mobilesdk/js",
-    "version": "1.0.0-beta.2"
+    "version": testImplementationDetailsVersion
 }
 
 export const testIdentityMap = {

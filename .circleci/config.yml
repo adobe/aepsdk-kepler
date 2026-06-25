@@ -10,7 +10,7 @@ orbs:
 parameters:
   vega_sdk_version:
     type: string
-    default: "0.21.5245"
+    default: "0.23.8358"
 
 jobs:
   build-sample-app:
@@ -47,7 +47,7 @@ jobs:
           name: Install Vega/Kepler SDK
           command: |
             export NONINTERACTIVE=true
-            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.21.5245}"
+            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.23.8358}"
             curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash
             VEGA_BIN="${HOME}/vega/bin"
             [ -d "$VEGA_BIN" ] || VEGA_BIN="/root/vega/bin"

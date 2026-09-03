@@ -18,7 +18,7 @@ describe("test asyncRequest", () => {
 
   beforeAll(() => {
     jest.spyOn(global, "fetch");
-    jest.useFakeTimers({ doNotFake: ['performance'] });
+    jest.useFakeTimers({ doNotFake: ["performance"] });
     jest.spyOn(global, "setTimeout");
     jest.spyOn(global, "clearTimeout");
   });

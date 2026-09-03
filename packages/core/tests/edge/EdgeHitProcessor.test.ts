@@ -102,7 +102,7 @@ describe("EdgeHitProcessor tests", () => {
       mockStateStoreManager
     ) as jest.Mocked<EdgeResponseManager>;
 
-    jest.useFakeTimers({ doNotFake: ['performance'] });
+    jest.useFakeTimers({ doNotFake: ["performance"] });
   });
 
   afterEach(() => {

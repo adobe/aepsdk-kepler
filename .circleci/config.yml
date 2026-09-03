@@ -57,7 +57,7 @@ jobs:
 
       # npm only (package-lock.json); build_sample_app uses npm run build_all / unit_test
       - node/install:
-          node-version: "20.20.0"
+          node-version: "22.14.0"
 
       - run:
           name: Align npm version with lockfile

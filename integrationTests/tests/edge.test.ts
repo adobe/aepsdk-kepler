@@ -12,6 +12,7 @@ governing permissions and limitations under the License.
 
 jest.mock("@adobe/vega-aepcore/src/platform-kepler");
 import { AEPSDK } from "@adobe/vega-aepcore";
+import { waitForFetchIdle } from "../src/test-utils/waitForFetch";
 import { resetSDK } from "../src/test-utils/resetSDK";
 import { assertEdgeHandles, assertRequestUrl } from "../src/test-utils/assertUtil";
 import { assertFirstEdgeRequest, assertConsecutiveEdgeRequest, assertEdgeResponse, assertFirstConsentRequest, assertEdgeErrorResponse, assertConsecutiveConsentRequest
@@ -26,7 +27,6 @@ const sdkConfiguration = require('../configuration.json');
 const expectedLocationHint = "or2";
 
 describe("Edge Extension Public API Tests", () => {
-    const WAIT_TIME_MS = 1000;
     let originalFetch: typeof global.fetch;
     const recordedResponsesFromFetchSpy: Array<Response> = [];
 
@@ -81,7 +81,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.sendEvent(testSendEvent);
 
             // Wait for the event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -105,7 +105,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.sendEvent(testSendEventWithDatastreamIdOverride);
 
             // Wait for the event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -128,7 +128,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.sendEvent(testSendEventWithDatastreamConfigOverride);
 
             // Wait for the event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -160,7 +160,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.sendEvent(testSendEvent);
 
             // Wait for the event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -215,7 +215,7 @@ describe("Edge Extension Public API Tests", () => {
             const consentYes = getTestConsentData("y");
             AEPSDK.setConsent(consentYes);
 
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
 
@@ -236,7 +236,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.sendEvent(testSendEvent2);
 
             // Wait for the event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(0);
@@ -244,7 +244,7 @@ describe("Edge Extension Public API Tests", () => {
             const setConsentYes = getTestConsentData("y");
             AEPSDK.setConsent(setConsentYes);
 
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
 
@@ -279,7 +279,7 @@ describe("Edge Extension Public API Tests", () => {
             const setConsentNo = getTestConsentData("n");
             AEPSDK.setConsent(setConsentNo);
 
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
 
@@ -306,7 +306,7 @@ describe("Edge Extension Public API Tests", () => {
             AEPSDK.setConsent(consentNo);
             AEPSDK.sendEvent(testSendEvent5);
 
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(6);
 

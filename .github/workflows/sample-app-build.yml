@@ -1,0 +1,96 @@
+name: Sample App Build (Vega)
+
+# Heavy build: installs the Vega SDK and builds the AEPSampleApp .vpkg.
+# NOT run on every PR (slow, needs the Vega SDK). Trigger manually from the
+# Actions tab ("Run workflow"), or on an optional nightly schedule.
+on:
+  workflow_dispatch:
+    inputs:
+      vega_sdk_version:
+        description: "Vega SDK version to install"
+        required: true
+        default: "0.24.9914"
+        type: string
+  # Uncomment to also run nightly (03:00 UTC):
+  # schedule:
+  #   - cron: "0 3 * * *"
+
+concurrency:
+  group: sample-app-build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Public registry only - no private/internal tokens on a public repo.
+  NPM_TOKEN: ""
+  NODE_AUTH_TOKEN: ""
+  NPM_AUTH_TOKEN: ""
+
+jobs:
+  build-sample-app:
+    name: Build AEPSampleApp (.vpkg)
+    runs-on: ubuntu-latest
+    env:
+      # workflow_dispatch always provides the input; fall back for schedule runs.
+      VEGA_SDK_VERSION: ${{ github.event.inputs.vega_sdk_version || '0.24.9914' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl tar jq ca-certificates
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Vega/Kepler SDK
+        run: |
+          export NONINTERACTIVE=true
+          echo "Installing Vega SDK ${VEGA_SDK_VERSION}"
+          curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash
+          VEGA_BIN="${HOME}/vega/bin"
+          [ -d "$VEGA_BIN" ] || VEGA_BIN="/root/vega/bin"
+          echo "${VEGA_BIN}" >> "$GITHUB_PATH"
+
+      - name: Verify Vega SDK
+        run: vega -v
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.14.0"
+          registry-url: "https://registry.npmjs.org/"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Align npm version with lockfile
+        run: |
+          npm install -g npm@11.11.0
+          echo "npm $(npm -v)"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Build SDK packages
+        run: npm run build_all
+
+      - name: Run unit tests
+        run: npm run unit_test
+
+      - name: Install AEPSampleApp dependencies (public registry)
+        working-directory: apps/AEPSampleApp
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --registry=https://registry.npmjs.org/
+
+      - name: Build AEPSampleApp .vpkg (Release)
+        working-directory: apps/AEPSampleApp
+        run: npm run build:release
+
+      - name: Upload .vpkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aepsampleapp-vpkg-${{ env.VEGA_SDK_VERSION }}
+          path: |
+            apps/AEPSampleApp/build/**/*.vpkg
+          if-no-files-found: warn
+          retention-days: 14

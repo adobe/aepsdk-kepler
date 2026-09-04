@@ -1,0 +1,90 @@
+name: PR Checks
+
+# Run compile + unit tests on every PR (and on pushes) to the main branches.
+# Unit tests are pure Node (lerna -> tsc + jest); the Vega SDK is NOT required here.
+on:
+  pull_request:
+    branches: [beta, main]
+  push:
+    branches: [beta, main]
+
+# Cancel superseded runs for the same PR/branch to save CI minutes.
+concurrency:
+  group: pr-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Force the public npm registry only (avoids EINTEGRITY from expired/revoked private tokens).
+  NPM_TOKEN: ""
+  NODE_AUTH_TOKEN: ""
+  NPM_AUTH_TOKEN: ""
+
+jobs:
+  build-and-test:
+    name: Build & Unit Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["22.14.0"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          registry-url: "https://registry.npmjs.org/"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Align npm version with lockfile
+        run: |
+          npm install -g npm@11.11.0
+          echo "npm $(npm -v)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build_all
+
+      - name: Run unit tests
+        run: npm run unit_test
+
+      # Parity with CircleCI: prove the sample app's deps still resolve from the
+      # public registry (catches a broken file: ref or stale lockfile). No Vega
+      # SDK needed here - the build script never invokes `vega`.
+      - name: Install AEPSampleApp dependencies (public registry)
+        working-directory: apps/AEPSampleApp
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --registry=https://registry.npmjs.org/
+
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.14.0"
+          registry-url: "https://registry.npmjs.org/"
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Align npm version with lockfile
+        run: npm install -g npm@11.11.0
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: ESLint
+        run: npm run lint
+
+      - name: Prettier format check
+        run: npm run format

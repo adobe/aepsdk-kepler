@@ -86,9 +86,10 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      # Non-blocking for now: beta has pre-existing files that are not Prettier-clean.
-      # Kept as a warning so new drift is visible; flip to a hard failure in a
-      # follow-up cleanup PR once the existing files are reformatted.
+      # TODO: flip back to blocking (remove continue-on-error) after PR #2
+      # (0.24 GA) merges — it reformats the pre-existing non-Prettier-clean files
+      # on beta. Non-blocking for now so this CI-bootstrap PR does not fail on
+      # that legacy debt; kept as a warning so new drift stays visible.
       - name: Prettier format check
         continue-on-error: true
         run: npm run format

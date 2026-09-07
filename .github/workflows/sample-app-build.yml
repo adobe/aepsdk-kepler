@@ -20,6 +20,9 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  # Central version pins.
+  NODE_VERSION: "22.14.0"
+  NPM_VERSION: "11.11.0"
   # Public registry only - no private/internal tokens on a public repo.
   NPM_TOKEN: ""
   NODE_AUTH_TOKEN: ""
@@ -54,17 +57,17 @@ jobs:
       - name: Verify Vega SDK
         run: vega -v
 
-      - name: Setup Node
+      - name: Setup Node ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: "22.14.0"
+          node-version: ${{ env.NODE_VERSION }}
           registry-url: "https://registry.npmjs.org/"
           cache: npm
           cache-dependency-path: package-lock.json
 
       - name: Align npm version with lockfile
         run: |
-          npm install -g npm@11.11.0
+          npm install -g npm@${{ env.NPM_VERSION }}
           echo "npm $(npm -v)"
 
       - name: Install root dependencies

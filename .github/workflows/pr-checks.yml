@@ -17,10 +17,6 @@ env:
   # Central version pins - referenced by both jobs below.
   NODE_VERSION: "22.14.0"
   NPM_VERSION: "11.11.0"
-  # Force the public npm registry only (avoids EINTEGRITY from expired/revoked private tokens).
-  NPM_TOKEN: ""
-  NODE_AUTH_TOKEN: ""
-  NPM_AUTH_TOKEN: ""
 
 jobs:
   build-and-test:

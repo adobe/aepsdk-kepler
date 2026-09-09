@@ -175,5 +175,5 @@ Media.sendMediaEvent(pingXDM);
 
 ## Further reading
 
-- [Media Edge APIs — getting started](https://experienceleague.adobe.com/docs/experience-platform/edge-network-server-api/media-edge-apis/getting-started.html)
+- [Media Edge APIs — getting started](https://developer.adobe.com/client-sdks/edge/media-for-edge-network/tutorial#track-media-playback)
 - [Adobe Experience Platform Mobile SDKs](https://developer.adobe.com/client-sdks/documentation/)

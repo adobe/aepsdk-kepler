@@ -167,7 +167,7 @@ Media.sendMediaEvent(pingXDM);
 ## Session and playback notes
 
 - **Active session**: Use **`sendMediaEvent`** only after a session has been started with **`createMediaSession`**.
-- **Single session**: Only one media session should be active at a time. To start another session, end the current one with the appropriate session-complete / session-end events per [Media Edge API](https://experienceleague.adobe.com/docs/experience-platform/edge-network-server-api/media-edge-apis/getting-started.html) guidance.
+- **Single session**: Only one media session should be active at a time. To start another session, end the current one with the appropriate session-complete / session-end events per [Media Edge API](https://developer.adobe.com/client-sdks/edge/media-for-edge-network/tutorial#track-media-playback) guidance.
 - **Pings**: During playback, send **`media.ping`** at the required cadence with an up-to-date **`playhead`** so the server can track progress reliably.
 - **Playhead**: Use a **non-negative integer** for **`playhead`** where applicable; invalid values may be treated as errors.
 

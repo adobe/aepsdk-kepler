@@ -3,6 +3,11 @@
   "version": "1.0.1",
   "description": "Adobe Experience Platform support for vega apps.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adobe/aepsdk-kepler.git",
+    "directory": "packages/core"
+  },
   "license": "Apache-2.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

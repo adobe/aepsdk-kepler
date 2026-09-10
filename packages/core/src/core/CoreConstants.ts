@@ -9,10 +9,14 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+// Single source of truth for the extension version: read from package.json so a
+// version bump only requires updating package.json (no hand-edited constants).
+const PACKAGE_VERSION: string = require("../../package.json").version;
+
 export const CoreConstants = {
   EXTENSION_NAME: "com.adobe.core",
   FRIENDLY_NAME: "Core",
-  EXTENSION_VERSION: "1.0.1",
+  EXTENSION_VERSION: PACKAGE_VERSION,
 } as const;
 
 export const eventHubPlaceHolderExtensionConstants = {

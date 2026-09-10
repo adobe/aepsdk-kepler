@@ -10,7 +10,7 @@ orbs:
 parameters:
   vega_sdk_version:
     type: string
-    default: "0.21.5245"
+    default: "0.23.8358"
 
 jobs:
   build-sample-app:
@@ -47,7 +47,7 @@ jobs:
           name: Install Vega/Kepler SDK
           command: |
             export NONINTERACTIVE=true
-            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.21.5245}"
+            export VEGA_SDK_VERSION="${VEGA_SDK_VERSION:-0.23.8358}"
             curl -fsSL https://sdk-installer.vega.labcollab.net/get_vvm.sh | bash
             VEGA_BIN="${HOME}/vega/bin"
             [ -d "$VEGA_BIN" ] || VEGA_BIN="/root/vega/bin"
@@ -55,54 +55,33 @@ jobs:
             source $BASH_ENV
             vega -v
 
+      # npm only (package-lock.json); build_sample_app uses npm run build_all / unit_test
       - node/install:
-          node-version: "20.20.0"
-          install-yarn: true
+          node-version: "22.14.0"
+
+      - run:
+          name: Align npm version with lockfile
+          command: |
+            npm install -g npm@11.11.0
+            echo "npm $(npm -v)"
 
       - restore_cache:
           keys:
-            - node-deps-{{ checksum "package-lock.json" }}
-            - node-deps-
+            - node-deps-v2-{{ checksum "package-lock.json" }}
+            - node-deps-v2-
 
       - run:
           name: Install root dependencies
-          command: yarn install
-
-      - run:
-          name: Debug npm auth and registry (before build_sample_app)
-          command: |
-            echo "========== NPM AUTH DEBUG =========="
-            echo "--- Auth-related env (values masked) ---"
-            for v in NPM_TOKEN NODE_AUTH_TOKEN NPM_AUTH_TOKEN npm_config__auth; do
-              if [ -n "${!v}" ]; then
-                echo "${v}=SET (len=${#!v})"
-              else
-                echo "${v}=unset"
-              fi
-            done
-            echo "--- Root .npmrc ---"
-            cat .npmrc 2>/dev/null || echo "(no root .npmrc)"
-            echo "--- apps/AEPSampleApp/.npmrc ---"
-            cat apps/AEPSampleApp/.npmrc 2>/dev/null || echo "(no AEPSampleApp .npmrc)"
-            echo "--- npm config (from root) ---"
-            npm config list
-            echo "--- npm config from apps/AEPSampleApp ---"
-            (cd apps/AEPSampleApp && npm config list)
-            echo "--- AEPSampleApp deps that hit registry (non-file:) ---"
-            (cd apps/AEPSampleApp && node -e "
-            const p = require('./package.json');
-            const all = {...p.dependencies, ...p.devDependencies};
-            const fromRegistry = Object.entries(all).filter(([k,v]) => !String(v).startsWith('file:'));
-            console.log(fromRegistry.map(([k,v]) => k + '@' + v).join('\n'));
-            ")
-            echo "========== END NPM AUTH DEBUG =========="
+          command: npm ci
 
       - run:
           name: Build sample app
-          command: yarn run build_sample_app
+          # Jest can run 15+ min; logs may be quiet between files. See root jest.config.js (verbose in CI).
+          no_output_timeout: 30m
+          command: npm run build_sample_app
 
       - save_cache:
-          key: node-deps-{{ checksum "package-lock.json" }}
+          key: node-deps-v2-{{ checksum "package-lock.json" }}
           paths:
             - node_modules
             - apps/AEPSampleApp/node_modules

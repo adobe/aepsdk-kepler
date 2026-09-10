@@ -53,7 +53,7 @@ describe("MediaExtension tests", () => {
   test("MediaExtension should be defined", () => {
     expect(mediaExtension).toBeDefined();
     expect(mediaExtension.name).toBe("com.adobe.edge.media");
-    expect(mediaExtension.version).toBe("1.0.0-beta.2");
+    expect(mediaExtension.version).toBe(MediaConstants.EXTENSION_VERSION);
   });
 
   test("onRegister should initialize MediaExtension", async () => {

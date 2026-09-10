@@ -1,8 +1,13 @@
 {
   "name": "@adobe/vega-aepmedia",
-  "version": "1.0.0-beta.2",
+  "version": "1.1.0",
   "description": "Adobe Experience Platform Media Analytics SDK.",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adobe/aepsdk-kepler.git",
+    "directory": "packages/media"
+  },
   "license": "Apache-2.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -35,6 +40,6 @@
     "hoistingLimits": "dependencies"
   },
   "dependencies": {
-    "@adobe/vega-aepcore": "^1.0.0-beta.2"
+    "@adobe/vega-aepcore": "^1.1.0"
   }
 }

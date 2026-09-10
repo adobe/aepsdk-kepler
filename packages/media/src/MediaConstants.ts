@@ -9,10 +9,13 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+// Single source of truth for the media extension version: read from package.json.
+const PACKAGE_VERSION: string = require("../package.json").version;
+
 export const MediaConstants = {
   EXTENSION_NAME: "com.adobe.edge.media",
   FRIENDLY_NAME: "Media",
-  EXTENSION_VERSION: "1.0.0-beta.2",
+  EXTENSION_VERSION: PACKAGE_VERSION,
 
   EDGE_EXTENSION_NAME: "com.adobe.edge",
 

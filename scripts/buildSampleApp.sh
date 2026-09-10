@@ -11,51 +11,32 @@
 # Exit on any error
 set -e
 
-echo "Building and archiving AEP Vega SDK packages..."
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "${ROOT}"
 
-# Build and archive all packages
-echo "Building and archiving packages..."
-yarn archive_all
+echo "Building SDK packages (core + media)..."
+npm run build_all
 
-# Clean generated folders in the sample app
+echo "Running SDK unit tests (core + media)..."
+npm run unit_test
+
+echo "Installing AEPSampleApp dependencies from local source..."
+
 echo "Cleaning AEPSampleApp generated folders..."
 rm -rf apps/AEPSampleApp/node_modules
+rm -rf apps/AEPSampleApp/package-lock.json
 rm -rf apps/AEPSampleApp/.vscode
-rm -rf apps/AEPSampleApp/yarn.lock
 rm -rf apps/AEPSampleApp/ios/build
 rm -rf apps/AEPSampleApp/ios/Pods
 rm -rf apps/AEPSampleApp/android/build
 rm -rf apps/AEPSampleApp/android/app/build
 rm -rf apps/AEPSampleApp/android/.gradle
 
-# Clean and recreate libs directory
-echo "Cleaning libs directory..."
-rm -rf apps/AEPSampleApp/libs
-mkdir -p apps/AEPSampleApp/libs
-
-# Copy the archived packages to the sample app
-# (Yarn 1 ignores the path in --out and writes tarballs into each package's own directory)
-echo "Copying SDK packages to sample app..."
-cp packages/core/adobe-vega-aepcore-*.tgz apps/AEPSampleApp/libs/
-cp packages/media/adobe-vega-aepmedia-*.tgz apps/AEPSampleApp/libs/
-
-# Navigate to sample app directory
 cd apps/AEPSampleApp
 
-# Remove stale package-lock.json so npm doesn't use old integrity hashes for the file: tgz.
-# Fresh yarn pack in CI can produce different tgz checksums than the committed lockfile.
-rm -f package-lock.json
-
 echo "[build_sample_app] Installing sample app dependencies in $(pwd)..."
-[ -n "$NPM_TOKEN" ] && echo "[build_sample_app] WARNING: NPM_TOKEN is set (len=${#NPM_TOKEN})" || echo "[build_sample_app] NPM_TOKEN unset"
-[ -n "$NODE_AUTH_TOKEN" ] && echo "[build_sample_app] WARNING: NODE_AUTH_TOKEN is set (len=${#NODE_AUTH_TOKEN})" || echo "[build_sample_app] NODE_AUTH_TOKEN unset"
-# Use registry.npmjs.org explicitly (avoid registry.yarnpkg.com which can trigger token messages).
-echo "[build_sample_app] Using registry: https://registry.npmjs.org/"
+# @adobe/vega-aepcore and @adobe/vega-aepmedia are installed from local packages/core
+# and packages/media via file: references. npm packs them on the fly from source.
 npm install --registry=https://registry.npmjs.org/
 
-# Check if installation was successful
-if [ $? -eq 0 ]; then
-    echo "Build and setup completed successfully!"
-else
-    echo "Setup failed. Please check the error messages above."
-fi
+echo "Build, unit tests, and AEPSampleApp setup completed successfully!"

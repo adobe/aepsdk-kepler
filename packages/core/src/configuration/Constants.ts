@@ -10,10 +10,13 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+import { CoreConstants } from "../core/CoreConstants";
+
 // Constants for the Extension information
 export const EXTENSION_NAME = "com.adobe.module.configuration";
 export const FRIENDLY_NAME = "Configuration";
-export const EXTENSION_VERSION = "1.0.0-beta.2";
+// Re-use the core extension version (derived from package.json).
+export const EXTENSION_VERSION = CoreConstants.EXTENSION_VERSION;
 
 // Constants for the Configuration Update event
 export const UPDATE_CONFIGURATION_EVENT_KEY = "config.update";

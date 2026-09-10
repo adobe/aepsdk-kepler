@@ -10,7 +10,7 @@ governing permissions and limitations under the License.
 */
 
 import { EdgeHit } from "../../../src/edge/EdgeHit";
-import { getURLForHit } from "../../../src/edge/network-handling/UrlHelper";
+import { getURLForHit } from "../../../src/edge/network-handling/URLHelper";
 
 describe("URLHelper Tests", () => {
   describe("getURLForHit", () => {

@@ -1,0 +1,104 @@
+name: Publish to npm
+
+# Manual-only publisher for the @adobe/vega-aep* packages.
+# - workflow_dispatch: pick which package(s), the dist-tag, and dry-run vs real.
+# - The publish job runs in the protected `npm-production` environment, so it
+#   pauses for a required-reviewer approval before anything is uploaded.
+# - Never triggers on push/PR; nothing publishes without a human clicking Run
+#   AND an approver approving the environment.
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Which package to publish"
+        type: choice
+        options: [media, core, both]
+        default: media
+      dist_tag:
+        description: "npm dist-tag (latest for stable, beta for prereleases)"
+        type: choice
+        options: [latest, beta]
+        default: latest
+      dry_run:
+        description: "Dry run (pack only, no upload)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  id-token: write # required for npm provenance (OIDC)
+
+env:
+  NODE_VERSION: "22.14.0"
+  NPM_VERSION: "11.11.0"
+
+jobs:
+  publish:
+    name: Publish (${{ inputs.package }}, tag=${{ inputs.dist_tag }}, dry_run=${{ inputs.dry_run }})
+    runs-on: ubuntu-latest
+    # THE LOCK: this environment holds the npm token and requires reviewer
+    # approval. The job will not proceed until an approved reviewer approves it.
+    environment: npm-production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: "https://registry.npmjs.org/" # writes the auth .npmrc that reads NODE_AUTH_TOKEN
+
+      - name: Align npm version with lockfile
+        run: |
+          npm install -g npm@${{ env.NPM_VERSION }}
+          echo "npm $(npm -v)"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build_all
+
+      - name: Run unit tests
+        run: npm run unit_test
+
+      - name: Show what will be published
+        run: |
+          for pkg in core media; do
+            v=$(node -p "require('./packages/${pkg}/package.json').version")
+            echo "packages/${pkg}: @adobe/vega-aep${pkg} @ ${v}"
+          done
+          echo "selection=${{ inputs.package }} tag=${{ inputs.dist_tag }} dry_run=${{ inputs.dry_run }}"
+
+      - name: Publish @adobe/vega-aepcore
+        if: inputs.package == 'core' || inputs.package == 'both'
+        working-directory: packages/core
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          if npm view "@adobe/vega-aepcore@${VER}" version >/dev/null 2>&1; then
+            echo "@adobe/vega-aepcore@${VER} already published — skipping."
+            exit 0
+          fi
+          FLAGS="--access public --provenance --tag ${{ inputs.dist_tag }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then FLAGS="$FLAGS --dry-run"; fi
+          echo "npm publish $FLAGS"
+          npm publish $FLAGS
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ADOBE_BOT_NPM_TOKEN }}
+
+      - name: Publish @adobe/vega-aepmedia
+        if: inputs.package == 'media' || inputs.package == 'both'
+        working-directory: packages/media
+        run: |
+          VER=$(node -p "require('./package.json').version")
+          if npm view "@adobe/vega-aepmedia@${VER}" version >/dev/null 2>&1; then
+            echo "@adobe/vega-aepmedia@${VER} already published — skipping."
+            exit 0
+          fi
+          FLAGS="--access public --provenance --tag ${{ inputs.dist_tag }}"
+          if [ "${{ inputs.dry_run }}" = "true" ]; then FLAGS="$FLAGS --dry-run"; fi
+          echo "npm publish $FLAGS"
+          npm publish $FLAGS
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.ADOBE_BOT_NPM_TOKEN }}

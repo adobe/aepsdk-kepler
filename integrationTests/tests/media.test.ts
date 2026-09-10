@@ -13,6 +13,7 @@ governing permissions and limitations under the License.
 jest.mock("@adobe/vega-aepcore/src/platform-kepler");
 
 import { AEPSDK } from "@adobe/vega-aepcore";
+import { waitForFetchIdle } from "../src/test-utils/waitForFetch";
 import { resetSDK } from "../src/test-utils/resetSDK";
 import { LogLevel } from '@adobe/vega-aepcore/src/core/services';
 import { Media } from "@adobe/vega-aepmedia";
@@ -32,7 +33,6 @@ import { assertConsecutiveConsentRequest, assertEdgeResponse, assertFirstConsent
 const sdkConfiguration = require('../configuration.json');
 
 describe("Media Public APIs", () => {
-    const WAIT_TIME_MS = 1000;
     let originalFetch: typeof global.fetch;
     const recordedResponsesFromFetchSpy: Array<Response> = [];
 
@@ -138,7 +138,7 @@ describe("Media Public APIs", () => {
             Media.createMediaSession(sessionStartEvent);
 
             // Wait for the session start hit to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -160,7 +160,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(playEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             const fetchArgsForPlay = (global.fetch as jest.Mock).mock.calls[1];
@@ -179,7 +179,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(pauseEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             const fetchArgsForPause = (global.fetch as jest.Mock).mock.calls[2];
@@ -198,7 +198,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(sessionCompleteEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(4);
             const fetchArgsForSessionComplete = (global.fetch as jest.Mock).mock.calls[3];
@@ -224,7 +224,7 @@ describe("Media Public APIs", () => {
             Media.createMediaSession(sessionStartEvent);
 
             // Wait for the session start hit to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             // Assert that the fetch function was called
             expect(global.fetch).toHaveBeenCalledTimes(1);
@@ -243,7 +243,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(playEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             const fetchArgsForPlay = (global.fetch as jest.Mock).mock.calls[1];
@@ -262,7 +262,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(pauseEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             const fetchArgsForPause = (global.fetch as jest.Mock).mock.calls[2];
@@ -281,7 +281,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(sessionEndEvent);
 
             // Wait for the media event to be sent
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(4);
             const fetchArgsForSessionEnd = (global.fetch as jest.Mock).mock.calls[3];
@@ -307,12 +307,12 @@ describe("Media Public APIs", () => {
             AEPSDK.setConsent(consentNo);
 
             Media.createMediaSession(sessionStartEvent);
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             Media.sendMediaEvent(playEvent);
             Media.sendMediaEvent(pauseEvent);
             Media.sendMediaEvent(sessionCompleteEvent);
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
 
@@ -329,7 +329,7 @@ describe("Media Public APIs", () => {
             await initializeSDK(expectedDatastreamId);
 
             Media.createMediaSession(sessionStartEvent);
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             Media.sendMediaEvent(playEvent);
 
@@ -338,7 +338,7 @@ describe("Media Public APIs", () => {
             Media.sendMediaEvent(pauseEvent);
             Media.sendMediaEvent(sessionEndEvent);
 
-            await new Promise(resolve => setTimeout(resolve, WAIT_TIME_MS));
+            await waitForFetchIdle();
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
 

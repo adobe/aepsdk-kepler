@@ -21,7 +21,7 @@ export const CoreConstants = {
 
 export const eventHubPlaceHolderExtensionConstants = {
   EXTENSION_NAME: "com.adobe.module.eventhub",
-  VERSION: "1.0.1",
+  VERSION: PACKAGE_VERSION,
 } as const;
 
 export const WRAPPER_NONE = {

@@ -9,8 +9,18 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+const baseConfig = require("../jest.config");
+
 module.exports = {
-    ...require("../jest.config"),
+    ...baseConfig,
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.js"],
+    moduleNameMapper: {
+        ...baseConfig.moduleNameMapper,
+        // Integration tests run under a "node" env with no `window`; the real
+        // async-storage web fallback throws "window is not defined". Map it to an
+        // in-memory stand-in so VegaDataStore persistence works off-device.
+        "^@react-native-async-storage/async-storage$": "<rootDir>/__mocks__/asyncStorageMock.js",
+    },
     coverageThreshold: {
         global: {
             branches: 42,

@@ -9,10 +9,14 @@ OF ANY KIND, either express or implied. See the License for the specific languag
 governing permissions and limitations under the License.
 */
 
+import { CoreConstants } from "../core/CoreConstants";
+
 export const EdgeConstants = {
   EXTENSION_NAME: "com.adobe.edge",
   FRIENDLY_NAME: "Edge",
-  EXTENSION_VERSION: "1.0.1",
+  // Re-use the core extension version (derived from package.json) instead of
+  // duplicating the literal.
+  EXTENSION_VERSION: CoreConstants.EXTENSION_VERSION,
 
   Service: {
     DATASTORE: "dataStore",

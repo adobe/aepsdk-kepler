@@ -39,12 +39,21 @@ export function assertEdgeHandles(expectedHandleTypes: Array<string>, responseHa
     });
 }
 
+// Edge routes requests through the caller's nearest region, so the location-hint
+// segment in the path (e.g. /ee/or2/... in the US, /ee/ind1/... in India) varies by
+// network. Normalize it so path assertions verify shape + presence of a hint without
+// pinning a specific region. Matches a hint segment like "or2"/"ind1" ([a-z]{2,4}[0-9]+)
+// right after /ee/, leaving non-hinted segments ("va", "v1") untouched.
+function normalizeLocationHint(path: string): string {
+    return path.replace(/\/ee\/[a-z]{2,4}[0-9]+\//, '/ee/<hint>/');
+}
+
 export function assertRequestUrl(url: URL, expectedHostname: string, expectedPath: string, expectedDatastreamId: string) {
     const requestId = url.searchParams.get('requestId');
     const configId = url.searchParams.get('configId');
 
     expect(url.hostname).toEqual(expectedHostname);
-    expect(url.pathname).toEqual(expectedPath);
+    expect(normalizeLocationHint(url.pathname)).toEqual(normalizeLocationHint(expectedPath));
     expect(configId).toEqual(expectedDatastreamId);
     expect(requestId).toBeDefined();
 }

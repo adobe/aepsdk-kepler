@@ -305,13 +305,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 8,
     minHeight: 0,
-    '::-webkit-scrollbar': {
-      width: '8px',
-    },
-    '::-webkit-scrollbar-thumb': {
-      backgroundColor: 'rgba(255, 255, 255, 0.2)',
-      borderRadius: '4px',
-    },
   },
   content: {
     color: 'white',

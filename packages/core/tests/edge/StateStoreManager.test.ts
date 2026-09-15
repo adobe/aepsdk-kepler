@@ -18,9 +18,11 @@ jest.mock("../../src/core/services/DataStore");
 
 describe("StateStoreManager", () => {
   let mockDataStore: jest.Mocked<DataStore>;
+  const FIXED_NOW = 1700000000000;
 
   beforeEach(() => {
-    // Create a mocked instance of DataStore
+    jest.useFakeTimers();
+    jest.setSystemTime(FIXED_NOW);
     mockDataStore = {
       get: jest.fn(),
       set: jest.fn(),
@@ -29,6 +31,7 @@ describe("StateStoreManager", () => {
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     jest.clearAllMocks();
   });
 
@@ -50,8 +53,6 @@ describe("StateStoreManager", () => {
       type: "state:store",
     };
 
-    const testTS = Date.now();
-
     stateStoreManager.processEdgeResponse(responseHandle);
     expect(mockDataStore.set).toHaveBeenCalledWith(
       "edge.stateStore",
@@ -62,7 +63,7 @@ describe("StateStoreManager", () => {
             value: "or2",
             maxAge: 1800,
           },
-          expiryTS: testTS + 1800 * 1000,
+          expiryTS: FIXED_NOW + 1800 * 1000,
         },
       })
     );

@@ -19,8 +19,9 @@ import { resetSDK } from "../src/test-utils/resetSDK";
 import { serviceLookup } from "@adobe/vega-aepcore/dist/core/services";
 import { Extension, ExtensionContainer } from "@adobe/vega-aepcore/dist/core/extension";
 import { EventData } from "@adobe/vega-aepcore/dist/core/eventhub";
+import { CoreConstants } from "@adobe/vega-aepcore/dist/core/CoreConstants";
 
-const extensionVersion = "1.0.0-beta.2";
+const extensionVersion = CoreConstants.EXTENSION_VERSION;
 describe("test public APIs", () => {
   beforeEach(() => {
     resetSDK();

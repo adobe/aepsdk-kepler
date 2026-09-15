@@ -71,11 +71,7 @@ export class VegaDataStore implements DataStore {
 
   delete(key: string): void {
     const prefixedKey = this.getKeyWithPrefix(key);
-    Log.debug(
-      LOG_EXTENSION,
-      LOG_TAG,
-      `delete() - Deleting key(${prefixedKey}) from VegaDataStore`
-    );
+    Log.debug(LOG_EXTENSION, LOG_TAG, `delete() - Deleting key(${prefixedKey}) from VegaDataStore`);
     AsyncStorage.removeItem(prefixedKey).catch((error) => {
       Log.debug(
         LOG_EXTENSION,

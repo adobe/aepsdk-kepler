@@ -1,6 +1,6 @@
 {
   "name": "integration-tests",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "The integration tests for the Adobe Experience Platform Vega SDK",
   "homepage": "https://developer.adobe.com/client-sdks/documentation/",
   "license": "Apache-2.0",
@@ -19,8 +19,8 @@
     "adobe experience platform"
   ],
   "devDependencies": {
-    "@adobe/vega-aepcore": "^1.0.0-beta.2",
-    "@adobe/vega-aepmedia": "^1.0.0-beta.2"
+    "@adobe/vega-aepcore": "^1.0.1",
+    "@adobe/vega-aepmedia": "^1.0.1"
   },
   "author": {
     "name": "Adobe Experience Platform SDK Team"

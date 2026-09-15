@@ -10,6 +10,7 @@ governing permissions and limitations under the License.
 */
 
 const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
+const { resolve, join } = require('path');
 
 /**
 + * Metro configuration
@@ -17,6 +18,47 @@ const { getDefaultConfig, mergeConfig } = require('@react-native/metro-config');
  *
 + * @type {import('metro-config').MetroConfig}
  */
-const config = {};
+
+const config = {
+  transformer: {
+    getTransformOptions: async () => ({
+      transform: {
+        experimentalImportSupport: false,
+        inlineRequires: true,
+      },
+    }),
+  },
+  watchFolders: [
+    resolve(__dirname, '../../packages'),
+    resolve(__dirname, '../../node_modules')
+  ],
+  resolver: {
+    nodeModulesPaths: [
+      resolve(__dirname, 'node_modules'),
+      resolve(__dirname, '../../node_modules')
+    ],
+    extraNodeModules: new Proxy(
+      {},
+      {
+        get: (target, name) => {
+          if (typeof name !== 'string') {
+            return target[name];
+          }
+          if (
+            name &&
+            name.startsWith &&
+            name.startsWith('@adobe/vega-aep')
+          ) {
+            const packageName = name.replace('@adobe/vega-aep', '');
+            console.log('------packageName -> ' + packageName);
+            return resolve(__dirname, `../../packages/${packageName}`);
+          }
+          // For all other modules, check root node_modules first
+          return resolve(__dirname, `../../node_modules/${name}`);
+        },
+      },
+    ),
+  },
+};
 
 module.exports = mergeConfig(getDefaultConfig(__dirname), config);
